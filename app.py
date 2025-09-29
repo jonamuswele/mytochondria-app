@@ -868,7 +868,7 @@ def apply_action_effects(state: Dict[str, Any], task_label: str):
 
 st.title("🌱 Mytochondria AgriAdvisor ")
 
-tabs = st.tabs(["Sensor Mode", "Non-Sensor (Lab) Mode", "30-Day Demo"])
+tabs = st.tabs(["Sensor Mode", "Planting recommendations", "30-Day Demo"])
 
 # ---------------------------------
 # 1) SENSOR MODE
@@ -1147,5 +1147,6 @@ with tabs[2]:
         st.markdown("### Generated Insights (from last day)")
         for ins in insights:
             st.write(f"- **{ins['title']}** , {ins['description']}" + (f" _Action:_ {ins['action']}" if ins.get("action") else ""))
+
 
 
