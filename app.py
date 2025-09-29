@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, date
 from typing import List, Dict, Any, Optional, Tuple
 import streamlit as st
 import pandas as pd
-
+import requests
 # ==== NPK unit mapping (demo-calibrated caps) ====
 SUPPLY_CAP_KG_HA = {  # "100%" corresponds to this much plant-available nutrient
     "n": 120.0,   # kg N/ha
@@ -39,6 +39,188 @@ N_LEACH_KG_PER_HEAVY_RAIN = 1.2  # demo-safe base, adjust later
 # Bounds for management multipliers
 YIELD_FACTOR_MIN, YIELD_FACTOR_MAX = 0.8, 1.2
 DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX = 0.8, 1.2
+
+# ===== Baseline plant densities (demo defaults; tune to your agronomy) =====
+BASE_PLANT_DENSITY_HA = {
+    "maize": 53333,     # ~75 cm x 25 cm  → ~53,333 plants/ha
+    "beans": 200000,    # example baseline
+    "rice": 250000,     # ~20 cm x 20 cm  → ~250,000 plants/ha
+}
+
+# Clamp bounds for how far density can scale uptake (same ones you already use)
+DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX = 0.8, 1.2
+
+# --- Agro-ecological regions (Zambia) & typical soils (simplified) ---
+AER = {
+    "I":   {"rain_mm": "<800",  "soil_note": "Sandy-loam to sandy; low nutrient retention, drier south/west"},
+    "IIa": {"rain_mm": "800–1000", "soil_note": "Loam to clay-loam; moderately leached; most productive"},
+    "IIb": {"rain_mm": "800–1000", "soil_note": "Kalahari sands; strongly acidic, low water & nutrient holding"},
+    "III": {"rain_mm": "1000–1500", "soil_note": "Loam to clay; humid north; higher leaching, weathered clays"},
+}
+
+# Province/town → (lat, lon, AER)
+ZAMBIA_SITES = {
+    "Lusaka (Lusaka Prov)":       (-15.416, 28.283, "IIa"),
+    "Ndola (Copperbelt)":         (-12.968, 28.635, "IIa"),
+    "Kitwe (Copperbelt)":         (-12.818, 28.214, "IIa"),
+    "Solwezi (North-Western)":    (-12.173, 26.389, "IIa"),
+    "Mongu (Western)":            (-15.254, 23.125, "IIb"),
+    "Livingstone (Southern)":     (-17.858, 25.863, "I"),
+    "Choma (Southern)":           (-16.806, 26.953, "I"),
+    "Chipata (Eastern)":          (-13.636, 32.645, "IIa"),
+    "Kasama (Northern)":          (-10.212, 31.180, "III"),
+    "Mansa (Luapula)":            (-11.199, 28.894, "III"),
+}
+
+# --- Crop coefficients Kc by stage (very simplified FAO-56 style) ---
+CROP_KC = {
+    "maize": [
+        ("initial",    0.35, 20),
+        ("dev",        0.75, 25),
+        ("mid",        1.15, 40),
+        ("late",       0.80, 30),
+    ],
+    "beans": [
+        ("initial",    0.40, 15),
+        ("dev",        0.75, 20),
+        ("mid",        1.05, 25),
+        ("late",       0.80, 20),
+    ],
+    "rice": [
+        ("initial",    1.05, 20),
+        ("dev",        1.10, 25),
+        ("mid",        1.20, 40),
+        ("late",       0.90, 30),
+    ],
+}
+
+# Default root-zone depth for kg/ha conversion (top 0–20 cm), bulk density slider will override
+DEFAULT_DEPTH_M = 0.20
+
+# Percent ↔ kg/ha caps you already use in Sensor tab (reuse if defined)
+SUPPLY_CAP_KG_HA = {"n": 120.0, "p": 60.0, "k": 100.0}
+
+# Soil texture multipliers you already use (reuse to stay consistent)
+TEXTURE_UPTAKE_MULT = {"sand": 1.15, "loam": 1.00, "clay": 0.90}
+
+# Open-Meteo endpoints & common hourly vars
+OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
+HOURLY_VARS = "precipitation,et0_fao_evapotranspiration,temperature_2m_max"
+
+@st.cache_data(ttl=60*30)
+def fetch_weather(lat: float, lon: float, days_forward: int = 10, days_past: int = 7, tz: str = "Africa/Lusaka") -> Dict[str, Any]:
+    """Fetch hourly/daily weather (past & next) from Open-Meteo (no key)."""
+    # daily summaries are easier for water balances
+    params = {
+        "latitude": lat, "longitude": lon, "timezone": tz,
+        "hourly": "precipitation,et0_fao_evapotranspiration,temperature_2m",
+        "daily": "precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max,temperature_2m_min",
+        "forecast_days": max(1, min(16, days_forward)),
+        "past_days": max(0, min(92, days_past)),
+    }
+    r = requests.get(OPEN_METEO, params=params, timeout=20)
+    r.raise_for_status()
+    return r.json()
+
+def kc_for_day_since_planting(crop: str, dsp: int) -> float:
+    """Rough Kc by growth stage timeline."""
+    plan = CROP_KC.get(crop.lower(), CROP_KC["maize"])
+    day_cursor = 0
+    for _, kc, length in plan:
+        if dsp <= day_cursor + length:
+            return kc
+        day_cursor += length
+    return plan[-1][1]
+
+def compute_density_factor(crop: str, row_cm: float, plant_cm: float, base_density_ha: Optional[float] = None) -> Tuple[float, float]:
+    BASE_PLANT_DENSITY_HA = {"maize": 53333, "beans": 200000, "rice": 250000}
+    base = base_density_ha or BASE_PLANT_DENSITY_HA.get((crop or "").lower(), 100000.0)
+    row_m = max(0.0001, row_cm/100.0); plant_m = max(0.0001, plant_cm/100.0)
+    plants_per_ha = 10000.0 / (row_m * plant_m)
+    raw = plants_per_ha / base
+    return (clamp(raw, 0.8, 1.2), plants_per_ha)
+
+def mgkg_to_kgha(mg_per_kg: float, bulk_density_g_cm3: float, depth_m: float = DEFAULT_DEPTH_M) -> float:
+    """Convert lab mg/kg to kg/ha for the sampling depth & bulk density."""
+    # kg/ha = mg/kg × (soil mass per ha in kg); soil mass/ha = BD (t/m3)*1000 × depth (m) × 10,000 m2
+    soil_mass_kg = (bulk_density_g_cm3 * 1000) * depth_m * 10_000  # e.g., 1.3*1000*0.2*10k = 2,600,000 kg/ha
+    return max(0.0, mg_per_kg * soil_mass_kg / 1e6)
+
+def kgha_to_mgkg(kg_ha: float, bulk_density_g_cm3: float, depth_m: float = DEFAULT_DEPTH_M) -> float:
+    soil_mass_kg = (bulk_density_g_cm3 * 1000) * depth_m * 10_000
+    return max(0.0, kg_ha * 1e6 / soil_mass_kg)
+
+def irrigation_recommendations(crop: str, planting_date: date, daily: Dict[str, List], yield_factor: float, density_factor: float) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+    """Compute ETc, rain, deficit & simple weekly irrigation plan + risk flags."""
+    dts = [pd.to_datetime(t).date() for t in daily["time"]]
+    dsp = [(d - planting_date).days for d in dts]
+    kc = [kc_for_day_since_planting(crop, x) for x in dsp]
+    et0 = daily["et0_fao_evapotranspiration"]
+    rain = daily["precipitation_sum"]
+    tmax = daily["temperature_2m_max"]
+
+    etc = [max(0.0, (et0[i] or 0.0) * kc[i] * yield_factor * density_factor) for i in range(len(dts))]
+    deficit = [max(0.0, etc[i] - (rain[i] or 0.0)) for i in range(len(dts))]
+
+    df = pd.DataFrame({
+        "date": dts, "Kc": kc, "ET0_mm": et0, "Rain_mm": rain, "ETc_mm": etc, "Deficit_mm": deficit, "Tmax_C": tmax
+    })
+    df["week"] = df["date"].apply(lambda d: f"{d.isocalendar().year}-W{d.isocalendar().week:02d}")
+    weekly = df.groupby("week", as_index=False).agg({
+        "ETc_mm": "sum", "Rain_mm": "sum", "Deficit_mm": "sum"
+    })
+    weekly["Irrigation_mm"] = weekly["Deficit_mm"].apply(lambda x: max(0.0, round(x, 1)))
+
+    risks = {
+        "erosion_days": int((df["Rain_mm"]>=30).sum()),   # very wet days
+        "heat_stress_days": int((df["Tmax_C"]>=35).sum()),
+        "cool_germination_days": int(((df["Tmax_C"]<18) & (pd.Series(dsp)<=10)).sum()),
+    }
+    return df, {"weekly_plan": weekly, "risks": risks}
+
+def nutrient_plan_from_lab(crop: str, yield_factor: float, om_pct: float,
+                           n_kgha: float, p_mgkg: float, k_mgkg: float,
+                           bd: float, depth_m: float = DEFAULT_DEPTH_M) -> Dict[str, Any]:
+    """Very simple, region-agnostic plan: N need scales with yield; P,K if lab is low."""
+    # Convert lab P,K mg/kg → kg/ha pool (rule-of-thumb)
+    p_pool = mgkg_to_kgha(p_mgkg, bd, depth_m)
+    k_pool = mgkg_to_kgha(k_mgkg, bd, depth_m)
+
+    # Target ranges (demo; calibrate later per local recs)
+    # N: 60–120 kg/ha, scale with yield factor; OM mineralization offsets ~ 0.08*OM%*days (growing season 110 d assumed)
+    n_target = 90.0 * yield_factor   # mid-range
+    n_om_credit = max(0.0, om_pct * 0.08 * 110)  # ~OM% * 8.8 kg/ha
+    n_rec = max(0.0, n_target - n_kgha - n_om_credit)
+
+    # P & K: if pools are small, recommend 30–60 kg/ha P2O5/K2O
+    p_rec = 0.0 if p_pool >= 60 else (60 if p_pool < 30 else 30)
+    k_rec = 0.0 if k_pool >= 100 else (60 if k_pool < 50 else 30)
+
+    # Organic matter option: if pH < 5.5 or Kalahari sands (IIb), push OM/manure & liming
+    return {
+        "N_rec_kg_ha": round(n_rec, 1),
+        "P2O5_rec_kg_ha": p_rec,
+        "K2O_rec_kg_ha": k_rec,
+        "notes": {
+            "n_credit_om": round(n_om_credit, 1),
+            "p_pool_kgha": round(p_pool, 1),
+            "k_pool_kgha": round(k_pool, 1),
+        }
+    }
+
+def compute_density_factor(crop: str, row_spacing_cm: float, plant_spacing_cm: float) -> tuple[float, float]:
+    """
+    Return (density_factor, plants_per_ha) from spacings.
+    factor is clamped to [DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX] for stability.
+    """
+    row_m = max(0.0001, row_spacing_cm / 100.0)
+    plant_m = max(0.0001, plant_spacing_cm / 100.0)
+    plants_per_ha = 10000.0 / (row_m * plant_m)  # 10,000 m² per ha
+
+    base = BASE_PLANT_DENSITY_HA.get((crop or "").lower(), 100000.0)
+    raw_factor = plants_per_ha / base
+    factor = clamp(raw_factor, DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX)
+    return factor, plants_per_ha
 
 # ------------------------------
 # Utility + Global Config
@@ -630,10 +812,17 @@ with tabs[0]:
         chosen_crop = custom_crop.strip() if crop_opt.startswith("Other") and custom_crop.strip() else crop_opt
 
         # Soil & management (affect uptake/leaching)
-        soil_texture = st.selectbox("Soil texture", ["loam", "sand", "clay"], index=0)
-        om_pct = st.slider("Organic matter (%)", 0.0, 6.0, 2.0, 0.1, help="Affects N mineralization")
-        yield_factor = st.slider("Yield target factor", YIELD_FACTOR_MIN, YIELD_FACTOR_MAX, 1.0, 0.05)
-        density_factor = st.slider("Planting density factor", DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX, 1.0, 0.05)
+        soil_texture = st.selectbox("Soil texture", ["loam", "sand", "clay"], index=0, key="sensor_soil_texture")
+        om_pct = st.slider("Organic matter (%)", 0.0, 6.0, 2.0, 0.1, help="Affects N mineralization",
+                           key="sensor_om_pct")
+        yield_factor = st.slider("Yield target factor", YIELD_FACTOR_MIN, YIELD_FACTOR_MAX, 1.0, 0.05,
+                                 key="sensor_yield_factor")
+        # Spacing → density
+        row_spacing_cm = st.slider("Row spacing (cm)", 20.0, 100.0, 75.0, 5.0, key="sensor_row_spacing_cm")
+        plant_spacing_cm = st.slider("Plant spacing in row (cm)", 10.0, 60.0, 25.0, 5.0, key="sensor_plant_spacing_cm")
+
+        density_factor, plants_per_ha = compute_density_factor(chosen_crop, row_spacing_cm, plant_spacing_cm)
+        st.caption(f"Estimated density: {plants_per_ha:,.0f} plants/ha  •  factor used: {density_factor:.2f}")
 
         if st.button("Build Series from Planting → Now"):
             series, daily_alerts = simulate_from_planting(st.session_state.planting_date, chosen_crop)
@@ -645,8 +834,7 @@ with tabs[0]:
                 for a in daily_alerts
             ])
 
-        show_n_points = st.slider("Show last N points", 24, 24*120, 24*72, step=24, help="Chart window (hours)")
-
+        show_n_points = st.slider("Show last N points", 24, 24*120, 24*72, step=24, help="Chart window (hours)", key="sensor_show_n")
     # Insights above charts + depletion dates + applied alerts list
     with left:
         st.subheader("Insights (live)")
@@ -715,74 +903,136 @@ with tabs[0]:
 # 2) NON-SENSOR (LAB) MODE
 # ---------------------------------
 with tabs[1]:
-    st.subheader("Enter Exact Lab/Field Test Readings")
+    left, right = st.columns([2, 1])
 
-    with st.form("manual_form"):
-        colA, colB, colC = st.columns(3)
-        with colA:
-            moisture = st.slider("Soil Moisture (%)", 0, 100, 55)
-            temperature = st.slider("Soil Temperature (°C)", 0, 50, 24)
-            ph = st.number_input("Soil pH", min_value=3.5, max_value=9.0, value=6.5, step=0.1, format="%.1f")
-        with colB:
-            ec = st.slider("EC (dS/m), proxy salts", 0.1, 3.0, 1.2, step=0.1)
-            n_pct = st.slider("Nitrogen reserve (%)", 0, 100, 60)
-            p_pct = st.slider("Phosphorus reserve (%)", 0, 100, 50)
-        with colC:
-            k_pct = st.slider("Potassium reserve (%)", 0, 100, 55)
-            crop = st.selectbox("Crop", ["maize", "beans", "rice", "Other (not listed)"])
-            custom_crop = st.text_input("If not listed, type crop name here")
-            planting_date = st.date_input("Planting Date", value=st.session_state.planting_date)
+    with right:
+        st.subheader("Location & Planting")
+        site = st.selectbox("Choose your location", list(ZAMBIA_SITES.keys()) + ["Custom lat/lon"])
+        if site == "Custom lat/lon":
+            lat = st.number_input("Latitude", -90.0, 90.0, -15.416, 0.001)
+            lon = st.number_input("Longitude", -180.0, 180.0, 28.283, 0.001)
+            aer = st.selectbox("Agro-ecological Region", list(AER.keys()), index=1)
+        else:
+            lat, lon, aer = ZAMBIA_SITES[site]
 
-        submitted = st.form_submit_button("Analyze")
-        if submitted:
-            chosen_crop = custom_crop.strip() if crop.startswith("Other") and custom_crop.strip() else crop
-            st.session_state.manual_latest = {
-                "moisture": float(moisture),
-                "temperature": float(temperature),
-                "ph": float(ph),
-                "ec": float(ec),
-                "n": float(n_pct),
-                "p": float(p_pct),
-                "k": float(k_pct),
-                "crop": chosen_crop,
-                "planting_date": planting_date,
-            }
+        st.caption(f"AER **{aer}** — typical annual rainfall {AER[aer]['rain_mm']} mm; soils: {AER[aer]['soil_note']}.")
 
-    if st.session_state.manual_latest:
-        cur = st.session_state.manual_latest.copy()
-        st.markdown("### Current Status")
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Moisture (%)", f"{cur['moisture']:.1f}")
-        c2.metric("pH", f"{cur['ph']:.1f}")
-        c3.metric("EC (dS/m)", f"{cur['ec']:.1f}")
-        c4.metric("Temp (°C)", f"{cur['temperature']:.1f}")
+        planting_date = st.date_input("Planned planting date", value=date.today())
+        crop = st.selectbox("Main crop", ["maize", "beans", "rice"])
+        # intercropping (optional)
+        with st.expander("Add a second crop (optional)"):
+            crop2_on = st.checkbox("Enable intercropping")
+            crop2 = st.selectbox("Second crop", ["beans","maize","rice"], index=0, disabled=not crop2_on)
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("N", f"{pct_to_cat(cur['n'])} ({cur['n']:.0f}%)")
-        c2.metric("P", f"{pct_to_cat(cur['p'])} ({cur['p']:.0f}%)")
-        c3.metric("K", f"{pct_to_cat(cur['k'])} ({cur['k']:.0f}%)")
+        st.subheader("Spacing (density)")
+        row_cm = st.slider("Row spacing (cm)", 20.0, 100.0, 75.0, 5.0, key="lab_row_spacing_cm")
 
-        insights = generate_insights(cur)
+        plant_cm = st.slider("In-row spacing (cm)", 10.0, 60.0, 25.0, 5.0, key="lab_plant_spacing_cm")
+        dens_factor, plants_ha = compute_density_factor(crop, row_cm, plant_cm)
+        if crop2_on:
+            row2 = st.slider("Row spacing (2nd crop) (cm)", 20.0, 100.0, 45.0, 5.0, key="lab_row_spacing2_cm")
+            plant2 = st.slider("In-row spacing (2nd crop) (cm)", 10.0, 60.0, 20.0, 5.0, key="lab_plant_spacing2_cm")
 
-        st.markdown("### Insights & Actions")
-        for i, ins in enumerate(insights):
-            with st.expander(f"{ins['icon']} [{ins['priority'].upper()}] {ins['title']}", expanded=(i == 0)):
-                st.write(ins["description"])
-                if ins.get("action"):
-                    t_id = f"manual-{i}"
-                    prev = st.session_state.checklist.get(t_id, {"label": ins["action"], "done": False, "applied_effect": False})
-                    done = st.checkbox(f"Mark done: {ins['action']}", value=prev["done"], key=t_id)
-                    st.session_state.checklist[t_id] = {"label": ins["action"], "done": done, "applied_effect": prev.get("applied_effect", False)}
-                    if done and not st.session_state.checklist[t_id]["applied_effect"]:
-                        apply_action_effects(cur, ins["action"])
-                        # persist the change so next analysis uses the new state
-                        st.session_state.manual_latest = cur.copy()
-                        st.session_state.checklist[t_id]["applied_effect"] = True
+            dens2, plants2 = compute_density_factor(crop2, row2, plant2)
+            # combined density capped (simple)
+            dens_factor = clamp(dens_factor + 0.5*dens2, 0.8, 1.4)
+            plants_ha = plants_ha + 0.5*plants2
+        st.caption(f"Estimated stand: **{plants_ha:,.0f} plants/ha**, density factor used **{dens_factor:.2f}**")
 
-        # Custom crop submission
-        if cur["crop"].lower() not in ["maize", "beans", "rice"]:
-            st.info("Your crop is not in the list. We saved your crop name and data for follow-up advisory.")
+        st.subheader("Management & Soil")
+        soil_texture = st.selectbox("Soil texture (typical)", ["loam", "sand", "clay"], index=0 if aer != "IIb" else 1,
+                                    key="lab_soil_texture")
+        om_pct = st.slider("Organic matter (%)", 0.0, 6.0, 2.0, 0.1, key="lab_om_pct")
+        yield_factor = st.slider("Target yield factor", 0.8, 1.2, 1.0, 0.05, key="lab_yield_factor")
+        bd = st.slider("Bulk density (g/cm³)", 1.1, 1.6, 1.3, 0.05, key="lab_bd")
+        depth_m = st.slider("Sampling depth (m)", 0.10, 0.30, 0.20, 0.01, key="lab_depth_m")
 
+        st.subheader("Lab results (enter real values)")
+        ph = st.number_input("pH (water)", 3.5, 9.0, 6.0, 0.1)
+        ec = st.number_input("EC (dS/m)", 0.0, 5.0, 0.8, 0.1)
+        # N: allow entering nitrate-N kg/ha or estimate from mg/kg
+        n_mode = st.radio("Nitrogen input mode", ["kg/ha available N", "mg/kg nitrate-N"], horizontal=True)
+        if n_mode == "kg/ha available N":
+            n_kgha = st.number_input("Available N (kg/ha)", 0.0, 300.0, 20.0, 1.0)
+        else:
+            n_mgkg = st.number_input("Nitrate-N (mg/kg)", 0.0, 100.0, 10.0, 0.5)
+            n_kgha = mgkg_to_kgha(n_mgkg, bd, depth_m)
+        p_mgkg = st.number_input("Soil test P (mg/kg)", 0.0, 200.0, 12.0, 0.5)
+        k_mgkg = st.number_input("Soil test K (mg/kg)", 0.0, 400.0, 80.0, 1.0)
+
+        if st.button("Generate plan with real weather"):
+            wx = fetch_weather(lat, lon, days_forward=10, days_past=7)
+            st.session_state.ns_last = dict(
+                lat=lat, lon=lon, aer=aer, planting_date=planting_date, crop=crop,
+                dens_factor=dens_factor, plants_ha=plants_ha, soil_texture=soil_texture,
+                om_pct=om_pct, yield_factor=yield_factor, bd=bd, depth_m=depth_m,
+                ph=ph, ec=ec, n_kgha=n_kgha, p_mgkg=p_mgkg, k_mgkg=k_mgkg,
+                weather=wx, crop2=crop2 if crop2_on else None
+            )
+
+    with left:
+        st.subheader("Insights & Actions")
+        if "ns_last" not in st.session_state:
+            st.info("Fill the panel and click **Generate plan**.")
+        else:
+            p = st.session_state.ns_last
+            daily = p["weather"]["daily"]
+            df, water = irrigation_recommendations(
+                p["crop"], p["planting_date"], daily, p["yield_factor"], p["dens_factor"]
+            )
+            weekly = water["weekly_plan"]
+            risks = water["risks"]
+
+            # 1) Weather-driven irrigation & risks
+            st.markdown("### Water plan (next 10 days)")
+            st.dataframe(weekly, use_container_width=True, hide_index=True)
+            st.write(f"- **Erosion risk days** (≥30 mm/day): **{risks['erosion_days']}**")
+            st.write(f"- **Heat-stress days** (Tmax ≥35°C): **{risks['heat_stress_days']}**")
+            st.write(f"- **Cool germination risk** (early stage, low Tmax): **{risks['cool_germination_days']}**")
+            st.line_chart(df.set_index("date")[["Rain_mm","ETc_mm","Deficit_mm"]], use_container_width=True)
+
+            # 2) Nutrient plan from lab
+            plan = nutrient_plan_from_lab(
+                p["crop"], p["yield_factor"], p["om_pct"],
+                p["n_kgha"], p["p_mgkg"], p["k_mgkg"], p["bd"], p["depth_m"]
+            )
+            st.markdown("### Nutrient plan")
+            st.write(f"**Nitrogen (N):** apply ~**{plan['N_rec_kg_ha']} kg/ha** (credit from OM: {plan['notes']['n_credit_om']} kg/ha).")
+            st.write(f"**Phosphorus (P₂O₅):** **{plan['P2O5_rec_kg_ha']} kg/ha**  •  **Potassium (K₂O):** **{plan['K2O_rec_kg_ha']} kg/ha**")
+            st.caption(f"Estimated P pool: {plan['notes']['p_pool_kgha']} kg/ha, K pool: {plan['notes']['k_pool_kgha']} kg/ha (top {p['depth_m']} m).")
+
+            # 3) Condition-specific tips (pH/EC/texture/AER/weather)
+            tips = []
+            if p["ph"] < 5.5:
+                tips += ["Soil is acidic — consider liming to reach ~pH 6.0–6.5 before planting (apply 2–4 months ahead)."]
+            if p["ec"] >= 2.0:
+                tips += ["High salinity risk — avoid chloride-heavy K sources; schedule leaching irrigation after heavy rains."]
+            if p["aer"] == "IIb" or p["soil_texture"] == "sand":
+                tips += ["Kalahari sands/sandy soils — add **organic matter** (residues/compost/manure) to improve water & nutrient holding."]
+
+            if risks["erosion_days"] >= 1:
+                tips += ["Forecast has ≥30 mm/day rain — keep residue cover, contour ploughing or tied ridges to reduce runoff."]
+            if risks["heat_stress_days"] >= 1 and p["crop"] == "maize":
+                tips += ["Heat near flowering can cut kernel set — ensure no water stress 1 week before to 2 weeks after tasseling."]
+
+            if tips:
+                st.markdown("### Tips")
+                for t in tips:
+                    st.write("• " + t)
+
+            # 4) Yield outlook (very simple score)
+            total_etc = df["ETc_mm"].sum()
+            total_rain = df["Rain_mm"].sum()
+            water_ratio = (total_rain + weekly["Irrigation_mm"].sum()) / max(1.0, total_etc)
+            n_ok = (plan["N_rec_kg_ha"] < 20)  # if additional N need is small, we assume N adequate
+            if water_ratio >= 0.9 and n_ok and risks["heat_stress_days"] == 0:
+                outlook = "Good"
+            elif water_ratio >= 0.75:
+                outlook = "Watch"
+            else:
+                outlook = "At risk"
+            st.markdown(f"### Yield outlook: **{outlook}**")
+            st.caption("Heuristic: compares ETc vs rain+irrigation, checks N sufficiency & heat-stress days.")
 # ---------------------------------
 # 3) 30-DAY DEMO
 # ---------------------------------
