@@ -486,7 +486,7 @@ with tabs[1]:
 with tabs[2]:
     st.subheader("Synthetic 30-Day Dataset")
     days = st.slider("Days", 10, 60, 30, step=5)
-    if st.button("Generate 30-Day Demo Data"):
+    if st.button(f"Generate {days}-Day Demo Data"):
         demo = gen_demo_series(days=days)
         df = pd.DataFrame(demo).sort_values("timestamp")
         st.line_chart(df.set_index("timestamp")[["moisture", "temperature"]], use_container_width=True)
@@ -501,5 +501,6 @@ with tabs[2]:
         st.markdown("### Generated Insights (from last day)")
         for ins in insights:
             st.write(f"- **{ins['title']}** , {ins['description']}" + (f" _Action:_ {ins['action']}" if ins.get("action") else ""))
+
 
 
