@@ -107,6 +107,83 @@ TEXTURE_UPTAKE_MULT = {"sand": 1.15, "loam": 1.00, "clay": 0.90}
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 HOURLY_VARS = "precipitation,et0_fao_evapotranspiration,temperature_2m_max"
 
+def _split_mm(total_mm: float) -> str:
+    """Make irrigation amounts farmer-friendly (split into 2–3 waterings)."""
+    if total_mm <= 10:
+        return f"{int(round(total_mm))} mm once"
+    if total_mm <= 30:
+        each = int(round(total_mm/2))
+        return f"{int(round(total_mm))} mm total (split: {each} mm × 2)"
+    each = int(round(total_mm/3))
+    return f"{int(round(total_mm))} mm total (split: {each} mm × 3)"
+
+def generate_simple_actions(p: Dict[str, Any], plan: Dict[str, Any], weekly: "pd.DataFrame",
+                            risks: Dict[str, Any], df_daily: "pd.DataFrame") -> list[str]:
+    """Turn the plan + risks into short, clear action sentences."""
+    actions: list[str] = []
+
+    # — Timing —
+    actions.append(f"Plant on **{p['planting_date'].strftime('%b %d, %Y')}** if soil is moist (not waterlogged).")
+
+    # — Irrigation (next 2 weeks) —
+    wk = weekly.head(2).copy()
+    names = ["This week", "Next week"]
+    for i in range(len(wk)):
+        irr = float(wk.iloc[i]["Irrigation_mm"])
+        if irr > 0.5:
+            actions.append(f"{names[i]}: **Irrigate** " + _split_mm(irr) + ". Water early morning or late evening.")
+        else:
+            actions.append(f"{names[i]}: **No irrigation** needed if rainfall arrives as forecast.")
+
+    # — Erosion & heat/cold risks —
+    if risks.get("erosion_days", 0) >= 1:
+        actions.append("Heavy rain expected: **keep residue mulch** and use **contour ridges** to reduce erosion.")
+    if risks.get("heat_stress_days", 0) >= 1 and p["crop"] == "maize":
+        actions.append("Hot days ahead (≥35°C): **avoid water stress** from 1 week before to 2 weeks after tasseling.")
+    if risks.get("cool_germination_days", 0) >= 1:
+        actions.append("Cool spell during emergence: **delay planting** or use **shallow planting** to improve germination.")
+
+    # — pH / salinity —
+    if p["ph"] < 5.5:
+        actions.append("Soil is acidic: **apply agricultural lime** to move pH towards 6.0–6.5 before planting.")
+    if p["ec"] >= 2.0:
+        actions.append("Salinity risk: **avoid KCl**, prefer sulfate forms; plan a **leaching irrigation** after heavy rain.")
+
+    # — Nutrient plan —
+    n_need = float(plan["N_rec_kg_ha"])
+    p_need = float(plan["P2O5_rec_kg_ha"])
+    k_need = float(plan["K2O_rec_kg_ha"])
+    if n_need >= 5:
+        split_n = max(0, int(round(n_need*0.4)))
+        topdress = max(0, int(round(n_need - split_n)))
+        actions.append(f"Nitrogen: **{int(round(n_need))} kg/ha** total. Apply **{split_n} kg/ha at planting**, then **{topdress} kg/ha** at 4–6 weeks.")
+        if p.get("om_pct", 0) < 2.0:
+            actions.append("Boost soil **organic matter** (compost/manure) to supply slow-release N and improve water holding.")
+    else:
+        actions.append("Nitrogen: **no extra N** required now (OM credit and soil N are adequate).")
+
+    if p_need >= 10:
+        actions.append(f"Phosphorus: apply **{int(p_need)} kg/ha P₂O₅** **at planting** (band near seed; don’t mix with urea).")
+    else:
+        actions.append("Phosphorus: **no extra P** needed for this season.")
+
+    if k_need >= 10:
+        actions.append(f"Potassium: apply **{int(k_need)} kg/ha K₂O** (use sulfate on saline soils).")
+    else:
+        actions.append("Potassium: **no extra K** needed now.")
+
+    # — Spacing / density (already computed) —
+    actions.append(f"Keep spacing to hit **{int(p['plants_ha']):,} plants/ha** for good canopy and yield potential.")
+
+    # — Intercrop note —
+    if p.get("crop2"):
+        actions.append(f"Intercrop with **{p['crop2']}**: use **alternate rows** or a **1:1 strip**; keep fertilizer mainly with the main crop’s row.")
+
+    # — Simple housekeeping —
+    actions.append("After each rain or irrigation, **check for crusting/ponding** and break crust lightly to help emergence.")
+    actions.append("Keep **weeds below 10 cm**; early weeding saves water and nutrients for your crop.")
+
+    return actions
 @st.cache_data(ttl=60*30)
 def fetch_weather(lat: float, lon: float, days_forward: int = 10, days_past: int = 7, tz: str = "Africa/Lusaka") -> Dict[str, Any]:
     """Fetch hourly/daily weather (past & next) from Open-Meteo (no key)."""
@@ -893,7 +970,7 @@ with tabs[0]:
                 if recent:
                     recent = recent[::-1]
                     for a in recent[:100]:
-                        st.write(f"✅ {a['title']} — _{a['action']}_  ({a['time']})")
+                        st.write(f"✅ {a['title']} : _{a['action']}_  ({a['time']})")
                 else:
                     st.write("No actions yet.")
         else:
@@ -915,7 +992,7 @@ with tabs[1]:
         else:
             lat, lon, aer = ZAMBIA_SITES[site]
 
-        st.caption(f"AER **{aer}** — typical annual rainfall {AER[aer]['rain_mm']} mm; soils: {AER[aer]['soil_note']}.")
+        st.caption(f"AER **{aer}** : typical annual rainfall {AER[aer]['rain_mm']} mm; soils: {AER[aer]['soil_note']}.")
 
         planting_date = st.date_input("Planned planting date", value=date.today())
         crop = st.selectbox("Main crop", ["maize", "beans", "rice"])
@@ -924,14 +1001,14 @@ with tabs[1]:
             crop2_on = st.checkbox("Enable intercropping")
             crop2 = st.selectbox("Second crop", ["beans","maize","rice"], index=0, disabled=not crop2_on)
 
-        st.subheader("Spacing (density)")
-        row_cm = st.slider("Row spacing (cm)", 20.0, 100.0, 75.0, 5.0, key="lab_row_spacing_cm")
+        st.subheader("Space between your plants")
+        row_cm = st.slider("Row spacing (cm)", 20.0, 60.0, 75.0, 5.0, key="lab_row_spacing_cm")
 
-        plant_cm = st.slider("In-row spacing (cm)", 10.0, 60.0, 25.0, 5.0, key="lab_plant_spacing_cm")
+        plant_cm = st.slider("In-row spacing (cm)", 10.0, 50.0, 25.0, 5.0, key="lab_plant_spacing_cm")
         dens_factor, plants_ha = compute_density_factor(crop, row_cm, plant_cm)
         if crop2_on:
-            row2 = st.slider("Row spacing (2nd crop) (cm)", 20.0, 100.0, 45.0, 5.0, key="lab_row_spacing2_cm")
-            plant2 = st.slider("In-row spacing (2nd crop) (cm)", 10.0, 60.0, 20.0, 5.0, key="lab_plant_spacing2_cm")
+            row2 = st.slider("Row spacing (2nd crop) (cm)", 20.0, 60.0, 45.0, 5.0, key="lab_row_spacing2_cm")
+            plant2 = st.slider("In-row spacing (2nd crop) (cm)", 10.0, 50.0, 20.0, 5.0, key="lab_plant_spacing2_cm")
 
             dens2, plants2 = compute_density_factor(crop2, row2, plant2)
             # combined density capped (simple)
@@ -949,7 +1026,7 @@ with tabs[1]:
 
         st.subheader("Lab results (enter real values)")
         ph = st.number_input("pH (water)", 3.5, 9.0, 6.0, 0.1)
-        ec = st.number_input("EC (dS/m)", 0.0, 5.0, 0.8, 0.1)
+        ec = st.number_input("EC (dS/m): Electric conductivity of the soil", 0.0, 5.0, 0.8, 0.1)
         # N: allow entering nitrate-N kg/ha or estimate from mg/kg
         n_mode = st.radio("Nitrogen input mode", ["kg/ha available N", "mg/kg nitrate-N"], horizontal=True)
         if n_mode == "kg/ha available N":
@@ -1004,16 +1081,16 @@ with tabs[1]:
             # 3) Condition-specific tips (pH/EC/texture/AER/weather)
             tips = []
             if p["ph"] < 5.5:
-                tips += ["Soil is acidic — consider liming to reach ~pH 6.0–6.5 before planting (apply 2–4 months ahead)."]
+                tips += ["Soil is acidic: consider liming to reach ~pH 6.0–6.5 before planting (apply 2–4 months ahead)."]
             if p["ec"] >= 2.0:
-                tips += ["High salinity risk — avoid chloride-heavy K sources; schedule leaching irrigation after heavy rains."]
+                tips += ["High salinity risk: avoid chloride-heavy K sources; schedule leaching irrigation after heavy rains."]
             if p["aer"] == "IIb" or p["soil_texture"] == "sand":
-                tips += ["Kalahari sands/sandy soils — add **organic matter** (residues/compost/manure) to improve water & nutrient holding."]
+                tips += ["Kalahari sands/sandy soils: add **organic matter** (residues/compost/manure) to improve water & nutrient holding."]
 
             if risks["erosion_days"] >= 1:
-                tips += ["Forecast has ≥30 mm/day rain — keep residue cover, contour ploughing or tied ridges to reduce runoff."]
+                tips += ["Forecast has ≥30 mm/day rain: keep residue cover, contour ploughing or tied ridges to reduce runoff."]
             if risks["heat_stress_days"] >= 1 and p["crop"] == "maize":
-                tips += ["Heat near flowering can cut kernel set — ensure no water stress 1 week before to 2 weeks after tasseling."]
+                tips += ["Heat near flowering can cut kernel set: ensure no water stress 1 week before to 2 weeks after tasseling."]
 
             if tips:
                 st.markdown("### Tips")
@@ -1033,6 +1110,22 @@ with tabs[1]:
                 outlook = "At risk"
             st.markdown(f"### Yield outlook: **{outlook}**")
             st.caption("Heuristic: compares ETc vs rain+irrigation, checks N sufficiency & heat-stress days.")
+
+            # 5) actions in simple english
+            actions = generate_simple_actions(p, plan, weekly, risks, df)
+            st.markdown("### What to do (simple steps)")
+            for a in actions:
+                st.write("• " + a)
+
+            # (optional) one-click export
+            from io import StringIO
+
+            buf = StringIO()
+            buf.write("Mytochondria – Non-Sensor Plan\n\n")
+            for a in actions:
+                buf.write("• " + a + "\n")
+            st.download_button("Download actions as text", buf.getvalue(), file_name="field_actions.txt",
+                               key="lab_actions_dl")
 # ---------------------------------
 # 3) 30-DAY DEMO
 # ---------------------------------
