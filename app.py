@@ -32,6 +32,11 @@ def _db():
     # Streamlit runs multi-threaded; set check_same_thread=False
     return sqlite3.connect(DB_FILE, check_same_thread=False)
 
+def delete_farm(farm_id: str):
+    with _db() as conn:
+        c = conn.cursor()
+        c.execute("DELETE FROM farms WHERE farm_id=?", (farm_id,))
+        conn.commit()
 def init_db():
     with _db() as conn:
         c = conn.cursor()
@@ -1560,18 +1565,39 @@ with tabs[2]:
         st.rerun()
 
     st.markdown("### Your Farms")
-    if not user_farms:
-        st.info("You don’t have any farms yet. Add one below.")
-    else:
-        for farm in user_farms:
-            st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
-            st.caption(
-                f"Planted: {farm['planting_date']} • "
-                f"Spacing: {farm['row_cm']}×{farm['plant_cm']} cm • "
-                f"Soil: {farm.get('soil_texture','?')} • "
-                f"Compliance: {farm['compliance']}"
-            )
+    for farm in user.get("farms", []):
+        st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
+        st.caption(
+            f"Planted: {farm['planting_date']} • "
+            f"Spacing: {farm['spacing']} • "
+            f"Row: {farm.get('row_cm', '?')} cm • Plant: {farm.get('plant_cm', '?')} cm • "
+            f"Texture: {farm.get('soil_texture', '?')} • "
+            f"Compliance: {farm['compliance']}"
+        )
 
+        # Delete button (with confirmation)
+        del_key = f"delete_{farm['farm_id']}"
+        if st.button(f"🗑️ Delete {farm['farm_id']}", key=del_key):
+            st.session_state.confirm_delete = farm["farm_id"]
+
+    # Confirmation prompt (shown only if a farm was chosen for deletion)
+    if "confirm_delete" in st.session_state and st.session_state.confirm_delete:
+        fid = st.session_state.confirm_delete
+        st.error(f"⚠️ Are you sure you want to delete farm {fid}? This action cannot be undone.")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Yes, delete permanently"):
+                delete_farm(fid)
+                # refresh user farms in session
+                st.session_state.user = find_user(user["username"])
+                st.success(f"Farm {fid} deleted successfully.")
+                st.session_state.confirm_delete = None
+                st.rerun()
+        with col2:
+            if st.button("❌ Cancel"):
+                st.session_state.confirm_delete = None
+                st.info("Deletion canceled.")
     # ------------------------------------------------
     # Add New Farm Section
     # ------------------------------------------------
@@ -1587,7 +1613,10 @@ with tabs[2]:
     rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
 
     st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
-            f"{rec_row}×{rec_plant} cm • Soil: {rec_texture}")
+            f"{rec_row}×{rec_plant} cm • Soil: {rec_texture} ")
+    st.warning("⚠️ These are typical recommendations. "
+               "If your soil texture is different or you prefer another spacing, "
+               "please adjust the values manually below.")
 
     # Actual form for adding a farm
     with st.form("add_farm", clear_on_submit=True):
