@@ -1092,7 +1092,7 @@ with tabs[0]:
         sel_id = st.selectbox("Choose a farm", ids, index=0, key="one_farm_select")
     with top_r:
         if st.button("Sync to current hour"):
-            for _farm in user_farm:
+            for _farm in user_farms:
                 update_farm_until_now(_farm)
             st.rerun()
 
@@ -1443,7 +1443,15 @@ with tabs[2]:
                         "plant_cm": plant_cm,
                         "spacing": spacing,
                         "planting_date": str(planting_date),
-                        "compliance": compliance
+                        "compliance": compliance,
+                        # --- required for simulation ---
+                        "yield_factor": 1.0,
+                        "om_pct": 2.0,
+                        "agent": {
+                            "compliance": (0.8 if compliance == "immediate" else 0.5),
+                            "delay_min_h": 6,
+                            "delay_max_h": 24
+                        }
                     }
                     u["farms"].append(new_farm)
                     st.session_state.user = u
