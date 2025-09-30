@@ -1208,162 +1208,165 @@ with tabs[0]:
         update_farm_until_now(_farm)
 
     if not user_farms:
-        st.info("You don’t have any farms yet. Add one in **Manage Account**.")
-        st.stop()
-
+        st.info("You don’t have any farms yet. Add one in **Manage Account** or use **Non-Sensor (Lab) Mode**.")
+        st.caption("You can still generate plans in the Non-Sensor tab without adding a farm.")
+    else:
+        # ↓↓↓ everything from the "2) Choose ONE farm..." line to the end of the Sensor tab goes under this 'else:'
+        # 2) Choose ONE farm (no multi-select)
+        
     # 2) Choose ONE farm (no multi-select)
-    top_l, top_r = st.columns([3, 1])
-    with top_l:
-        ids = [f["farm_id"] for f in user_farms]
-        sel_id = st.selectbox("Choose a farm", ids, index=0, key="one_farm_select")
-    with top_r:
-        if st.button("Sync to current hour"):
-            for _farm in user_farms:
-                update_farm_until_now(_farm)
-            st.rerun()
+        top_l, top_r = st.columns([3, 1])
+        with top_l:
+            ids = [f["farm_id"] for f in user_farms]
+            sel_id = st.selectbox("Choose a farm", ids, index=0, key="one_farm_select")
+        with top_r:
+            if st.button("Sync to current hour"):
+                for _farm in user_farms:
+                    update_farm_until_now(_farm)
+                st.rerun()
 
-    # 3) Load selected farm + latest data
-    farm = next(f for f in user_farms if f["farm_id"] == sel_id)
-    fid = farm["farm_id"]
-    df = pd.DataFrame(st.session_state.farm_hist[fid]).sort_values("timestamp")
-    latest = df.iloc[-1].to_dict()
-    planting_date = df.iloc[0]["planting_date"]
-    days_since = (datetime.now().date() - planting_date).days
-    eta_days = max(0, _expected_days_to_harvest(farm["crop"]) - days_since)
+        # 3) Load selected farm + latest data
+        farm = next(f for f in user_farms if f["farm_id"] == sel_id)
+        fid = farm["farm_id"]
+        df = pd.DataFrame(st.session_state.farm_hist[fid]).sort_values("timestamp")
+        latest = df.iloc[-1].to_dict()
+        planting_date = df.iloc[0]["planting_date"]
+        days_since = (datetime.now().date() - planting_date).days
+        eta_days = max(0, _expected_days_to_harvest(farm["crop"]) - days_since)
 
-    # 4) Layout: left (cards + insights + logs + charts) / right (weather)
-    left, right = st.columns([3, 1])
+        # 4) Layout: left (cards + insights + logs + charts) / right (weather)
+        left, right = st.columns([3, 1])
 
-    # LEFT — summary cards (squares) + insights + full history + charts
-    with left:
-        st.markdown("#### Farm overview")
+        # LEFT — summary cards (squares) + insights + full history + charts
+        with left:
+            st.markdown("#### Farm overview")
 
-        # Grid of cards (“squares”)
-        st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+            # Grid of cards (“squares”)
+            st.markdown('<div class="card-grid">', unsafe_allow_html=True)
 
-        # Spacing & dates
-        _card("📅 Planting & Spacing",
-              f"{planting_date.strftime('%b %d')} • {farm['row_cm']}×{farm['plant_cm']} cm",
-              sub=f"Expected harvest: ~{eta_days} days", color="blue")
+            # Spacing & dates
+            _card("📅 Planting & Spacing",
+                  f"{planting_date.strftime('%b %d')} • {farm['row_cm']}×{farm['plant_cm']} cm",
+                  sub=f"Expected harvest: ~{eta_days} days", color="blue")
 
-        # Sensor health
-        last72 = df.tail(72)
-        uptime = 100.0 * len(last72) / 72.0 if len(df) >= 72 else 100.0
-        _card("🩺 Sensor Health", f"{uptime:.0f}%", sub="Expand for details",
-              color=("green" if uptime >= 95 else ("amber" if uptime >= 80 else "red")))
+            # Sensor health
+            last72 = df.tail(72)
+            uptime = 100.0 * len(last72) / 72.0 if len(df) >= 72 else 100.0
+            _card("🩺 Sensor Health", f"{uptime:.0f}%", sub="Expand for details",
+                  color=("green" if uptime >= 95 else ("amber" if uptime >= 80 else "red")))
 
-        # Moisture card (traffic-light)
-        mcol = _moisture_color(latest["moisture"])
-        _card("💧 Soil Moisture", f"{latest['moisture']:.0f}%",
-              sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")), color=mcol)
+            # Moisture card (traffic-light)
+            mcol = _moisture_color(latest["moisture"])
+            _card("💧 Soil Moisture", f"{latest['moisture']:.0f}%",
+                  sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")), color=mcol)
 
-        # NPK status cards (H/M/L)
-        ncat, pcat, kcat = pct_to_cat(latest["n"]), pct_to_cat(latest["p"]), pct_to_cat(latest["k"])
-        _card("🟢 N", ncat, sub="Nitrogen",   color=_color_by_status(ncat))
-        _card("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat))
-        _card("🟠 K", kcat, sub="Potassium",  color=_color_by_status(kcat))
+            # NPK status cards (H/M/L)
+            ncat, pcat, kcat = pct_to_cat(latest["n"]), pct_to_cat(latest["p"]), pct_to_cat(latest["k"])
+            _card("🟢 N", ncat, sub="Nitrogen",   color=_color_by_status(ncat))
+            _card("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat))
+            _card("🟠 K", kcat, sub="Potassium",  color=_color_by_status(kcat))
 
-        # Number of sensors per field (demo: 3)
-        _card("📡 Sensors", "3", sub="per field", color="gray")
+            # Number of sensors per field (demo: 3)
+            _card("📡 Sensors", "3", sub="per field", color="gray")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        # Expandable sensor health details
-        with st.expander("Sensor health details"):
-            st.write(f"Uptime last 72h: **{uptime:.0f}%**")
-            st.write(f"Last reading time: **{df['timestamp'].iloc[-1]}**")
-            st.write("Out-of-range count (demo): 0")
+            # Expandable sensor health details
+            with st.expander("Sensor health details"):
+                st.write(f"Uptime last 72h: **{uptime:.0f}%**")
+                st.write(f"Last reading time: **{df['timestamp'].iloc[-1]}**")
+                st.write("Out-of-range count (demo): 0")
 
-        # TODAY’S INSIGHTS (plain language)
-        st.markdown("#### Today’s insights")
-        latest["planting_date"] = planting_date
-        latest["crop"] = farm["crop"]
-        insights = generate_insights(latest)
+            # TODAY’S INSIGHTS (plain language)
+            st.markdown("#### Today’s insights")
+            latest["planting_date"] = planting_date
+            latest["crop"] = farm["crop"]
+            insights = generate_insights(latest)
 
-        # Weather-aware tweak: if water needed and rain tomorrow >=10mm → suggest waiting
-        try:
-            wx_day = fetch_weather(farm["lat"], farm["lon"], days_forward=3, days_past=0)
-            rain_next = float(wx_day["daily"]["precipitation_sum"][1]) if len(wx_day["daily"]["precipitation_sum"]) > 1 else 0.0
-        except Exception:
-            rain_next = 0.0
+            # Weather-aware tweak: if water needed and rain tomorrow >=10mm → suggest waiting
+            try:
+                wx_day = fetch_weather(farm["lat"], farm["lon"], days_forward=3, days_past=0)
+                rain_next = float(wx_day["daily"]["precipitation_sum"][1]) if len(wx_day["daily"]["precipitation_sum"]) > 1 else 0.0
+            except Exception:
+                rain_next = 0.0
 
-        for it in insights:
-            msg = f"**[{it['priority'].upper()}] {it['title']}** — {it['action']}"
-            if it["type"] == "water" and rain_next >= 10:
-                msg += f"  _(Rain ~{int(rain_next)} mm expected tomorrow — you can wait and re-check at 06:00.)_"
-            st.write(msg)
+            for it in insights:
+                msg = f"**[{it['priority'].upper()}] {it['title']}** — {it['action']}"
+                if it["type"] == "water" and rain_next >= 10:
+                    msg += f"  _(Rain ~{int(rain_next)} mm expected tomorrow — you can wait and re-check at 06:00.)_"
+                st.write(msg)
 
-        # Simple organic tips (farmer-friendly)
-        with st.expander("Simple nutrient tips (organic options)"):
-            st.write("• **Nitrogen**: composted manure or legume residues; farmyard manure; compost tea.")
-            st.write("• **Phosphorus**: bone meal (slow release), well-composted manure; rock phosphate on acidic soils.")
-            st.write("• **Potassium**: wood ash (lightly, avoid high-pH soils), composted banana peels; use sulfate K if saline.")
+            # Simple organic tips (farmer-friendly)
+            with st.expander("Simple nutrient tips (organic options)"):
+                st.write("• **Nitrogen**: composted manure or legume residues; farmyard manure; compost tea.")
+                st.write("• **Phosphorus**: bone meal (slow release), well-composted manure; rock phosphate on acidic soils.")
+                st.write("• **Potassium**: wood ash (lightly, avoid high-pH soils), composted banana peels; use sulfate K if saline.")
 
-        # PAST: daily alerts & applied actions with farmer “ticks”
-        st.markdown("#### Past alerts & actions")
+            # PAST: daily alerts & applied actions with farmer “ticks”
+            st.markdown("#### Past alerts & actions")
 
-        # Daily alerts (all)
-        alert_rows = st.session_state.farm_alerts.get(fid, [])
-        alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(columns=["day","type","title","status"])
-        if not alert_df.empty:
-            st.write("**Daily alerts (all)**")
-            st.dataframe(alert_df.sort_values("day", ascending=False),
-                         use_container_width=True, hide_index=True)
+            # Daily alerts (all)
+            alert_rows = st.session_state.farm_alerts.get(fid, [])
+            alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(columns=["day","type","title","status"])
+            if not alert_df.empty:
+                st.write("**Daily alerts (all)**")
+                st.dataframe(alert_df.sort_values("day", ascending=False),
+                             use_container_width=True, hide_index=True)
 
-        # Applied actions (all) + confirmation ticks
-        action_rows = st.session_state.farm_actions_log.get(fid, [])
-        act_df = pd.DataFrame([{
-                "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
-            } for a in action_rows]) if action_rows else pd.DataFrame(columns=["time","type","title","status"])
-        if not act_df.empty:
-            st.write("**Applied actions (all)**")
-            act_df = act_df.sort_values("time", ascending=False)
-            # Quick confirmation/checklist for the latest 20
-            with st.form(f"confirm_actions_{fid}"):
-                show = act_df.head(20).copy()
-                confirms = []
-                for i, row in show.iterrows():
-                    k = (fid, str(row["time"]), row["type"])
-                    checked = k in st.session_state.farm_actions_confirm
-                    confirms.append(st.checkbox(
-                        f"{row['time']} — {row['title']} ({row['type']})",
-                        value=checked, key=f"cfm_{fid}_{i}"
-                    ))
-                if st.form_submit_button("Save confirmations"):
+            # Applied actions (all) + confirmation ticks
+            action_rows = st.session_state.farm_actions_log.get(fid, [])
+            act_df = pd.DataFrame([{
+                    "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
+                } for a in action_rows]) if action_rows else pd.DataFrame(columns=["time","type","title","status"])
+            if not act_df.empty:
+                st.write("**Applied actions (all)**")
+                act_df = act_df.sort_values("time", ascending=False)
+                # Quick confirmation/checklist for the latest 20
+                with st.form(f"confirm_actions_{fid}"):
+                    show = act_df.head(20).copy()
+                    confirms = []
                     for i, row in show.iterrows():
                         k = (fid, str(row["time"]), row["type"])
-                        if confirms[i]:
-                            st.session_state.farm_actions_confirm.add(k)
-                        else:
-                            st.session_state.farm_actions_confirm.discard(k)
-            st.dataframe(act_df, use_container_width=True, hide_index=True)
+                        checked = k in st.session_state.farm_actions_confirm
+                        confirms.append(st.checkbox(
+                            f"{row['time']} — {row['title']} ({row['type']})",
+                            value=checked, key=f"cfm_{fid}_{i}"
+                        ))
+                    if st.form_submit_button("Save confirmations"):
+                        for i, row in show.iterrows():
+                            k = (fid, str(row["time"]), row["type"])
+                            if confirms[i]:
+                                st.session_state.farm_actions_confirm.add(k)
+                            else:
+                                st.session_state.farm_actions_confirm.discard(k)
+                st.dataframe(act_df, use_container_width=True, hide_index=True)
 
-        # CHARTS — full history at the bottom
-        st.markdown("#### Charts")
-        tail = df.set_index("timestamp")
-        st.line_chart(tail[["moisture","temperature"]], use_container_width=True)
-        st.line_chart(tail[["ph","ec"]], use_container_width=True)
-        st.line_chart(tail[["n","p","k"]], use_container_width=True)
+            # CHARTS — full history at the bottom
+            st.markdown("#### Charts")
+            tail = df.set_index("timestamp")
+            st.line_chart(tail[["moisture","temperature"]], use_container_width=True)
+            st.line_chart(tail[["ph","ec"]], use_container_width=True)
+            st.line_chart(tail[["n","p","k"]], use_container_width=True)
 
-    # RIGHT — past & forecast weather
-    with right:
-        st.markdown("#### Weather (past & forecast)")
-        try:
-            wx = fetch_weather(farm["lat"], farm["lon"], days_forward=5, days_past=5)
-            days = [pd.to_datetime(d).date().strftime("%b %d") for d in wx["daily"]["time"]]
-            rain = wx["daily"]["precipitation_sum"]
-            et0  = wx["daily"]["et0_fao_evapotranspiration"]
-            tmax = wx["daily"]["temperature_2m_max"]
-            wdf = pd.DataFrame({"Day": days, "Rain (mm)": rain, "ET₀ (mm)": et0, "Tmax (°C)": tmax})
-            # split around “today”
-            today_idx = [i for i, d in enumerate(wx["daily"]["time"]) if pd.to_datetime(d).date() == date.today()]
-            cut = today_idx[0] if today_idx else len(days)//2
-            st.write("**Past days**")
-            st.dataframe(wdf.iloc[:cut], use_container_width=True, hide_index=True)
-            st.write("**Upcoming days**")
-            st.dataframe(wdf.iloc[cut:], use_container_width=True, hide_index=True)
-        except Exception:
-            st.info("Weather unavailable right now.")
+        # RIGHT — past & forecast weather
+        with right:
+            st.markdown("#### Weather (past & forecast)")
+            try:
+                wx = fetch_weather(farm["lat"], farm["lon"], days_forward=5, days_past=5)
+                days = [pd.to_datetime(d).date().strftime("%b %d") for d in wx["daily"]["time"]]
+                rain = wx["daily"]["precipitation_sum"]
+                et0  = wx["daily"]["et0_fao_evapotranspiration"]
+                tmax = wx["daily"]["temperature_2m_max"]
+                wdf = pd.DataFrame({"Day": days, "Rain (mm)": rain, "ET₀ (mm)": et0, "Tmax (°C)": tmax})
+                # split around “today”
+                today_idx = [i for i, d in enumerate(wx["daily"]["time"]) if pd.to_datetime(d).date() == date.today()]
+                cut = today_idx[0] if today_idx else len(days)//2
+                st.write("**Past days**")
+                st.dataframe(wdf.iloc[:cut], use_container_width=True, hide_index=True)
+                st.write("**Upcoming days**")
+                st.dataframe(wdf.iloc[cut:], use_container_width=True, hide_index=True)
+            except Exception:
+                st.info("Weather unavailable right now.")
 # ---------------------------------
 # 2) NON-SENSOR (LAB) MODE
 # ---------------------------------
