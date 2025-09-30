@@ -64,6 +64,9 @@ if st.session_state.user is None:
                 st.success("Account created! Please login.")
     st.stop()
 
+user = st.session_state.user
+user_farms = user.get("farms", [])
+
 # ==== NPK unit mapping (demo-calibrated caps) ====
 SUPPLY_CAP_KG_HA = {  # "100%" corresponds to this much plant-available nutrient
     "n": 120.0,   # kg N/ha
@@ -1392,8 +1395,8 @@ with tabs[2]:
     st.subheader("👤 Account Dashboard")
 
 
-    user = st.session_state.user
-    user_farms = user.get("farms", [])
+    #user = st.session_state.user
+    #user_farms = user.get("farms", [])
     st.write(f"**Username:** {user['username']}")
     st.write(f"**Email:** {user.get('email','-')}")
 
@@ -1428,4 +1431,5 @@ with tabs[2]:
                     save_users(users)
                     st.success("Farm added successfully!")
                     st.rerun()
+
 
