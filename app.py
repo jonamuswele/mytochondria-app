@@ -1535,6 +1535,20 @@ with tabs[1]:
 # ---------------------------------
 # 3) Manage Account
 # ---------------------------------
+AER_TEXTURE_DEFAULT = {
+    "I": "sand",
+    "IIa": "loam",
+    "IIb": "sand",
+    "III": "clay"
+}
+
+CROP_SPACING_DEFAULT = {
+    "maize": (75, 25),
+    "beans": (45, 20),
+    "rice": (30, 20),
+    "maize+beans": (75, 25)
+}
+
 with tabs[2]:
     st.subheader("👤 Account Dashboard")
 
@@ -1546,37 +1560,46 @@ with tabs[2]:
         st.rerun()
 
     st.markdown("### Your Farms")
-    for farm in user.get("farms", []):
-        st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
-        st.caption(
-            f"Planted: {farm['planting_date']} • "
-            f"Spacing: {farm['row_cm']}×{farm['plant_cm']} cm • "
-            f"Texture: {farm.get('soil_texture','?')} • "
-            f"Compliance: {farm['compliance']}"
-        )
+    if not user_farms:
+        st.info("You don’t have any farms yet. Add one below.")
+    else:
+        for farm in user_farms:
+            st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
+            st.caption(
+                f"Planted: {farm['planting_date']} • "
+                f"Spacing: {farm['row_cm']}×{farm['plant_cm']} cm • "
+                f"Soil: {farm.get('soil_texture','?')} • "
+                f"Compliance: {farm['compliance']}"
+            )
 
-    st.markdown("### Add New Farm")
-    with st.form("add_farm", clear_on_submit=True):  # <-- clears form after submit
+    # ------------------------------------------------
+    # Add New Farm Section
+    # ------------------------------------------------
+    st.markdown("### ➕ Add New Farm")
+
+    # Choose crop and location first (outside form so they update live)
+    crop_choice = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
+    location_choice = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
+    lat, lon, aer = ZAMBIA_SITES.get(location_choice, (None, None, None))
+
+    # Live recommendations
+    rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop_choice, (60, 20))
+    rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
+
+    st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
+            f"{rec_row}×{rec_plant} cm • Soil: {rec_texture}")
+
+    # Actual form for adding a farm
+    with st.form("add_farm", clear_on_submit=True):
         farm_id = st.text_input("Farm ID", key="add_farm_id")
         system_id = st.text_input("System ID", key="add_system_id")
 
-        # Select crop
-        crop = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
+        row_cm = st.number_input("Row spacing (cm)", 10, 150,
+                                 value=rec_row, step=5, key="add_row_cm")
+        plant_cm = st.number_input("Plant spacing (cm)", 5, 100,
+                                   value=rec_plant, step=5, key="add_plant_cm")
 
-        # Select location
-        location = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
-        lat, lon, aer = ZAMBIA_SITES.get(location, (None, None, None))
-
-        # LIVE RECOMMENDATIONS
-        rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop, (60, 20))
-        rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
-
-        st.info(f"📌 Recommended for {crop} in {location}: {rec_row}×{rec_plant} cm • Soil: {rec_texture}")
-
-        # Inputs pre-filled with recommendations (auto update when crop/location changes)
-        row_cm = st.number_input("Row spacing (cm)", 10, 150, value=rec_row, step=5, key="add_row_cm")
-        plant_cm = st.number_input("Plant spacing (cm)", 5, 100, value=rec_plant, step=5, key="add_plant_cm")
-        soil_texture = st.selectbox("Soil texture", ["sand", "loam", "clay"],
+        soil_texture = st.selectbox("Soil texture", ["sand","loam","clay"],
                                     index=["sand","loam","clay"].index(rec_texture),
                                     key="add_soil_texture")
 
@@ -1586,13 +1609,17 @@ with tabs[2]:
         if st.form_submit_button("Save Farm"):
             spacing = f"{row_cm}x{plant_cm} cm"
             new_farm = {
-                "farm_id": farm_id, "system_id": system_id, "crop": crop, "location": location,
-                "lat": lat, "lon": lon, "soil_texture": soil_texture,
+                "farm_id": farm_id, "system_id": system_id, "crop": crop_choice,
+                "location": location_choice, "lat": lat, "lon": lon,
+                "soil_texture": soil_texture,
                 "row_cm": row_cm, "plant_cm": plant_cm, "spacing": spacing,
                 "planting_date": str(planting_date), "compliance": compliance,
                 "yield_factor": 1.0, "om_pct": 2.0,
-                "agent": {"compliance": (0.8 if compliance == "immediate" else 0.5),
-                          "delay_min_h": 6, "delay_max_h": 24}
+                "agent": {
+                    "compliance": (0.8 if compliance == "immediate" else 0.5),
+                    "delay_min_h": 6,
+                    "delay_max_h": 24
+                }
             }
             save_farm(user["username"], new_farm)
             st.session_state.user = find_user(user["username"])
