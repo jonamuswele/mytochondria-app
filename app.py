@@ -1215,20 +1215,20 @@ def apply_action_effects(state: Dict[str, Any], task_label: str):
 
 st.title("🌱 Mytochondria AgriAdvisor ")
 
-tabs = st.tabs(["Sensor Mode", "Non-Sensor (Lab) Mode", "Manage Account"])
+tabs = st.tabs(["Sensor Mode", "Crop Planner", "Manage Account"])
 
 # ---------------------------------
 # 1) SENSOR MODE
 # ---------------------------------
 with tabs[0]:
-    st.subheader("Sensor Mode — Live (one farm at a time)")
+    st.subheader("Sensor Mode Live ")
 
     # 1) Backfill all farms to current hour so data is always up-to-date
     for _farm in user_farms:
         update_farm_until_now(_farm)
 
     if not user_farms:
-        st.info("You don’t have any farms yet. Add one in **Manage Account** or use **Non-Sensor (Lab) Mode**.")
+        st.info("You don’t have any farms yet. Add one in **Manage Account** or use **Crop pplanner**.")
         st.caption("You can still generate plans in the Non-Sensor tab without adding a farm.")
     else:
         # ↓↓↓ everything from the "2) Choose ONE farm..." line to the end of the Sensor tab goes under this 'else:'
@@ -1311,9 +1311,9 @@ with tabs[0]:
                 rain_next = 0.0
 
             for it in insights:
-                msg = f"**[{it['priority'].upper()}] {it['title']}** — {it['action']}"
+                msg = f"**[{it['priority'].upper()}] {it['title']}** : {it['action']}"
                 if it["type"] == "water" and rain_next >= 10:
-                    msg += f"  _(Rain ~{int(rain_next)} mm expected tomorrow — you can wait and re-check at 06:00.)_"
+                    msg += f"  _(Rain ~{int(rain_next)} mm expected tomorrow : you can wait and re-check at 06:00.)_"
                 st.write(msg)
 
             # Simple organic tips (farmer-friendly)
@@ -1356,7 +1356,7 @@ with tabs[0]:
                         k = (fid, str(row["time"]), row["type"])
                         checked = k in st.session_state.farm_actions_confirm
                         confirms.append(st.checkbox(
-                            f"{row['time']} — {row['title']} ({row['type']})",
+                            f"{row['time']} : {row['title']} ({row['type']})",
                             value=checked, key=f"cfm_{fid}_{i}"
                         ))
                     if st.form_submit_button("Save confirmations"):
@@ -1395,7 +1395,7 @@ with tabs[0]:
             except Exception:
                 st.info("Weather unavailable right now.")
 # ---------------------------------
-# 2) NON-SENSOR (LAB) MODE
+# 2) CROP PLANNER
 # ---------------------------------
 with tabs[1]:
     left, right = st.columns([2, 1])
@@ -1512,14 +1512,33 @@ with tabs[1]:
                 df_past, irr_plan = irrigation_recommendations(
                     p["crop"], p["planting_date"], past_wx["daily"], p["yield_factor"], p["dens_factor"]
                 )
-                st.write("Using last year’s rainfall/ET₀, an irrigation plan is:")
+                st.write("Using last year’s rainfall and ET₀ (evapotranspiration), here is a weekly irrigation plan:")
+
                 st.dataframe(irr_plan["weekly_plan"], use_container_width=True, hide_index=True)
-                st.caption(
-                    "Plan: irrigate when deficits accumulate; split applications into 2–3 waterings per week when needed.")
+
+                #  Legend & explanation
+                with st.expander("ℹ️ Understanding the irrigation table"):
+                    st.write("""
+                    - **Week**: Calendar week of the year.
+                    - **ETc_mm**: Crop water demand (evapotranspiration adjusted by growth stage).
+                    - **Rain_mm**: Total rainfall received that week.
+                    - **Deficit_mm**: Gap between crop demand (ETc) and rainfall. If positive, irrigation is needed.
+                    - **Irrigation_mm**: Suggested irrigation to close the deficit.
+                    """)
+                    st.caption(
+                        "Tip: Apply irrigation in 2–3 smaller splits per week rather than one large application.")
+
+                #  Optional explanation text
+                st.markdown("#### Why deficits matter")
+                st.write("""
+                • **ETc (crop water demand)** is how much water the crop actually needs each week.  
+                • **Rainfall** supplies part of that demand.  
+                • **Deficit** is the shortfall: if positive, the crop will stress unless you irrigate.  
+                • The plan tells you how much to irrigate to keep plants healthy.  
+                """)
             except Exception:
                 st.info("Irrigation plan unavailable (weather data fetch failed).")
 
-                
             # 3) Condition-specific tips (pH/EC/texture/AER/weather)
             tips = []
             if p["ph"] < 5.5:
@@ -1597,7 +1616,7 @@ with tabs[2]:
 
     st.markdown("### Your Farms")
     for farm in user.get("farms", []):
-        st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
+        st.write(f"🌱 **{farm['farm_id']}** : {farm['crop']} at {farm['location']}")
         st.caption(
             f"Planted: {farm['planting_date']} • "
             f"Spacing: {farm['spacing']} • "
