@@ -1,7 +1,7 @@
 [
   {
     "username": "farmer1",
-    "password": "12345678",  
+    "password": "12345678",
     "email": "farmer1@example.com",
     "farms": [
       {
@@ -9,8 +9,65 @@
         "system_id": "SYS-001",
         "crop": "maize",
         "location": "Southern, Zambia",
-        "spacing": "75x30 cm",
+        "spacing": "75x25 cm",
         "planting_date": "2025-09-01",
+        "compliance": "immediate"
+      }
+    ]
+  },
+  {
+    "username": "farmer2",
+    "password": "12345678",
+    "email": "farmer2@example.com",
+    "farms": [
+      {
+        "farm_id": "FARM-02",
+        "system_id": "SYS-002",
+        "crop": "beans",
+        "location": "Copperbelt, Zambia",
+        "spacing": "45x20 cm",
+        "planting_date": "2025-09-03",
+        "compliance": "delayed"
+      }
+    ]
+  },
+  {
+    "username": "farmer3",
+    "password": "12345678",
+    "email": "farmer3@example.com",
+    "farms": [
+      {
+        "farm_id": "FARM-03",
+        "system_id": "SYS-003",
+        "crop": "maize",
+        "location": "Western, Zambia",
+        "spacing": "75x30 cm",
+        "planting_date": "2025-09-05",
+        "compliance": "immediate"
+      },
+      {
+        "farm_id": "FARM-04",
+        "system_id": "SYS-004",
+        "crop": "rice",
+        "location": "Northern, Zambia",
+        "spacing": "30x20 cm",
+        "planting_date": "2025-09-07",
+        "compliance": "delayed"
+      }
+    ]
+  },
+  {
+    "username": "farmer4",
+    "password": "12345678",
+    "email": "farmer4@example.com",
+    "farms": [
+      {
+        "farm_id": "FARM-05",
+        "system_id": "SYS-005",
+        "crop": "maize+beans",
+        "location": "Eastern, Zambia",
+        "spacing": "75x25 cm",
+        "planting_date": "2025-09-09",
         "compliance": "immediate"
       }
     ]
