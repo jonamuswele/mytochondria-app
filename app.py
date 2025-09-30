@@ -13,6 +13,21 @@ USERS_FILE = "users.json"
 
 DB_FILE = "users.db"
 
+AER_TEXTURE_DEFAULT = {
+    "I": "sand",
+    "IIa": "loam",
+    "IIb": "sand",
+    "III": "clay"
+}
+
+CROP_SPACING_DEFAULT = {
+    "maize": (75, 25),
+    "beans": (45, 20),
+    "rice": (30, 20),
+    "maize+beans": (75, 25)  # fallback, or you could ask both crops
+}
+
+
 def _db():
     # Streamlit runs multi-threaded; set check_same_thread=False
     return sqlite3.connect(DB_FILE, check_same_thread=False)
@@ -1213,7 +1228,7 @@ with tabs[0]:
     else:
         # ↓↓↓ everything from the "2) Choose ONE farm..." line to the end of the Sensor tab goes under this 'else:'
         # 2) Choose ONE farm (no multi-select)
-        
+
     # 2) Choose ONE farm (no multi-select)
         top_l, top_r = st.columns([3, 1])
         with top_l:
@@ -1543,19 +1558,28 @@ with tabs[2]:
 
     st.markdown("### Add New Farm")
     with st.form("add_farm"):
-        farm_id = st.text_input("Farm ID")
-        system_id = st.text_input("System ID")
-        crop = st.selectbox("Crop", ["maize","beans","rice","maize+beans"])
-        location = st.selectbox("Location", list(ZAMBIA_SITES.keys()))
-        row_cm = st.number_input("Row spacing (cm)", 10, 150, 75, 5)
-        plant_cm = st.number_input("Plant spacing (cm)", 5, 100, 25, 5)
-        soil_texture = st.selectbox("Soil texture", ["sand","loam","clay"])
-        planting_date = st.date_input("Planting date")
-        compliance = st.selectbox("Compliance behavior", ["immediate","delayed"])
+        farm_id = st.text_input("Farm ID", key="farm_id")
+        system_id = st.text_input("System ID", key="system_id")
+        crop = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="crop")
+        location = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="location")
+
+        # propose soil texture by AER
+        lat, lon, aer = ZAMBIA_SITES.get(location, (None, None, None))
+        default_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
+
+        # propose spacing by crop
+        row_default, plant_default = CROP_SPACING_DEFAULT.get(crop, (60, 20))
+        row_cm = st.number_input("Row spacing (cm)", 10, 150, row_default, 5, key="row_cm")
+        plant_cm = st.number_input("Plant spacing (cm)", 5, 100, plant_default, 5, key="plant_cm")
+
+        soil_texture = st.selectbox("Soil texture", ["sand", "loam", "clay"],
+                                    index=["sand", "loam", "clay"].index(default_texture),
+                                    key="soil_texture")
+
+        planting_date = st.date_input("Planting date", key="planting_date")
+        compliance = st.selectbox("Compliance behavior", ["immediate", "delayed"], key="compliance")
 
         if st.form_submit_button("Save Farm"):
-            # lat/lon from location dictionary
-            lat, lon, aer = ZAMBIA_SITES.get(location, (None, None, None))
             spacing = f"{row_cm}x{plant_cm} cm"
             new_farm = {
                 "farm_id": farm_id,
@@ -1580,8 +1604,13 @@ with tabs[2]:
                 }
             }
             save_farm(user["username"], new_farm)
-
-            # Refresh the logged-in user (so user['farms'] is up to date)
             st.session_state.user = find_user(user["username"])
             st.success("Farm added successfully!")
+
+            # clear input state
+            for k in ["farm_id", "system_id", "crop", "location", "row_cm", "plant_cm",
+                      "soil_texture", "planting_date", "compliance"]:
+                if k in st.session_state:
+                    del st.session_state[k]
+
             st.rerun()
