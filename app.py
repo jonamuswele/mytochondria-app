@@ -1394,9 +1394,6 @@ with tabs[1]:
 with tabs[2]:
     st.subheader("👤 Account Dashboard")
 
-
-    #user = st.session_state.user
-    #user_farms = user.get("farms", [])
     st.write(f"**Username:** {user['username']}")
     st.write(f"**Email:** {user.get('email','-')}")
 
@@ -1407,29 +1404,49 @@ with tabs[2]:
     st.markdown("### Your Farms")
     for farm in user.get("farms", []):
         st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
-        st.caption(f"Planted: {farm['planting_date']} • Spacing: {farm['spacing']} • Compliance: {farm['compliance']}")
+        st.caption(
+            f"Planted: {farm['planting_date']} • "
+            f"Spacing: {farm['spacing']} • "
+            f"Row: {farm.get('row_cm','?')} cm • Plant: {farm.get('plant_cm','?')} cm • "
+            f"Texture: {farm.get('soil_texture','?')} • "
+            f"Compliance: {farm['compliance']}"
+        )
 
     st.markdown("### Add New Farm")
     with st.form("add_farm"):
         farm_id = st.text_input("Farm ID")
         system_id = st.text_input("System ID")
-        crop = st.selectbox("Crop", ["maize","beans","rice"])
-        location = st.text_input("Location (e.g., Zone 2, Zambia)")
-        spacing = st.text_input("Spacing (e.g., 75x30 cm)")
+        crop = st.selectbox("Crop", ["maize","beans","rice","maize+beans"])
+        location = st.selectbox("Location", list(ZAMBIA_SITES.keys()))
+        row_cm = st.number_input("Row spacing (cm)", 10, 150, 75, 5)
+        plant_cm = st.number_input("Plant spacing (cm)", 5, 100, 25, 5)
+        soil_texture = st.selectbox("Soil texture", ["sand","loam","clay"])
         planting_date = st.date_input("Planting date")
         compliance = st.selectbox("Compliance behavior", ["immediate","delayed"])
+
         if st.form_submit_button("Save Farm"):
             users = load_users()
             for u in users:
                 if u["username"] == user["username"]:
-                    u["farms"].append({
-                        "farm_id": farm_id, "system_id": system_id,
-                        "crop": crop, "location": location, "spacing": spacing,
-                        "planting_date": str(planting_date), "compliance": compliance
-                    })
+                    # lat/lon from location dictionary
+                    lat, lon, aer = ZAMBIA_SITES.get(location, (None, None, None))
+                    spacing = f"{row_cm}x{plant_cm} cm"
+                    new_farm = {
+                        "farm_id": farm_id,
+                        "system_id": system_id,
+                        "crop": crop,
+                        "location": location,
+                        "lat": lat,
+                        "lon": lon,
+                        "soil_texture": soil_texture,
+                        "row_cm": row_cm,
+                        "plant_cm": plant_cm,
+                        "spacing": spacing,
+                        "planting_date": str(planting_date),
+                        "compliance": compliance
+                    }
+                    u["farms"].append(new_farm)
                     st.session_state.user = u
                     save_users(users)
                     st.success("Farm added successfully!")
                     st.rerun()
-
-
