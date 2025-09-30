@@ -6,6 +6,64 @@ from typing import List, Dict, Any, Optional, Tuple
 import streamlit as st
 import pandas as pd
 import requests
+import json, os
+
+USERS_FILE = "users.json"
+
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return []
+    with open(USERS_FILE, "r") as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f, indent=2)
+
+def find_user(username, password=None):
+    users = load_users()
+    for u in users:
+        if u["username"] == username and (password is None or u["password"] == password):
+            return u
+    return None
+
+# ------------------------------
+# Authentication
+# ------------------------------
+if "user" not in st.session_state:
+    st.session_state.user = None
+
+if st.session_state.user is None:
+    st.title("👩‍🌾 Mytochondria Farmer Login")
+
+    tab_login, tab_register = st.tabs(["Login", "Register"])
+
+    with tab_login:
+        uname = st.text_input("Username", key="login_user")
+        pword = st.text_input("Password", type="password", key="login_pass")
+        if st.button("Login"):
+            user = find_user(uname, pword)
+            if user:
+                st.session_state.user = user
+                st.success("Welcome back!")
+                st.rerun()
+            else:
+                st.error("Invalid username or password.")
+
+    with tab_register:
+        new_user = st.text_input("Choose username", key="reg_user")
+        new_pass = st.text_input("Choose password", type="password", key="reg_pass")
+        new_email = st.text_input("Email", key="reg_email")
+        if st.button("Register"):
+            users = load_users()
+            if any(u["username"] == new_user for u in users):
+                st.error("Username already exists.")
+            else:
+                users.append({"username": new_user, "password": new_pass, "email": new_email, "farms": []})
+                save_users(users)
+                st.success("Account created! Please login.")
+    st.stop()
+
 # ==== NPK unit mapping (demo-calibrated caps) ====
 SUPPLY_CAP_KG_HA = {  # "100%" corresponds to this much plant-available nutrient
     "n": 120.0,   # kg N/ha
@@ -404,7 +462,7 @@ def ensure_farm_initialized(farm: Dict[str, Any]):
         return  # already initialized
 
     # Planting ~ one month ago
-    planting_date = (datetime.now().date() - timedelta(days=30))
+    planting_date = datetime.fromisoformat(farm.get("planting_date", str(datetime.now().date()))).date()
     st.session_state.farm_last_ts[fid] = datetime.combine(planting_date, datetime.min.time())
 
     # Start pools & environment
@@ -1008,7 +1066,7 @@ def apply_action_effects(state: Dict[str, Any], task_label: str):
 
 st.title("🌱 Mytochondria AgriAdvisor ")
 
-tabs = st.tabs(["Sensor Mode", "Non-Sensor (Lab) Mode", "30-Day Demo"])
+tabs = st.tabs(["Sensor Mode", "Non-Sensor (Lab) Mode", "Manage Account"])
 
 # ---------------------------------
 # 1) SENSOR MODE
@@ -1324,25 +1382,44 @@ with tabs[1]:
             st.download_button("Download actions as text", buf.getvalue(), file_name="field_actions.txt",
                                key="lab_actions_dl")
 # ---------------------------------
-# 3) 30-DAY DEMO
+# 3) Manage Account
 # ---------------------------------
 with tabs[2]:
-    st.subheader("Synthetic 30-Day Dataset")
-    days = st.slider("Days", 10, 60, 30, step=5)
-    if st.button(f"Generate {days}-Day Demo Data"):
-        demo = gen_demo_series(days=days)
-        df = pd.DataFrame(demo).sort_values("timestamp")
-        st.line_chart(df.set_index("timestamp")[["moisture", "temperature"]], use_container_width=True)
-        st.line_chart(df.set_index("timestamp")[["ph", "ec"]], use_container_width=True)
-        st.line_chart(df.set_index("timestamp")[["n", "p", "k"]], use_container_width=True)
+    st.subheader("👤 Account Dashboard")
 
-        latest = df.iloc[-1].to_dict()
-        latest["planting_date"] = st.session_state.planting_date
-        latest["crop"] = "maize"  # pick one for demo forecasts
-        insights = generate_insights(latest)
+    user = st.session_state.user
+    st.write(f"**Username:** {user['username']}")
+    st.write(f"**Email:** {user.get('email','-')}")
 
-        st.markdown("### Generated Insights (from last day)")
-        for ins in insights:
-            st.write(f"- **{ins['title']}** , {ins['description']}" + (f" _Action:_ {ins['action']}" if ins.get("action") else ""))
+    if st.button("Logout"):
+        st.session_state.user = None
+        st.rerun()
 
+    st.markdown("### Your Farms")
+    for farm in user.get("farms", []):
+        st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
+        st.caption(f"Planted: {farm['planting_date']} • Spacing: {farm['spacing']} • Compliance: {farm['compliance']}")
+
+    st.markdown("### Add New Farm")
+    with st.form("add_farm"):
+        farm_id = st.text_input("Farm ID")
+        system_id = st.text_input("System ID")
+        crop = st.selectbox("Crop", ["maize","beans","rice"])
+        location = st.text_input("Location (e.g., Zone 2, Zambia)")
+        spacing = st.text_input("Spacing (e.g., 75x30 cm)")
+        planting_date = st.date_input("Planting date")
+        compliance = st.selectbox("Compliance behavior", ["immediate","delayed"])
+        if st.form_submit_button("Save Farm"):
+            users = load_users()
+            for u in users:
+                if u["username"] == user["username"]:
+                    u["farms"].append({
+                        "farm_id": farm_id, "system_id": system_id,
+                        "crop": crop, "location": location, "spacing": spacing,
+                        "planting_date": str(planting_date), "compliance": compliance
+                    })
+                    st.session_state.user = u
+                    save_users(users)
+                    st.success("Farm added successfully!")
+                    st.rerun()
 
