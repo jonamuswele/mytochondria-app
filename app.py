@@ -1318,10 +1318,17 @@ with tabs[0]:
 
             # Simple organic tips (farmer-friendly)
             with st.expander("Simple nutrient tips (organic options)"):
-                st.write("• **Nitrogen**: composted manure or legume residues; farmyard manure; compost tea.")
-                st.write("• **Phosphorus**: bone meal (slow release), well-composted manure; rock phosphate on acidic soils.")
-                st.write("• **Potassium**: wood ash (lightly, avoid high-pH soils), composted banana peels; use sulfate K if saline.")
-
+                tips = [
+                    "🌱 **Nitrogen**: composted manure or legume residues; also intercropping with beans improves N supply.",
+                    "🌿 **Phosphorus**: bone meal (slow release), well-composted manure; rock phosphate on acidic soils.",
+                    "🍌 **Potassium**: wood ash (lightly, avoid high-pH soils), composted banana peels; compost extracts.",
+                    "🪱 **Soil health**: add compost/vermicompost to improve microbial activity and soil structure.",
+                    "🌾 **Plant vigor**: apply foliar teas (compost tea, seaweed extracts) to boost stress tolerance.",
+                    "🍂 **Residue management**: keep crop residues on the soil to reduce erosion and add organic matter."
+                ]
+                # pick 3 random each time
+                for tip in random.sample(tips, 3):
+                    st.write("• " + tip)
             # PAST: daily alerts & applied actions with farmer “ticks”
             st.markdown("#### Past alerts & actions")
 
@@ -1485,10 +1492,34 @@ with tabs[1]:
                 p["n_kgha"], p["p_mgkg"], p["k_mgkg"], p["bd"], p["depth_m"]
             )
             st.markdown("### Nutrient plan")
-            st.write(f"**Nitrogen (N):** apply ~**{plan['N_rec_kg_ha']} kg/ha** (credit from OM: {plan['notes']['n_credit_om']} kg/ha).")
-            st.write(f"**Phosphorus (P₂O₅):** **{plan['P2O5_rec_kg_ha']} kg/ha**  •  **Potassium (K₂O):** **{plan['K2O_rec_kg_ha']} kg/ha**")
-            st.caption(f"Estimated P pool: {plan['notes']['p_pool_kgha']} kg/ha, K pool: {plan['notes']['k_pool_kgha']} kg/ha (top {p['depth_m']} m).")
+            st.write(f"**Nitrogen (N):** apply ~**{plan['N_rec_kg_ha']} kg/ha** "
+                     f"(credit from OM: {plan['notes']['n_credit_om']} kg/ha). "
+                     "👉 Alternative: use **farmyard manure, compost, or incorporate legume residues** to slow depletion of N.")
 
+            st.write(f"**Phosphorus (P₂O₅):** **{plan['P2O5_rec_kg_ha']} kg/ha** "
+                     "👉 Alternative: use **bone meal or rock phosphate** on acidic soils.")
+
+            st.write(f"**Potassium (K₂O):** **{plan['K2O_rec_kg_ha']} kg/ha** "
+                     "👉 Alternative: apply **wood ash (small amounts), composted banana peels, or sulfate K if saline soils**.")
+
+            st.caption(f"Estimated P pool: {plan['notes']['p_pool_kgha']} kg/ha, "
+                       f"K pool: {plan['notes']['k_pool_kgha']} kg/ha (top {p['depth_m']} m).")
+
+            # --- Extra irrigation plan (based on last year's weather) ---
+            st.markdown("### Irrigation plan (based on last year’s forecast)")
+            try:
+                past_wx = fetch_weather(p["lat"], p["lon"], days_forward=0, days_past=365)
+                df_past, irr_plan = irrigation_recommendations(
+                    p["crop"], p["planting_date"], past_wx["daily"], p["yield_factor"], p["dens_factor"]
+                )
+                st.write("Using last year’s rainfall/ET₀, an irrigation plan is:")
+                st.dataframe(irr_plan["weekly_plan"], use_container_width=True, hide_index=True)
+                st.caption(
+                    "Plan: irrigate when deficits accumulate; split applications into 2–3 waterings per week when needed.")
+            except Exception:
+                st.info("Irrigation plan unavailable (weather data fetch failed).")
+
+                
             # 3) Condition-specific tips (pH/EC/texture/AER/weather)
             tips = []
             if p["ph"] < 5.5:
