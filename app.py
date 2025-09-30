@@ -457,7 +457,7 @@ def weather_hourly_df(lat: float, lon: float, days_past=7, days_forward=2, tz="A
     return df
 
 def ensure_farm_initialized(farm: Dict[str, Any]):
-    fid = farm["id"]
+    fid = farm["farm_id"]
     if fid in st.session_state.farm_hist and st.session_state.farm_hist[fid]:
         return  # already initialized
 
@@ -491,7 +491,7 @@ def farm_density_factor(farm: Dict[str, Any]) -> float:
 def update_farm_until_now(farm: Dict[str, Any]):
     """Append missing hours for this farm up to the current hour, using real weather & agent effects."""
     ensure_farm_initialized(farm)
-    fid = farm["id"]
+    fid = farm["farm_id"]
     hist = st.session_state.farm_hist[fid]
     last_ts = st.session_state.farm_last_ts[fid] or hist[-1]["timestamp"]
     now_hr = datetime.now().replace(minute=0, second=0, microsecond=0)
@@ -1075,23 +1075,27 @@ with tabs[0]:
     st.subheader("Sensor Mode — Live (one farm at a time)")
 
     # 1) Backfill all farms to current hour so data is always up-to-date
-    for _farm in FARMS:
+    for _farm in user_farms:
         update_farm_until_now(_farm)
+
+    if not user_farms:
+        st.info("You don’t have any farms yet. Add one in **Manage Account**.")
+        st.stop()
 
     # 2) Choose ONE farm (no multi-select)
     top_l, top_r = st.columns([3, 1])
     with top_l:
-        ids = [f["id"] for f in FARMS]
+        ids = [f["farm_id"] for f in user_farms]
         sel_id = st.selectbox("Choose a farm", ids, index=0, key="one_farm_select")
     with top_r:
         if st.button("Sync to current hour"):
-            for _farm in FARMS:
+            for _farm in user_farm:
                 update_farm_until_now(_farm)
-            st.experimental_rerun()
+            st.rerun()
 
     # 3) Load selected farm + latest data
-    farm = next(f for f in FARMS if f["id"] == sel_id)
-    fid = farm["id"]
+    farm = next(f for f in user_farms if f["farm_id"] == sel_id)
+    fid = farm["farm_id"]
     df = pd.DataFrame(st.session_state.farm_hist[fid]).sort_values("timestamp")
     latest = df.iloc[-1].to_dict()
     planting_date = df.iloc[0]["planting_date"]
@@ -1387,7 +1391,9 @@ with tabs[1]:
 with tabs[2]:
     st.subheader("👤 Account Dashboard")
 
+
     user = st.session_state.user
+    user_farms = user.get("farms", [])
     st.write(f"**Username:** {user['username']}")
     st.write(f"**Email:** {user.get('email','-')}")
 
