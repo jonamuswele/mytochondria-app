@@ -1550,36 +1550,34 @@ with tabs[2]:
         st.write(f"🌱 **{farm['farm_id']}** — {farm['crop']} at {farm['location']}")
         st.caption(
             f"Planted: {farm['planting_date']} • "
-            f"Spacing: {farm['spacing']} • "
-            f"Row: {farm.get('row_cm','?')} cm • Plant: {farm.get('plant_cm','?')} cm • "
+            f"Spacing: {farm['row_cm']}×{farm['plant_cm']} cm • "
             f"Texture: {farm.get('soil_texture','?')} • "
             f"Compliance: {farm['compliance']}"
         )
 
     st.markdown("### Add New Farm")
-    with st.form("add_farm"):
+    with st.form("add_farm", clear_on_submit=True):  # <-- clears form after submit
         farm_id = st.text_input("Farm ID", key="add_farm_id")
         system_id = st.text_input("System ID", key="add_system_id")
 
-        # 1. Select crop
+        # Select crop
         crop = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
 
-        # 2. Select location
+        # Select location
         location = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
         lat, lon, aer = ZAMBIA_SITES.get(location, (None, None, None))
 
-        # === AUTO RECOMMENDATIONS ===
+        # LIVE RECOMMENDATIONS
         rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop, (60, 20))
         rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
 
-        st.caption(f"Recommended spacing for {crop}: **{rec_row}×{rec_plant} cm**")
-        st.caption(f"Recommended soil texture for AER {aer}: **{rec_texture}**")
+        st.info(f"📌 Recommended for {crop} in {location}: {rec_row}×{rec_plant} cm • Soil: {rec_texture}")
 
-        # 3. Allow user to adjust (but start with recommendation)
+        # Inputs pre-filled with recommendations (auto update when crop/location changes)
         row_cm = st.number_input("Row spacing (cm)", 10, 150, value=rec_row, step=5, key="add_row_cm")
         plant_cm = st.number_input("Plant spacing (cm)", 5, 100, value=rec_plant, step=5, key="add_plant_cm")
         soil_texture = st.selectbox("Soil texture", ["sand", "loam", "clay"],
-                                    index=["sand", "loam", "clay"].index(rec_texture),
+                                    index=["sand","loam","clay"].index(rec_texture),
                                     key="add_soil_texture")
 
         planting_date = st.date_input("Planting date", key="add_planting_date")
@@ -1598,5 +1596,5 @@ with tabs[2]:
             }
             save_farm(user["username"], new_farm)
             st.session_state.user = find_user(user["username"])
-            st.success("Farm added successfully!")
+            st.success("✅ Farm added successfully!")
             st.rerun()
