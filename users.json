@@ -16,7 +16,14 @@
         "plant_cm": 25,
         "spacing": "75x25 cm",
         "planting_date": "2025-09-01",
-        "compliance": "immediate"
+        "compliance": "immediate",
+        "yield_factor": 1.0,
+        "om_pct": 2.0,
+        "agent": {
+          "compliance": 0.8,
+          "delay_min_h": 6,
+          "delay_max_h": 24
+        }
       }
     ]
   },
@@ -37,7 +44,14 @@
         "plant_cm": 20,
         "spacing": "45x20 cm",
         "planting_date": "2025-09-03",
-        "compliance": "delayed"
+        "compliance": "delayed",
+        "yield_factor": 1.0,
+        "om_pct": 2.0,
+        "agent": {
+          "compliance": 0.5,
+          "delay_min_h": 6,
+          "delay_max_h": 24
+        }
       }
     ]
   },
@@ -58,7 +72,14 @@
         "plant_cm": 30,
         "spacing": "75x30 cm",
         "planting_date": "2025-09-05",
-        "compliance": "immediate"
+        "compliance": "immediate",
+        "yield_factor": 1.0,
+        "om_pct": 2.0,
+        "agent": {
+          "compliance": 0.8,
+          "delay_min_h": 6,
+          "delay_max_h": 24
+        }
       },
       {
         "farm_id": "FARM-04",
@@ -72,7 +93,14 @@
         "plant_cm": 20,
         "spacing": "30x20 cm",
         "planting_date": "2025-09-07",
-        "compliance": "delayed"
+        "compliance": "delayed",
+        "yield_factor": 1.0,
+        "om_pct": 2.0,
+        "agent": {
+          "compliance": 0.5,
+          "delay_min_h": 6,
+          "delay_max_h": 24
+        }
       }
     ]
   },
@@ -93,8 +121,16 @@
         "plant_cm": 25,
         "spacing": "75x25 cm",
         "planting_date": "2025-09-09",
-        "compliance": "immediate"
+        "compliance": "immediate",
+        "yield_factor": 1.0,
+        "om_pct": 2.0,
+        "agent": {
+          "compliance": 0.8,
+          "delay_min_h": 6,
+          "delay_max_h": 24
+        }
       }
     ]
   }
 ]
+
