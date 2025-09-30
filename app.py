@@ -7,8 +7,84 @@ import streamlit as st
 import pandas as pd
 import requests
 import json, os
+import sqlite3
 
 USERS_FILE = "users.json"
+
+DB_FILE = "users.db"
+
+def _db():
+    # Streamlit runs multi-threaded; set check_same_thread=False
+    return sqlite3.connect(DB_FILE, check_same_thread=False)
+
+def init_db():
+    with _db() as conn:
+        c = conn.cursor()
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password TEXT,
+            email    TEXT
+        )
+        """)
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS farms (
+            farm_id       TEXT PRIMARY KEY,
+            username      TEXT NOT NULL,
+            system_id     TEXT,
+            crop          TEXT,
+            location      TEXT,
+            lat           REAL,
+            lon           REAL,
+            soil_texture  TEXT,
+            row_cm        INTEGER,
+            plant_cm      INTEGER,
+            spacing       TEXT,
+            planting_date TEXT,
+            compliance    TEXT,
+            yield_factor  REAL,
+            om_pct        REAL,
+            agent_json    TEXT,
+            FOREIGN KEY(username) REFERENCES users(username)
+        )
+        """)
+        conn.commit()
+
+# Optional: one-time migration from users.json → users.db (safe to keep; no-op if file missing)
+def migrate_json_to_db():
+    try:
+        if not os.path.exists("users.json"):
+            return
+        with open("users.json", "r") as f:
+            users = json.load(f)
+        with _db() as conn:
+            c = conn.cursor()
+            for u in users:
+                c.execute("INSERT OR IGNORE INTO users (username, password, email) VALUES (?,?,?)",
+                          (u.get("username"), u.get("password"), u.get("email")))
+                for f_ in u.get("farms", []):
+                    c.execute("""
+                        INSERT OR IGNORE INTO farms
+                        (farm_id, username, system_id, crop, location, lat, lon, soil_texture,
+                         row_cm, plant_cm, spacing, planting_date, compliance, yield_factor, om_pct, agent_json)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    """, (
+                        f_.get("farm_id"), u.get("username"), f_.get("system_id"),
+                        f_.get("crop"), f_.get("location"), f_.get("lat"), f_.get("lon"),
+                        f_.get("soil_texture"), f_.get("row_cm"), f_.get("plant_cm"),
+                        f_.get("spacing"), f_.get("planting_date"), f_.get("compliance"),
+                        f_.get("yield_factor", 1.0), f_.get("om_pct", 2.0),
+                        json.dumps(f_.get("agent", {}))
+                    ))
+            conn.commit()
+        # prevent re-import on next run
+        os.rename("users.json", "users.json.migrated.bak")
+    except Exception:
+        # If anything fails here, just continue — app will still run on DB only.
+        pass
+
+init_db()
+migrate_json_to_db()
 
 def load_users():
     if not os.path.exists(USERS_FILE):
@@ -20,12 +96,64 @@ def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, indent=2)
 
+def user_exists(username: str) -> bool:
+    with _db() as conn:
+        c = conn.cursor()
+        c.execute("SELECT 1 FROM users WHERE username=?", (username,))
+        return c.fetchone() is not None
+
+def create_user(username: str, password: str, email: str):
+    with _db() as conn:
+        c = conn.cursor()
+        c.execute("INSERT INTO users (username, password, email) VALUES (?,?,?)", (username, password, email))
+        conn.commit()
+
+def _load_farms_for(username: str) -> list[dict]:
+    with _db() as conn:
+        c = conn.cursor()
+        c.execute("SELECT farm_id, username, system_id, crop, location, lat, lon, soil_texture, row_cm, plant_cm, spacing, planting_date, compliance, yield_factor, om_pct, agent_json FROM farms WHERE username=?", (username,))
+        rows = c.fetchall()
+    farms = []
+    for r in rows:
+        farms.append({
+            "farm_id": r[0], "username": r[1], "system_id": r[2], "crop": r[3], "location": r[4],
+            "lat": r[5], "lon": r[6], "soil_texture": r[7], "row_cm": r[8], "plant_cm": r[9],
+            "spacing": r[10], "planting_date": r[11], "compliance": r[12],
+            "yield_factor": r[13], "om_pct": r[14],
+            "agent": json.loads(r[15] or "{}"),
+        })
+    return farms
+
+# Keep the same name/signature your app already uses:
 def find_user(username, password=None):
-    users = load_users()
-    for u in users:
-        if u["username"] == username and (password is None or u["password"] == password):
-            return u
-    return None
+    with _db() as conn:
+        c = conn.cursor()
+        if password is None:
+            c.execute("SELECT username, password, email FROM users WHERE username=?", (username,))
+        else:
+            c.execute("SELECT username, password, email FROM users WHERE username=? AND password=?", (username, password))
+        row = c.fetchone()
+    if not row:
+        return None
+    return {"username": row[0], "password": row[1], "email": row[2], "farms": _load_farms_for(row[0])}
+
+def save_farm(username: str, farm: dict):
+    with _db() as conn:
+        c = conn.cursor()
+        c.execute("""
+            INSERT OR REPLACE INTO farms
+            (farm_id, username, system_id, crop, location, lat, lon, soil_texture,
+             row_cm, plant_cm, spacing, planting_date, compliance, yield_factor, om_pct, agent_json)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """, (
+            farm["farm_id"], username, farm.get("system_id"),
+            farm.get("crop"), farm.get("location"), farm.get("lat"), farm.get("lon"),
+            farm.get("soil_texture"), farm.get("row_cm"), farm.get("plant_cm"),
+            farm.get("spacing"), farm.get("planting_date"), farm.get("compliance"),
+            farm.get("yield_factor", 1.0), farm.get("om_pct", 2.0),
+            json.dumps(farm.get("agent", {}))
+        ))
+        conn.commit()
 
 # ------------------------------
 # Authentication
@@ -55,12 +183,10 @@ if st.session_state.user is None:
         new_pass = st.text_input("Choose password", type="password", key="reg_pass")
         new_email = st.text_input("Email", key="reg_email")
         if st.button("Register"):
-            users = load_users()
-            if any(u["username"] == new_user for u in users):
+            if user_exists(new_user):
                 st.error("Username already exists.")
             else:
-                users.append({"username": new_user, "password": new_pass, "email": new_email, "farms": []})
-                save_users(users)
+                create_user(new_user, new_pass, new_email)
                 st.success("Account created! Please login.")
     st.stop()
 
@@ -1425,36 +1551,34 @@ with tabs[2]:
         compliance = st.selectbox("Compliance behavior", ["immediate","delayed"])
 
         if st.form_submit_button("Save Farm"):
-            users = load_users()
-            for u in users:
-                if u["username"] == user["username"]:
-                    # lat/lon from location dictionary
-                    lat, lon, aer = ZAMBIA_SITES.get(location, (None, None, None))
-                    spacing = f"{row_cm}x{plant_cm} cm"
-                    new_farm = {
-                        "farm_id": farm_id,
-                        "system_id": system_id,
-                        "crop": crop,
-                        "location": location,
-                        "lat": lat,
-                        "lon": lon,
-                        "soil_texture": soil_texture,
-                        "row_cm": row_cm,
-                        "plant_cm": plant_cm,
-                        "spacing": spacing,
-                        "planting_date": str(planting_date),
-                        "compliance": compliance,
-                        # --- required for simulation ---
-                        "yield_factor": 1.0,
-                        "om_pct": 2.0,
-                        "agent": {
-                            "compliance": (0.8 if compliance == "immediate" else 0.5),
-                            "delay_min_h": 6,
-                            "delay_max_h": 24
-                        }
-                    }
-                    u["farms"].append(new_farm)
-                    st.session_state.user = u
-                    save_users(users)
-                    st.success("Farm added successfully!")
-                    st.rerun()
+            # lat/lon from location dictionary
+            lat, lon, aer = ZAMBIA_SITES.get(location, (None, None, None))
+            spacing = f"{row_cm}x{plant_cm} cm"
+            new_farm = {
+                "farm_id": farm_id,
+                "system_id": system_id,
+                "crop": crop,
+                "location": location,
+                "lat": lat,
+                "lon": lon,
+                "soil_texture": soil_texture,
+                "row_cm": row_cm,
+                "plant_cm": plant_cm,
+                "spacing": spacing,
+                "planting_date": str(planting_date),
+                "compliance": compliance,
+                # --- required for simulation ---
+                "yield_factor": 1.0,
+                "om_pct": 2.0,
+                "agent": {
+                    "compliance": (0.8 if compliance == "immediate" else 0.5),
+                    "delay_min_h": 6,
+                    "delay_max_h": 24
+                }
+            }
+            save_farm(user["username"], new_farm)
+
+            # Refresh the logged-in user (so user['farms'] is up to date)
+            st.session_state.user = find_user(user["username"])
+            st.success("Farm added successfully!")
+            st.rerun()
