@@ -1,0 +1,18 @@
+[
+  {
+    "username": "farmer1",
+    "password": "12345678",  
+    "email": "farmer1@example.com",
+    "farms": [
+      {
+        "farm_id": "FARM-01",
+        "system_id": "SYS-001",
+        "crop": "maize",
+        "location": "Southern, Zambia",
+        "spacing": "75x30 cm",
+        "planting_date": "2025-09-01",
+        "compliance": "immediate"
+      }
+    ]
+  }
+]
