@@ -255,7 +255,7 @@ st.markdown("""
   gap: 12px;
 }
 .card {
-  flex: 1 1 calc(50% - 12px);   /* two cards per row */
+  flex: 1 1 calc(40% - 12px);   /* two cards per row */
   min-width: 220px;             /* don’t shrink too small */
   max-width: 30%;               /* cap at about half */
   box-sizing: border-box;
