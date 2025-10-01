@@ -251,15 +251,14 @@ st.markdown("""
 <style>
 .card-grid {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;                 /* space between cards */
+  flex-wrap: wrap;         /* allow items to wrap to next row */
   justify-content: flex-start;
+  gap: 16px;
 }
 
 .card {
-  flex: 0 0 calc(50% - 16px); /* exactly 2 cards per row */
+  flex: 0 0 calc(50% - 16px);  /* exactly 2 cards per row */
   max-width: calc(50% - 16px);
-  min-width: 250px;           /* optional: don’t shrink too small */
   box-sizing: border-box;
 
   border-radius: 14px; 
@@ -269,8 +268,16 @@ st.markdown("""
   color: #111 !important;
 }
 
-.card .title { font-weight: 600; font-size: 0.9rem; opacity: 0.75; color: #111 !important; }
-.card .big   { font-size: 1.2rem; font-weight: 600; }
+.card .title { 
+  font-weight: 600; 
+  font-size: 0.9rem; 
+  opacity: 0.75; 
+  color: #111 !important; 
+}
+.card .big { 
+  font-size: 1.2rem; 
+  font-weight: 600; 
+}
 </style>
 """, unsafe_allow_html=True)
 
