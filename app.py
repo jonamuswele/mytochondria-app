@@ -250,21 +250,19 @@ def kg_to_pct(nutrient: str, kg: float) -> float:
 st.markdown("""
 <style>
 .card-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);  /* always 2 cards per row */
+  gap: 16px;                               /* space between cards */
 }
 .card {
-  flex: 1 1 calc(50% - 12px);   /* two cards per row */
-  min-width: 220px;             /* don’t shrink too small */
-  max-width: 48%;               /* cap at about half */
-  box-sizing: border-box;
-
-  border-radius: 14px; padding: 14px 16px; 
-  border: 1px solid rgba(0,0,0,0.06); background: #ffffff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #ffffff;
   color: #111 !important;
+  box-sizing: border-box;
 }
-.card .title { font-weight: 600; font-size: 0.9rem; opacity: 0.75; color: #111 !important; }
+.card .title { font-weight: 600; font-size: 0.9rem; opacity: 0.75; }
 .card .big   { font-size: 1.2rem; font-weight: 600; }
 </style>
 """, unsafe_allow_html=True)
