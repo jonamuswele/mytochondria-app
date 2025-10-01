@@ -1633,50 +1633,17 @@ CROP_SPACING_DEFAULT = {
 }
 
 with tabs[2]:
-    with right:
-        st.subheader("👤 Account Dashboard")
+    st.subheader("👤 Account Dashboard")
 
+    left, right = st.columns([2, 1])
+    
+    with right:
+        st.markdown("### Account Info")
         st.write(f"**Username:** {user['username']}")
         st.write(f"**Email:** {user.get('email','-')}")
-
         if st.button("Logout"):
             st.session_state.user = None
             st.rerun()
-
-        st.markdown("### Your Farms")
-        for farm in user.get("farms", []):
-            st.write(f"🌱 **{farm['farm_id']}** : {farm['crop']} at {farm['location']}")
-            st.caption(
-                f"Planted: {farm['planting_date']} • "
-                f"Spacing: {farm['spacing']} • "
-                f"Row: {farm.get('row_cm', '?')} cm • Plant: {farm.get('plant_cm', '?')} cm • "
-                f"Texture: {farm.get('soil_texture', '?')} • "
-                f"Compliance: {farm['compliance']}"
-            )
-
-            # Delete button (with confirmation)
-            del_key = f"delete_{farm['farm_id']}"
-            if st.button(f"🗑️ Delete {farm['farm_id']}", key=del_key):
-                st.session_state.confirm_delete = farm["farm_id"]
-
-        # Confirmation prompt (shown only if a farm was chosen for deletion)
-        if "confirm_delete" in st.session_state and st.session_state.confirm_delete:
-            fid = st.session_state.confirm_delete
-            st.error(f"⚠️ Are you sure you want to delete farm {fid}? This action cannot be undone.")
-
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("✅ Yes, delete permanently"):
-                    delete_farm(fid)
-                    # refresh user farms in session
-                    st.session_state.user = find_user(user["username"])
-                    st.success(f"Farm {fid} deleted successfully.")
-                    st.session_state.confirm_delete = None
-                    st.rerun()
-            with col2:
-                if st.button("❌ Cancel"):
-                    st.session_state.confirm_delete = None
-                    st.info("Deletion canceled.")
     # ------------------------------------------------
     # Add New Farm Section
     # ------------------------------------------------
