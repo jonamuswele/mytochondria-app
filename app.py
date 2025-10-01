@@ -255,11 +255,10 @@ st.markdown("""
   gap: 12px;
 }
 
-/* Each card will take ~50% of the parent width */
 .card {
-  flex: 1 1 calc(35% - 12px);
-  max-width: calc(35% - 12px);
-  min-width: 180px;  /* so they don’t shrink too small */
+  flex: 0 0 calc(50% - 12px);  /* exactly half of parent width */
+  max-width: calc(50% - 12px);
+  min-width: 180px;
   box-sizing: border-box;
 
   border-radius: 14px;
@@ -269,19 +268,18 @@ st.markdown("""
   color: #111 !important;
 }
 
-.card .title { 
-  font-weight: 600; 
-  font-size: 0.9rem; 
-  opacity: 0.75; 
-  color: #111 !important; 
+.card .title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  opacity: 0.75;
+  color: #111 !important;
 }
-
-.card .big { 
-  font-size: 1.2rem; 
-  font-weight: 600; 
+.card .big {
+  font-size: 1.2rem;
+  font-weight: 600;
 }
-</style>""", unsafe_allow_html=True)
-
+</style>
+""", unsafe_allow_html=True)
 
 def _card(title: str, value: str, sub: str = "", color: str = "gray", emoji: str = ""):
     html = f"""
