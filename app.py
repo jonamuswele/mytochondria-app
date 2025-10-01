@@ -255,31 +255,27 @@ st.markdown("""
   gap: 12px;
 }
 
+/* 🔑 Make Streamlit's wrapper DIVs inside the grid transparent to layout */
+.card-grid > div { 
+  display: contents; 
+}
+
+/* 2 per row inside the parent column */
 .card {
-  flex: 0 0 calc(50% - 12px);  /* exactly half of parent width */
+  flex: 0 0 calc(50% - 12px);
   max-width: calc(50% - 12px);
-  min-width: 180px;
+  min-width: 200px;
   box-sizing: border-box;
 
-  border-radius: 14px;
-  padding: 14px 16px;
-  border: 1px solid rgba(0,0,0,0.06);
-  background: #ffffff;
+  border-radius: 14px; padding: 14px 16px;
+  border: 1px solid rgba(0,0,0,0.06); background: #fff;
   color: #111 !important;
 }
-
-.card .title {
-  font-weight: 600;
-  font-size: 0.9rem;
-  opacity: 0.75;
-  color: #111 !important;
-}
-.card .big {
-  font-size: 1.2rem;
-  font-weight: 600;
-}
+.card .title { font-weight: 600; font-size: 0.9rem; opacity: .75; color: #111 !important; }
+.card .big   { font-size: 1.2rem; font-weight: 600; }
 </style>
 """, unsafe_allow_html=True)
+
 
 def _card(title: str, value: str, sub: str = "", color: str = "gray", emoji: str = ""):
     html = f"""
@@ -291,6 +287,14 @@ def _card(title: str, value: str, sub: str = "", color: str = "gray", emoji: str
     """
     st.markdown(html, unsafe_allow_html=True)
 
+def card_html(title: str, value: str, sub: str = "", color: str = "gray", emoji: str = "") -> str:
+    return f"""
+    <div class="card {color}">
+      <div class="title">{emoji and f'<span class="emoji">{emoji}</span>'}{title}</div>
+      <div class="big">{value}</div>
+      {f'<div class="sub">{sub}</div>' if sub else ''}
+    </div>
+    """
 
 def _color_by_status(level: str) -> str:
     # level is "High" | "Medium" | "Low"
@@ -1348,37 +1352,44 @@ with tabs[0]:
         with left:
             st.markdown("#### Farm overview")
 
-            # ✅ Start grid container
-            st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+            # Build all cards first, then render them in ONE markdown (prevents wrappers)
+            cards = []
 
             # Spacing & dates
-            _card("📅 Planting & Spacing",
-                  f"{planting_date.strftime('%b %d')} • {farm['row_cm']}×{farm['plant_cm']} cm",
-                  sub=f"Expected harvest: ~{eta_days} days", color="blue")
+            cards.append(card_html(
+                "📅 Planting & Spacing",
+                f"{planting_date.strftime('%b %d')} • {farm['row_cm']}×{farm['plant_cm']} cm",
+                sub=f"Expected harvest: ~{eta_days} days",
+                color="blue"
+            ))
 
             # Sensor health
             last72 = df.tail(72)
             uptime = 100.0 * len(last72) / 72.0 if len(df) >= 72 else 100.0
-            _card("🩺 Sensor Health", f"{uptime:.0f}%", sub="Expand for details",
-                  color=("green" if uptime >= 95 else ("amber" if uptime >= 80 else "red")))
+            cards.append(card_html(
+                "🩺 Sensor Health", f"{uptime:.0f}%", sub="Expand for details",
+                color=("green" if uptime >= 95 else ("amber" if uptime >= 80 else "red"))
+            ))
 
             # Moisture card (traffic-light)
             mcol = _moisture_color(latest["moisture"])
-            _card("💧 Soil Moisture", f"{latest['moisture']:.0f}%",
-                  sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")),
-                  color=mcol)
+            cards.append(card_html(
+                "💧 Soil Moisture", f"{latest['moisture']:.0f}%",
+                sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")),
+                color=mcol
+            ))
 
-            # NPK status cards
+            # NPK status cards (High/Medium/Low → color class)
             ncat, pcat, kcat = pct_to_cat(latest["n"]), pct_to_cat(latest["p"]), pct_to_cat(latest["k"])
-            _card("🟢 N", ncat, sub="Nitrogen", color=_color_by_status(ncat))
-            _card("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat))
-            _card("🟠 K", kcat, sub="Potassium", color=_color_by_status(kcat))
+            cards.append(card_html("🟢 N", ncat, sub="Nitrogen", color=_color_by_status(ncat)))
+            cards.append(card_html("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat)))
+            cards.append(card_html("🟠 K", kcat, sub="Potassium", color=_color_by_status(kcat)))
 
-            # Number of sensors (demo fixed value)
-            _card("📡 Sensors", "3", sub="per field", color="gray")
+            # Number of sensors per field (demo)
+            cards.append(card_html("📡 Sensors", "3", sub="per field", color="gray"))
 
-            # ✅ Close grid container
-            st.markdown('</div>', unsafe_allow_html=True)
+            # 🔧 Render the whole grid at once (this is the key)
+            st.markdown('<div class="card-grid">' + "".join(cards) + '</div>', unsafe_allow_html=True)
 
             # Expandable sensor health details
             with st.expander("Sensor health details"):
@@ -1392,7 +1403,7 @@ with tabs[0]:
             latest["crop"] = farm["crop"]
             insights = generate_insights(latest)
 
-            # Weather-aware tweak: if water needed and rain tomorrow >=10mm → suggest waiting
+            # Weather-aware tweak: if water needed and rain tomorrow ≥10 mm → suggest waiting
             try:
                 wx_day = fetch_weather(farm["lat"], farm["lon"], days_forward=3, days_past=0)
                 rain_next = float(wx_day["daily"]["precipitation_sum"][1]) if len(
@@ -1402,7 +1413,6 @@ with tabs[0]:
 
             for it in insights:
                 msg = f"**[{it['priority'].upper()}] {it['title']}** : {it['action']}"
-                # Smarter context
                 if it["type"] == "water" and rain_next >= 10:
                     msg += f" _(Rain ~{int(rain_next)} mm expected tomorrow: you may delay irrigation.)_"
                 if it["type"] == "fertilizer" and latest["moisture"] < 40:
@@ -1429,16 +1439,13 @@ with tabs[0]:
             # Past alerts & actions
             st.markdown("#### Past alerts & actions")
 
-            # Daily alerts
             alert_rows = st.session_state.farm_alerts.get(fid, [])
             alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(
                 columns=["day", "type", "title", "status"])
             if not alert_df.empty:
                 st.write("**Daily alerts (all)**")
-                st.dataframe(alert_df.sort_values("day", ascending=False),
-                             use_container_width=True, hide_index=True)
+                st.dataframe(alert_df.sort_values("day", ascending=False), use_container_width=True, hide_index=True)
 
-            # Applied actions
             action_rows = st.session_state.farm_actions_log.get(fid, [])
             act_df = pd.DataFrame([{
                 "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
@@ -1471,6 +1478,7 @@ with tabs[0]:
             st.line_chart(tail[["moisture", "temperature"]], use_container_width=True)
             st.line_chart(tail[["ph", "ec"]], use_container_width=True)
             st.line_chart(tail[["n", "p", "k"]], use_container_width=True)
+            
         # RIGHT — past & forecast weather
         with right:
             st.markdown("#### Weather (past & forecast)")
