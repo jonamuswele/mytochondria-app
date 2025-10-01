@@ -249,26 +249,23 @@ def kg_to_pct(nutrient: str, kg: float) -> float:
 # === Card UI helpers & CSS ===
 st.markdown("""
 <style>
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 .card {
-  border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+  flex: 1 1 calc(50% - 12px);   /* two cards per row */
+  min-width: 220px;             /* don’t shrink too small */
+  max-width: 48%;               /* cap at about half */
+  box-sizing: border-box;
+
+  border-radius: 14px; padding: 14px 16px; 
   border: 1px solid rgba(0,0,0,0.06); background: #ffffff;
-  color: #111 !important;            /* <-- make all text inside the card black */
+  color: #111 !important;
 }
 .card .title { font-weight: 600; font-size: 0.9rem; opacity: 0.75; color: #111 !important; }
-.card .big   { font-size: 1.75rem; font-weight: 700; line-height: 1.3; color: #111 !important; }
-.card .sub   { font-size: 0.85rem; opacity: 0.75; color: #111 !important; }
-
-.card.green  { background: #ecfdf5; border-color: #a7f3d0; }
-.card.amber  { background: #fffbeb; border-color: #fde68a; }
-.card.red    { background: #fef2f2; border-color: #fecaca; }
-.card.gray   { background: #f9fafb; border-color: #e5e7eb; }
-.card.blue   { background: #eff6ff; border-color: #bfdbfe; }
-.card .emoji { font-size: 1.4rem; margin-right: 6px; }
-.card-grid { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 12px; }
-@media (max-width: 1100px){ .card-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); } }
-
-/* (optional) ensure links inside cards are also black */
-.card a { color: #111 !important; text-decoration: underline; }
+.card .big   { font-size: 1.2rem; font-weight: 600; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1806,4 +1803,3 @@ with tabs[2]:
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
-                    
