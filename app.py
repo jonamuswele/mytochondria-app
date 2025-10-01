@@ -252,18 +252,23 @@ st.markdown("""
 .card-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;                 /* space between cards */
+  justify-content: flex-start;
 }
+
 .card {
-  flex: 1 1 calc(40% - 12px);   /* two cards per row */
-  min-width: 220px;             /* don’t shrink too small */
-  max-width: 30%;               /* cap at about half */
+  flex: 0 0 calc(50% - 16px); /* exactly 2 cards per row */
+  max-width: calc(50% - 16px);
+  min-width: 250px;           /* optional: don’t shrink too small */
   box-sizing: border-box;
 
-  border-radius: 14px; padding: 14px 16px; 
-  border: 1px solid rgba(0,0,0,0.06); background: #ffffff;
+  border-radius: 14px; 
+  padding: 14px 16px; 
+  border: 1px solid rgba(0,0,0,0.06); 
+  background: #ffffff;
   color: #111 !important;
 }
+
 .card .title { font-weight: 600; font-size: 0.9rem; opacity: 0.75; color: #111 !important; }
 .card .big   { font-size: 1.2rem; font-weight: 600; }
 </style>
