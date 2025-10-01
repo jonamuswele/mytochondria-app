@@ -1478,6 +1478,27 @@ with tabs[1]:
             weekly = water["weekly_plan"]
             risks = water["risks"]
 
+            plan = nutrient_plan_from_lab(
+                p["crop"], p["yield_factor"], p["om_pct"],
+                p["n_kgha"], p["p_mgkg"], p["k_mgkg"], p["bd"], p["depth_m"]
+            )
+
+            # 5) actions in simple english
+            actions = generate_simple_actions(p, plan, weekly, risks, df)
+            st.markdown("### What to do (simple steps)")
+            for a in actions:
+                st.write("• " + a)
+
+            # (optional) one-click export
+            from io import StringIO
+
+            buf = StringIO()
+            buf.write("Mytochondria – Non-Sensor Plan\n\n")
+            for a in actions:
+                buf.write("• " + a + "\n")
+            st.download_button("Download actions as text", buf.getvalue(), file_name="field_actions.txt",
+                               key="lab_actions_dl")
+
             # 1) Weather-driven irrigation & risks
             st.markdown("### Water plan (next 10 days)")
             st.dataframe(weekly, use_container_width=True, hide_index=True)
@@ -1487,10 +1508,7 @@ with tabs[1]:
             st.line_chart(df.set_index("date")[["Rain_mm","ETc_mm","Deficit_mm"]], use_container_width=True)
 
             # 2) Nutrient plan from lab
-            plan = nutrient_plan_from_lab(
-                p["crop"], p["yield_factor"], p["om_pct"],
-                p["n_kgha"], p["p_mgkg"], p["k_mgkg"], p["bd"], p["depth_m"]
-            )
+
             st.markdown("### Nutrient plan")
             st.write(f"**Nitrogen (N):** apply ~**{plan['N_rec_kg_ha']} kg/ha** "
                      f"(credit from OM: {plan['notes']['n_credit_om']} kg/ha). "
@@ -1572,21 +1590,7 @@ with tabs[1]:
             st.markdown(f"### Yield outlook: **{outlook}**")
             st.caption("Heuristic: compares ETc vs rain+irrigation, checks N sufficiency & heat-stress days.")
 
-            # 5) actions in simple english
-            actions = generate_simple_actions(p, plan, weekly, risks, df)
-            st.markdown("### What to do (simple steps)")
-            for a in actions:
-                st.write("• " + a)
 
-            # (optional) one-click export
-            from io import StringIO
-
-            buf = StringIO()
-            buf.write("Mytochondria – Non-Sensor Plan\n\n")
-            for a in actions:
-                buf.write("• " + a + "\n")
-            st.download_button("Download actions as text", buf.getvalue(), file_name="field_actions.txt",
-                               key="lab_actions_dl")
 # ---------------------------------
 # 3) Manage Account
 # ---------------------------------
