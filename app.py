@@ -784,6 +784,16 @@ st.set_page_config(
     page_icon="🌱",
     layout="wide",
 )
+st.markdown("""
+    <style>
+    body { background-color: #fdfdf8; }
+    h1, h2, h3, h4 { color: #2d572c; font-family: 'Segoe UI', sans-serif; }
+    .sidebar .sidebar-content { background-color: #f4f9f4; }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.sidebar.image("https://i.ibb.co/QpWY5FP/myto-logo.png", width=180)
+st.sidebar.markdown("### 🌱 Mytochondria Advisor\nHelping farmers grow more with less.")
 
 def pct_to_cat(x: float) -> str:
     """Map numeric percent (0-100) to High/Medium/Low for NPK display."""
@@ -1312,24 +1322,31 @@ with tabs[0]:
 
             for it in insights:
                 msg = f"**[{it['priority'].upper()}] {it['title']}** : {it['action']}"
+                # Smarter context
                 if it["type"] == "water" and rain_next >= 10:
-                    msg += f"  _(Rain ~{int(rain_next)} mm expected tomorrow : you can wait and re-check at 06:00.)_"
-                st.write(msg)
+                    msg += f" _(Rain ~{int(rain_next)} mm expected tomorrow: you may delay irrigation.)_"
+                if it["type"] == "fertilizer" and latest["moisture"] < 40:
+                    msg += " ⚠️ Soil moisture is low, apply nutrients only after irrigation for better uptake."
+                if it["type"] == "ph" and farm["soil_texture"] == "sand":
+                    msg += " Sandy soils lose lime faster, repeat liming every 2–3 years."
+                st.info(msg)
 
-            # Simple organic tips (farmer-friendly)
-            with st.expander("Simple nutrient tips (organic options)"):
+                # Simple organic tips (farmer-friendly)
+            with st.expander("🌍 Soil & Plant Health Tips"):
+                # pool of rotating, localizable tips
                 tips = [
-                    "🌱 **Nitrogen**: composted manure or legume residues; also intercropping with beans improves N supply.",
-                    "🌿 **Phosphorus**: bone meal (slow release), well-composted manure; rock phosphate on acidic soils.",
-                    "🍌 **Potassium**: wood ash (lightly, avoid high-pH soils), composted banana peels; compost extracts.",
-                    "🪱 **Soil health**: add compost/vermicompost to improve microbial activity and soil structure.",
-                    "🌾 **Plant vigor**: apply foliar teas (compost tea, seaweed extracts) to boost stress tolerance.",
-                    "🍂 **Residue management**: keep crop residues on the soil to reduce erosion and add organic matter."
+                    "🌱 **Nitrogen**: composted manure or legume residues; intercrop maize with beans for N boost.",
+                    "🌿 **Phosphorus**: bone meal, manure, or rock phosphate on acidic soils.",
+                    "🍌 **Potassium**: banana peels, wood ash (lightly, avoid in alkaline soils).",
+                    "🪱 **Soil health**: add compost/vermicompost to build microbes & water holding.",
+                    "🌾 **Irrigation timing**: water early morning/evening to reduce evaporation.",
+                    "🍂 **Residues**: leave crop residues on the field to protect against erosion.",
+                    "🌳 **Agroforestry**: plant trees on field edges for shade, litter, and moisture retention.",
+                    "🐓 **Manure use**: poultry manure adds quick N, cattle manure adds long-term OM."
                 ]
-                # pick 3 random each time
                 for tip in random.sample(tips, 3):
-                    st.write("• " + tip)
-            # PAST: daily alerts & applied actions with farmer “ticks”
+                    st.success("• " + tip)
+                    # PAST: daily alerts & applied actions with farmer “ticks”
             st.markdown("#### Past alerts & actions")
 
             # Daily alerts (all)
@@ -1534,14 +1551,21 @@ with tabs[1]:
 
                 st.dataframe(irr_plan["weekly_plan"], use_container_width=True, hide_index=True)
 
-                #  Legend & explanation
+                st.markdown("#### 👩‍🌾 Coach’s Note")
+                st.info("""
+                This plan shows **how much water your crop will miss if you do nothing**.  
+                👉 Apply the suggested irrigation in 2–3 splits per week.  
+                👉 Focus water at root zone (20–30 cm).  
+                👉 Watch for erosion if >30 mm rain/day is forecast.  
+                """)
+
                 with st.expander("ℹ️ Understanding the irrigation table"):
                     st.write("""
-                    - **Week**: Calendar week of the year.
-                    - **ETc_mm**: Crop water demand (evapotranspiration adjusted by growth stage).
-                    - **Rain_mm**: Total rainfall received that week.
-                    - **Deficit_mm**: Gap between crop demand (ETc) and rainfall. If positive, irrigation is needed.
-                    - **Irrigation_mm**: Suggested irrigation to close the deficit.
+                    - **Week**: Calendar week.
+                    - **ETc_mm**: Crop demand.
+                    - **Rain_mm**: Rain received.
+                    - **Deficit_mm**: Shortfall. If positive, irrigation is needed.
+                    - **Irrigation_mm**: Suggested water to close the gap.
                     """)
                     st.caption(
                         "Tip: Apply irrigation in 2–3 smaller splits per week rather than one large application.")
@@ -1609,102 +1633,104 @@ CROP_SPACING_DEFAULT = {
 }
 
 with tabs[2]:
-    st.subheader("👤 Account Dashboard")
+    with right:
+        st.subheader("👤 Account Dashboard")
 
-    st.write(f"**Username:** {user['username']}")
-    st.write(f"**Email:** {user.get('email','-')}")
+        st.write(f"**Username:** {user['username']}")
+        st.write(f"**Email:** {user.get('email','-')}")
 
-    if st.button("Logout"):
-        st.session_state.user = None
-        st.rerun()
+        if st.button("Logout"):
+            st.session_state.user = None
+            st.rerun()
 
-    st.markdown("### Your Farms")
-    for farm in user.get("farms", []):
-        st.write(f"🌱 **{farm['farm_id']}** : {farm['crop']} at {farm['location']}")
-        st.caption(
-            f"Planted: {farm['planting_date']} • "
-            f"Spacing: {farm['spacing']} • "
-            f"Row: {farm.get('row_cm', '?')} cm • Plant: {farm.get('plant_cm', '?')} cm • "
-            f"Texture: {farm.get('soil_texture', '?')} • "
-            f"Compliance: {farm['compliance']}"
-        )
+        st.markdown("### Your Farms")
+        for farm in user.get("farms", []):
+            st.write(f"🌱 **{farm['farm_id']}** : {farm['crop']} at {farm['location']}")
+            st.caption(
+                f"Planted: {farm['planting_date']} • "
+                f"Spacing: {farm['spacing']} • "
+                f"Row: {farm.get('row_cm', '?')} cm • Plant: {farm.get('plant_cm', '?')} cm • "
+                f"Texture: {farm.get('soil_texture', '?')} • "
+                f"Compliance: {farm['compliance']}"
+            )
 
-        # Delete button (with confirmation)
-        del_key = f"delete_{farm['farm_id']}"
-        if st.button(f"🗑️ Delete {farm['farm_id']}", key=del_key):
-            st.session_state.confirm_delete = farm["farm_id"]
+            # Delete button (with confirmation)
+            del_key = f"delete_{farm['farm_id']}"
+            if st.button(f"🗑️ Delete {farm['farm_id']}", key=del_key):
+                st.session_state.confirm_delete = farm["farm_id"]
 
-    # Confirmation prompt (shown only if a farm was chosen for deletion)
-    if "confirm_delete" in st.session_state and st.session_state.confirm_delete:
-        fid = st.session_state.confirm_delete
-        st.error(f"⚠️ Are you sure you want to delete farm {fid}? This action cannot be undone.")
+        # Confirmation prompt (shown only if a farm was chosen for deletion)
+        if "confirm_delete" in st.session_state and st.session_state.confirm_delete:
+            fid = st.session_state.confirm_delete
+            st.error(f"⚠️ Are you sure you want to delete farm {fid}? This action cannot be undone.")
 
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("✅ Yes, delete permanently"):
-                delete_farm(fid)
-                # refresh user farms in session
-                st.session_state.user = find_user(user["username"])
-                st.success(f"Farm {fid} deleted successfully.")
-                st.session_state.confirm_delete = None
-                st.rerun()
-        with col2:
-            if st.button("❌ Cancel"):
-                st.session_state.confirm_delete = None
-                st.info("Deletion canceled.")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Yes, delete permanently"):
+                    delete_farm(fid)
+                    # refresh user farms in session
+                    st.session_state.user = find_user(user["username"])
+                    st.success(f"Farm {fid} deleted successfully.")
+                    st.session_state.confirm_delete = None
+                    st.rerun()
+            with col2:
+                if st.button("❌ Cancel"):
+                    st.session_state.confirm_delete = None
+                    st.info("Deletion canceled.")
     # ------------------------------------------------
     # Add New Farm Section
     # ------------------------------------------------
-    st.markdown("### ➕ Add New Farm")
+    with left:
+        st.markdown("### ➕ Add New Farm")
 
-    # Choose crop and location first (outside form so they update live)
-    crop_choice = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
-    location_choice = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
-    lat, lon, aer = ZAMBIA_SITES.get(location_choice, (None, None, None))
+        # Choose crop and location first (outside form so they update live)
+        crop_choice = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
+        location_choice = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
+        lat, lon, aer = ZAMBIA_SITES.get(location_choice, (None, None, None))
 
-    # Live recommendations
-    rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop_choice, (60, 20))
-    rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
+        # Live recommendations
+        rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop_choice, (60, 20))
+        rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
 
-    st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
-            f"{rec_row}×{rec_plant} cm • Soil: {rec_texture} ")
-    st.warning("⚠️ These are typical recommendations. "
-               "If your soil texture is different or you prefer another spacing, "
-               "please adjust the values manually below.")
+        st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
+                f"{rec_row}×{rec_plant} cm • Soil: {rec_texture} ")
+        st.warning("⚠️ These are typical recommendations. "
+                   "If your soil texture is different or you prefer another spacing, "
+                   "please adjust the values manually below.")
 
-    # Actual form for adding a farm
-    with st.form("add_farm", clear_on_submit=True):
-        farm_id = st.text_input("Farm ID", key="add_farm_id")
-        system_id = st.text_input("System ID", key="add_system_id")
+        # Actual form for adding a farm
+        with st.form("add_farm", clear_on_submit=True):
+            farm_id = st.text_input("Farm ID", key="add_farm_id")
+            system_id = st.text_input("System ID", key="add_system_id")
 
-        row_cm = st.number_input("Row spacing (cm)", 10, 150,
-                                 value=rec_row, step=5, key="add_row_cm")
-        plant_cm = st.number_input("Plant spacing (cm)", 5, 100,
-                                   value=rec_plant, step=5, key="add_plant_cm")
+            row_cm = st.number_input("Row spacing (cm)", 10, 150,
+                                     value=rec_row, step=5, key="add_row_cm")
+            plant_cm = st.number_input("Plant spacing (cm)", 5, 100,
+                                       value=rec_plant, step=5, key="add_plant_cm")
 
-        soil_texture = st.selectbox("Soil texture", ["sand","loam","clay"],
-                                    index=["sand","loam","clay"].index(rec_texture),
-                                    key="add_soil_texture")
+            soil_texture = st.selectbox("Soil texture", ["sand","loam","clay"],
+                                        index=["sand","loam","clay"].index(rec_texture),
+                                        key="add_soil_texture")
 
-        planting_date = st.date_input("Planting date", key="add_planting_date")
-        compliance = st.selectbox("Compliance behavior", ["immediate", "delayed"], key="add_compliance")
+            planting_date = st.date_input("Planting date", key="add_planting_date")
+            compliance = st.selectbox("Compliance behavior", ["immediate", "delayed"], key="add_compliance")
 
-        if st.form_submit_button("Save Farm"):
-            spacing = f"{row_cm}x{plant_cm} cm"
-            new_farm = {
-                "farm_id": farm_id, "system_id": system_id, "crop": crop_choice,
-                "location": location_choice, "lat": lat, "lon": lon,
-                "soil_texture": soil_texture,
-                "row_cm": row_cm, "plant_cm": plant_cm, "spacing": spacing,
-                "planting_date": str(planting_date), "compliance": compliance,
-                "yield_factor": 1.0, "om_pct": 2.0,
-                "agent": {
-                    "compliance": (0.8 if compliance == "immediate" else 0.5),
-                    "delay_min_h": 6,
-                    "delay_max_h": 24
+            if st.form_submit_button("Save Farm"):
+                spacing = f"{row_cm}x{plant_cm} cm"
+                new_farm = {
+                    "farm_id": farm_id, "system_id": system_id, "crop": crop_choice,
+                    "location": location_choice, "lat": lat, "lon": lon,
+                    "soil_texture": soil_texture,
+                    "row_cm": row_cm, "plant_cm": plant_cm, "spacing": spacing,
+                    "planting_date": str(planting_date), "compliance": compliance,
+                    "yield_factor": 1.0, "om_pct": 2.0,
+                    "agent": {
+                        "compliance": (0.8 if compliance == "immediate" else 0.5),
+                        "delay_min_h": 6,
+                        "delay_max_h": 24
+                    }
                 }
-            }
-            save_farm(user["username"], new_farm)
-            st.session_state.user = find_user(user["username"])
-            st.success("✅ Farm added successfully!")
-            st.rerun()
+                save_farm(user["username"], new_farm)
+                st.session_state.user = find_user(user["username"])
+                st.success("✅ Farm added successfully!")
+                st.rerun()
