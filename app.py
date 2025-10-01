@@ -257,8 +257,8 @@ st.markdown("""
 
 /* Each card will take ~50% of the parent width */
 .card {
-  flex: 1 1 calc(50% - 12px);
-  max-width: calc(50% - 12px);
+  flex: 1 1 calc(35% - 12px);
+  max-width: calc(35% - 12px);
   min-width: 180px;  /* so they don’t shrink too small */
   box-sizing: border-box;
 
