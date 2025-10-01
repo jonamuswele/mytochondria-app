@@ -252,19 +252,19 @@ st.markdown("""
 .card-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
   gap: 12px;
 }
 
+/* Each card will take ~50% of the parent width */
 .card {
-  flex: 0 0 calc(48% - 12px);   /* ~48% of the parent, allows 2 per row */
-  max-width: calc(48% - 12px);
-  min-width: 200px;             /* cards can shrink if column is narrow */
+  flex: 1 1 calc(50% - 12px);
+  max-width: calc(50% - 12px);
+  min-width: 180px;  /* so they don’t shrink too small */
   box-sizing: border-box;
 
-  border-radius: 14px; 
-  padding: 14px 16px; 
-  border: 1px solid rgba(0,0,0,0.06); 
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0,0,0,0.06);
   background: #ffffff;
   color: #111 !important;
 }
@@ -275,12 +275,12 @@ st.markdown("""
   opacity: 0.75; 
   color: #111 !important; 
 }
+
 .card .big { 
   font-size: 1.2rem; 
   font-weight: 600; 
 }
-</style>
-""", unsafe_allow_html=True)
+</style>""", unsafe_allow_html=True)
 
 
 def _card(title: str, value: str, sub: str = "", color: str = "gray", emoji: str = ""):
