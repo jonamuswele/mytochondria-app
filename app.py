@@ -1350,7 +1350,7 @@ with tabs[0]:
         with left:
             st.markdown("#### Farm overview")
 
-            # Grid of cards (“squares”)
+            # ✅ Start grid container
             st.markdown('<div class="card-grid">', unsafe_allow_html=True)
 
             # Spacing & dates
@@ -1367,17 +1367,19 @@ with tabs[0]:
             # Moisture card (traffic-light)
             mcol = _moisture_color(latest["moisture"])
             _card("💧 Soil Moisture", f"{latest['moisture']:.0f}%",
-                  sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")), color=mcol)
+                  sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")),
+                  color=mcol)
 
-            # NPK status cards (H/M/L)
+            # NPK status cards
             ncat, pcat, kcat = pct_to_cat(latest["n"]), pct_to_cat(latest["p"]), pct_to_cat(latest["k"])
             _card("🟢 N", ncat, sub="Nitrogen", color=_color_by_status(ncat))
             _card("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat))
             _card("🟠 K", kcat, sub="Potassium", color=_color_by_status(kcat))
 
-            # Number of sensors per field (demo: 3)
+            # Number of sensors (demo fixed value)
             _card("📡 Sensors", "3", sub="per field", color="gray")
 
+            # ✅ Close grid container
             st.markdown('</div>', unsafe_allow_html=True)
 
             # Expandable sensor health details
@@ -1411,9 +1413,8 @@ with tabs[0]:
                     msg += " Sandy soils lose lime faster, repeat liming every 2–3 years."
                 st.info(msg)
 
-                # Simple organic tips (farmer-friendly)
+            # Farmer-friendly organic tips
             with st.expander("🌍 Soil & Plant Health Tips"):
-                # pool of rotating, localizable tips
                 tips = [
                     "🌱 **Nitrogen**: composted manure or legume residues; intercrop maize with beans for N boost.",
                     "🌿 **Phosphorus**: bone meal, manure, or rock phosphate on acidic soils.",
@@ -1426,10 +1427,11 @@ with tabs[0]:
                 ]
                 for tip in random.sample(tips, 3):
                     st.success("• " + tip)
-                    # PAST: daily alerts & applied actions with farmer “ticks”
+
+            # Past alerts & actions
             st.markdown("#### Past alerts & actions")
 
-            # Daily alerts (all)
+            # Daily alerts
             alert_rows = st.session_state.farm_alerts.get(fid, [])
             alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(
                 columns=["day", "type", "title", "status"])
@@ -1438,7 +1440,7 @@ with tabs[0]:
                 st.dataframe(alert_df.sort_values("day", ascending=False),
                              use_container_width=True, hide_index=True)
 
-            # Applied actions (all) + confirmation ticks
+            # Applied actions
             action_rows = st.session_state.farm_actions_log.get(fid, [])
             act_df = pd.DataFrame([{
                 "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
@@ -1446,7 +1448,6 @@ with tabs[0]:
             if not act_df.empty:
                 st.write("**Applied actions (all)**")
                 act_df = act_df.sort_values("time", ascending=False)
-                # Quick confirmation/checklist for the latest 20
                 with st.form(f"confirm_actions_{fid}"):
                     show = act_df.head(20).copy()
                     confirms = []
@@ -1472,7 +1473,6 @@ with tabs[0]:
             st.line_chart(tail[["moisture", "temperature"]], use_container_width=True)
             st.line_chart(tail[["ph", "ec"]], use_container_width=True)
             st.line_chart(tail[["n", "p", "k"]], use_container_width=True)
-
         # RIGHT — past & forecast weather
         with right:
             st.markdown("#### Weather (past & forecast)")
