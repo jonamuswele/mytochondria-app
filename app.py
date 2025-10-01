@@ -1,4 +1,3 @@
-
 import math
 import random
 from datetime import datetime, timedelta, date
@@ -32,11 +31,14 @@ def _db():
     # Streamlit runs multi-threaded; set check_same_thread=False
     return sqlite3.connect(DB_FILE, check_same_thread=False)
 
+
 def delete_farm(farm_id: str):
     with _db() as conn:
         c = conn.cursor()
         c.execute("DELETE FROM farms WHERE farm_id=?", (farm_id,))
         conn.commit()
+
+
 def init_db():
     with _db() as conn:
         c = conn.cursor()
@@ -69,6 +71,7 @@ def init_db():
         )
         """)
         conn.commit()
+
 
 # Optional: one-time migration from users.json → users.db (safe to keep; no-op if file missing)
 def migrate_json_to_db():
@@ -103,8 +106,10 @@ def migrate_json_to_db():
         # If anything fails here, just continue — app will still run on DB only.
         pass
 
+
 init_db()
 migrate_json_to_db()
+
 
 def load_users():
     if not os.path.exists(USERS_FILE):
@@ -112,9 +117,11 @@ def load_users():
     with open(USERS_FILE, "r") as f:
         return json.load(f)
 
+
 def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, indent=2)
+
 
 def user_exists(username: str) -> bool:
     with _db() as conn:
@@ -122,16 +129,20 @@ def user_exists(username: str) -> bool:
         c.execute("SELECT 1 FROM users WHERE username=?", (username,))
         return c.fetchone() is not None
 
+
 def create_user(username: str, password: str, email: str):
     with _db() as conn:
         c = conn.cursor()
         c.execute("INSERT INTO users (username, password, email) VALUES (?,?,?)", (username, password, email))
         conn.commit()
 
+
 def _load_farms_for(username: str) -> list[dict]:
     with _db() as conn:
         c = conn.cursor()
-        c.execute("SELECT farm_id, username, system_id, crop, location, lat, lon, soil_texture, row_cm, plant_cm, spacing, planting_date, compliance, yield_factor, om_pct, agent_json FROM farms WHERE username=?", (username,))
+        c.execute(
+            "SELECT farm_id, username, system_id, crop, location, lat, lon, soil_texture, row_cm, plant_cm, spacing, planting_date, compliance, yield_factor, om_pct, agent_json FROM farms WHERE username=?",
+            (username,))
         rows = c.fetchall()
     farms = []
     for r in rows:
@@ -144,6 +155,7 @@ def _load_farms_for(username: str) -> list[dict]:
         })
     return farms
 
+
 # Keep the same name/signature your app already uses:
 def find_user(username, password=None):
     with _db() as conn:
@@ -151,11 +163,13 @@ def find_user(username, password=None):
         if password is None:
             c.execute("SELECT username, password, email FROM users WHERE username=?", (username,))
         else:
-            c.execute("SELECT username, password, email FROM users WHERE username=? AND password=?", (username, password))
+            c.execute("SELECT username, password, email FROM users WHERE username=? AND password=?",
+                      (username, password))
         row = c.fetchone()
     if not row:
         return None
     return {"username": row[0], "password": row[1], "email": row[2], "farms": _load_farms_for(row[0])}
+
 
 def save_farm(username: str, farm: dict):
     with _db() as conn:
@@ -174,6 +188,7 @@ def save_farm(username: str, farm: dict):
             json.dumps(farm.get("agent", {}))
         ))
         conn.commit()
+
 
 # ------------------------------
 # Authentication
@@ -215,13 +230,15 @@ user_farms = user.get("farms", [])
 
 # ==== NPK unit mapping (demo-calibrated caps) ====
 SUPPLY_CAP_KG_HA = {  # "100%" corresponds to this much plant-available nutrient
-    "n": 120.0,   # kg N/ha
-    "p": 60.0,    # kg P2O5/ha (demo cap)
-    "k": 100.0,   # kg K2O/ha (demo cap)
+    "n": 120.0,  # kg N/ha
+    "p": 60.0,  # kg P2O5/ha (demo cap)
+    "k": 100.0,  # kg K2O/ha (demo cap)
 }
+
 
 def pct_to_kg(nutrient: str, pct: float) -> float:
     return max(0.0, (pct / 100.0) * SUPPLY_CAP_KG_HA[nutrient])
+
 
 def kg_to_pct(nutrient: str, kg: float) -> float:
     cap = SUPPLY_CAP_KG_HA[nutrient]
@@ -255,6 +272,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 def _card(title: str, value: str, sub: str = "", color: str = "gray", emoji: str = ""):
     html = f"""
     <div class="card {color}">
@@ -265,18 +283,21 @@ def _card(title: str, value: str, sub: str = "", color: str = "gray", emoji: str
     """
     st.markdown(html, unsafe_allow_html=True)
 
+
 def _color_by_status(level: str) -> str:
     # level is "High" | "Medium" | "Low"
-    return "green" if level=="High" else ("amber" if level=="Medium" else "red")
+    return "green" if level == "High" else ("amber" if level == "Medium" else "red")
+
 
 def _moisture_color(m: float) -> str:
     # <=30 red, 30-50 amber, >50 green
     return "red" if m < 30 else ("amber" if m < 50 else "green")
 
+
 def _expected_days_to_harvest(crop: str) -> int:
     # simple demo durations (tune later)
     c = (crop or "").lower()
-    return 110 if c=="maize" else (85 if c=="beans" else (120 if c=="rice" else 100))
+    return 110 if c == "maize" else (85 if c == "beans" else (120 if c == "rice" else 100))
 
 
 # ==== Soil/management multipliers ====
@@ -309,11 +330,10 @@ FARMS = [
     ),
 ]
 
-
 TEXTURE_UPTAKE_MULT = {  # effect on plant uptake demand
     "sand": 1.15, "loam": 1.00, "clay": 0.90
 }
-TEXTURE_LEACH_MULT = {   # effect on N leaching when it rains
+TEXTURE_LEACH_MULT = {  # effect on N leaching when it rains
     "sand": 1.30, "loam": 1.00, "clay": 0.70
 }
 
@@ -330,9 +350,9 @@ DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX = 0.8, 1.2
 
 # ===== Baseline plant densities (demo defaults; tune to your agronomy) =====
 BASE_PLANT_DENSITY_HA = {
-    "maize": 53333,     # ~75 cm x 25 cm  → ~53,333 plants/ha
-    "beans": 200000,    # example baseline
-    "rice": 250000,     # ~20 cm x 20 cm  → ~250,000 plants/ha
+    "maize": 53333,  # ~75 cm x 25 cm  → ~53,333 plants/ha
+    "beans": 200000,  # example baseline
+    "rice": 250000,  # ~20 cm x 20 cm  → ~250,000 plants/ha
 }
 
 # Clamp bounds for how far density can scale uptake (same ones you already use)
@@ -340,7 +360,7 @@ DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX = 0.8, 1.2
 
 # --- Agro-ecological regions (Zambia) & typical soils (simplified) ---
 AER = {
-    "I":   {"rain_mm": "<800",  "soil_note": "Sandy-loam to sandy; low nutrient retention, drier south/west"},
+    "I": {"rain_mm": "<800", "soil_note": "Sandy-loam to sandy; low nutrient retention, drier south/west"},
     "IIa": {"rain_mm": "800–1000", "soil_note": "Loam to clay-loam; moderately leached; most productive"},
     "IIb": {"rain_mm": "800–1000", "soil_note": "Kalahari sands; strongly acidic, low water & nutrient holding"},
     "III": {"rain_mm": "1000–1500", "soil_note": "Loam to clay; humid north; higher leaching, weathered clays"},
@@ -348,37 +368,37 @@ AER = {
 
 # Province/town → (lat, lon, AER)
 ZAMBIA_SITES = {
-    "Lusaka (Lusaka Prov)":       (-15.416, 28.283, "IIa"),
-    "Ndola (Copperbelt)":         (-12.968, 28.635, "IIa"),
-    "Kitwe (Copperbelt)":         (-12.818, 28.214, "IIa"),
-    "Solwezi (North-Western)":    (-12.173, 26.389, "IIa"),
-    "Mongu (Western)":            (-15.254, 23.125, "IIb"),
-    "Livingstone (Southern)":     (-17.858, 25.863, "I"),
-    "Choma (Southern)":           (-16.806, 26.953, "I"),
-    "Chipata (Eastern)":          (-13.636, 32.645, "IIa"),
-    "Kasama (Northern)":          (-10.212, 31.180, "III"),
-    "Mansa (Luapula)":            (-11.199, 28.894, "III"),
+    "Lusaka (Lusaka Prov)": (-15.416, 28.283, "IIa"),
+    "Ndola (Copperbelt)": (-12.968, 28.635, "IIa"),
+    "Kitwe (Copperbelt)": (-12.818, 28.214, "IIa"),
+    "Solwezi (North-Western)": (-12.173, 26.389, "IIa"),
+    "Mongu (Western)": (-15.254, 23.125, "IIb"),
+    "Livingstone (Southern)": (-17.858, 25.863, "I"),
+    "Choma (Southern)": (-16.806, 26.953, "I"),
+    "Chipata (Eastern)": (-13.636, 32.645, "IIa"),
+    "Kasama (Northern)": (-10.212, 31.180, "III"),
+    "Mansa (Luapula)": (-11.199, 28.894, "III"),
 }
 
 # --- Crop coefficients Kc by stage (very simplified FAO-56 style) ---
 CROP_KC = {
     "maize": [
-        ("initial",    0.35, 20),
-        ("dev",        0.75, 25),
-        ("mid",        1.15, 40),
-        ("late",       0.80, 30),
+        ("initial", 0.35, 20),
+        ("dev", 0.75, 25),
+        ("mid", 1.15, 40),
+        ("late", 0.80, 30),
     ],
     "beans": [
-        ("initial",    0.40, 15),
-        ("dev",        0.75, 20),
-        ("mid",        1.05, 25),
-        ("late",       0.80, 20),
+        ("initial", 0.40, 15),
+        ("dev", 0.75, 20),
+        ("mid", 1.05, 25),
+        ("late", 0.80, 20),
     ],
     "rice": [
-        ("initial",    1.05, 20),
-        ("dev",        1.10, 25),
-        ("mid",        1.20, 40),
-        ("late",       0.90, 30),
+        ("initial", 1.05, 20),
+        ("dev", 1.10, 25),
+        ("mid", 1.20, 40),
+        ("late", 0.90, 30),
     ],
 }
 
@@ -395,15 +415,17 @@ TEXTURE_UPTAKE_MULT = {"sand": 1.15, "loam": 1.00, "clay": 0.90}
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 HOURLY_VARS = "precipitation,et0_fao_evapotranspiration,temperature_2m_max"
 
+
 def _split_mm(total_mm: float) -> str:
     """Make irrigation amounts farmer-friendly (split into 2–3 waterings)."""
     if total_mm <= 10:
         return f"{int(round(total_mm))} mm once"
     if total_mm <= 30:
-        each = int(round(total_mm/2))
+        each = int(round(total_mm / 2))
         return f"{int(round(total_mm))} mm total (split: {each} mm × 2)"
-    each = int(round(total_mm/3))
+    each = int(round(total_mm / 3))
     return f"{int(round(total_mm))} mm total (split: {each} mm × 3)"
+
 
 def generate_simple_actions(p: Dict[str, Any], plan: Dict[str, Any], weekly: "pd.DataFrame",
                             risks: Dict[str, Any], df_daily: "pd.DataFrame") -> list[str]:
@@ -429,29 +451,34 @@ def generate_simple_actions(p: Dict[str, Any], plan: Dict[str, Any], weekly: "pd
     if risks.get("heat_stress_days", 0) >= 1 and p["crop"] == "maize":
         actions.append("Hot days ahead (≥35°C): **avoid water stress** from 1 week before to 2 weeks after tasseling.")
     if risks.get("cool_germination_days", 0) >= 1:
-        actions.append("Cool spell during emergence: **delay planting** or use **shallow planting** to improve germination.")
+        actions.append(
+            "Cool spell during emergence: **delay planting** or use **shallow planting** to improve germination.")
 
     # — pH / salinity —
     if p["ph"] < 5.5:
         actions.append("Soil is acidic: **apply agricultural lime** to move pH towards 6.0–6.5 before planting.")
     if p["ec"] >= 2.0:
-        actions.append("Salinity risk: **avoid KCl**, prefer sulfate forms; plan a **leaching irrigation** after heavy rain.")
+        actions.append(
+            "Salinity risk: **avoid KCl**, prefer sulfate forms; plan a **leaching irrigation** after heavy rain.")
 
     # — Nutrient plan —
     n_need = float(plan["N_rec_kg_ha"])
     p_need = float(plan["P2O5_rec_kg_ha"])
     k_need = float(plan["K2O_rec_kg_ha"])
     if n_need >= 5:
-        split_n = max(0, int(round(n_need*0.4)))
+        split_n = max(0, int(round(n_need * 0.4)))
         topdress = max(0, int(round(n_need - split_n)))
-        actions.append(f"Nitrogen: **{int(round(n_need))} kg/ha** total. Apply **{split_n} kg/ha at planting**, then **{topdress} kg/ha** at 4–6 weeks.")
+        actions.append(
+            f"Nitrogen: **{int(round(n_need))} kg/ha** total. Apply **{split_n} kg/ha at planting**, then **{topdress} kg/ha** at 4–6 weeks.")
         if p.get("om_pct", 0) < 2.0:
-            actions.append("Boost soil **organic matter** (compost/manure) to supply slow-release N and improve water holding.")
+            actions.append(
+                "Boost soil **organic matter** (compost/manure) to supply slow-release N and improve water holding.")
     else:
         actions.append("Nitrogen: **no extra N** required now (OM credit and soil N are adequate).")
 
     if p_need >= 10:
-        actions.append(f"Phosphorus: apply **{int(p_need)} kg/ha P₂O₅** **at planting** (band near seed; don’t mix with urea).")
+        actions.append(
+            f"Phosphorus: apply **{int(p_need)} kg/ha P₂O₅** **at planting** (band near seed; don’t mix with urea).")
     else:
         actions.append("Phosphorus: **no extra P** needed for this season.")
 
@@ -465,15 +492,20 @@ def generate_simple_actions(p: Dict[str, Any], plan: Dict[str, Any], weekly: "pd
 
     # — Intercrop note —
     if p.get("crop2"):
-        actions.append(f"Intercrop with **{p['crop2']}**: use **alternate rows** or a **1:1 strip**; keep fertilizer mainly with the main crop’s row.")
+        actions.append(
+            f"Intercrop with **{p['crop2']}**: use **alternate rows** or a **1:1 strip**; keep fertilizer mainly with the main crop’s row.")
 
     # — Simple housekeeping —
-    actions.append("After each rain or irrigation, **check for crusting/ponding** and break crust lightly to help emergence.")
+    actions.append(
+        "After each rain or irrigation, **check for crusting/ponding** and break crust lightly to help emergence.")
     actions.append("Keep **weeds below 10 cm**; early weeding saves water and nutrients for your crop.")
 
     return actions
-@st.cache_data(ttl=60*30)
-def fetch_weather(lat: float, lon: float, days_forward: int = 10, days_past: int = 7, tz: str = "Africa/Lusaka") -> Dict[str, Any]:
+
+
+@st.cache_data(ttl=60 * 30)
+def fetch_weather(lat: float, lon: float, days_forward: int = 10, days_past: int = 7, tz: str = "Africa/Lusaka") -> \
+Dict[str, Any]:
     """Fetch hourly/daily weather (past & next) from Open-Meteo (no key)."""
     # daily summaries are easier for water balances
     params = {
@@ -487,6 +519,7 @@ def fetch_weather(lat: float, lon: float, days_forward: int = 10, days_past: int
     r.raise_for_status()
     return r.json()
 
+
 def kc_for_day_since_planting(crop: str, dsp: int) -> float:
     """Rough Kc by growth stage timeline."""
     plan = CROP_KC.get(crop.lower(), CROP_KC["maize"])
@@ -497,13 +530,17 @@ def kc_for_day_since_planting(crop: str, dsp: int) -> float:
         day_cursor += length
     return plan[-1][1]
 
-def compute_density_factor(crop: str, row_cm: float, plant_cm: float, base_density_ha: Optional[float] = None) -> Tuple[float, float]:
+
+def compute_density_factor(crop: str, row_cm: float, plant_cm: float, base_density_ha: Optional[float] = None) -> Tuple[
+    float, float]:
     BASE_PLANT_DENSITY_HA = {"maize": 53333, "beans": 200000, "rice": 250000}
     base = base_density_ha or BASE_PLANT_DENSITY_HA.get((crop or "").lower(), 100000.0)
-    row_m = max(0.0001, row_cm/100.0); plant_m = max(0.0001, plant_cm/100.0)
+    row_m = max(0.0001, row_cm / 100.0);
+    plant_m = max(0.0001, plant_cm / 100.0)
     plants_per_ha = 10000.0 / (row_m * plant_m)
     raw = plants_per_ha / base
     return (clamp(raw, 0.8, 1.2), plants_per_ha)
+
 
 def mgkg_to_kgha(mg_per_kg: float, bulk_density_g_cm3: float, depth_m: float = DEFAULT_DEPTH_M) -> float:
     """Convert lab mg/kg to kg/ha for the sampling depth & bulk density."""
@@ -511,11 +548,14 @@ def mgkg_to_kgha(mg_per_kg: float, bulk_density_g_cm3: float, depth_m: float = D
     soil_mass_kg = (bulk_density_g_cm3 * 1000) * depth_m * 10_000  # e.g., 1.3*1000*0.2*10k = 2,600,000 kg/ha
     return max(0.0, mg_per_kg * soil_mass_kg / 1e6)
 
+
 def kgha_to_mgkg(kg_ha: float, bulk_density_g_cm3: float, depth_m: float = DEFAULT_DEPTH_M) -> float:
     soil_mass_kg = (bulk_density_g_cm3 * 1000) * depth_m * 10_000
     return max(0.0, kg_ha * 1e6 / soil_mass_kg)
 
-def irrigation_recommendations(crop: str, planting_date: date, daily: Dict[str, List], yield_factor: float, density_factor: float) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+
+def irrigation_recommendations(crop: str, planting_date: date, daily: Dict[str, List], yield_factor: float,
+                               density_factor: float) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """Compute ETc, rain, deficit & simple weekly irrigation plan + risk flags."""
     dts = [pd.to_datetime(t).date() for t in daily["time"]]
     dsp = [(d - planting_date).days for d in dts]
@@ -537,11 +577,12 @@ def irrigation_recommendations(crop: str, planting_date: date, daily: Dict[str, 
     weekly["Irrigation_mm"] = weekly["Deficit_mm"].apply(lambda x: max(0.0, round(x, 1)))
 
     risks = {
-        "erosion_days": int((df["Rain_mm"]>=30).sum()),   # very wet days
-        "heat_stress_days": int((df["Tmax_C"]>=35).sum()),
-        "cool_germination_days": int(((df["Tmax_C"]<18) & (pd.Series(dsp)<=10)).sum()),
+        "erosion_days": int((df["Rain_mm"] >= 30).sum()),  # very wet days
+        "heat_stress_days": int((df["Tmax_C"] >= 35).sum()),
+        "cool_germination_days": int(((df["Tmax_C"] < 18) & (pd.Series(dsp) <= 10)).sum()),
     }
     return df, {"weekly_plan": weekly, "risks": risks}
+
 
 def nutrient_plan_from_lab(crop: str, yield_factor: float, om_pct: float,
                            n_kgha: float, p_mgkg: float, k_mgkg: float,
@@ -553,7 +594,7 @@ def nutrient_plan_from_lab(crop: str, yield_factor: float, om_pct: float,
 
     # Target ranges (demo; calibrate later per local recs)
     # N: 60–120 kg/ha, scale with yield factor; OM mineralization offsets ~ 0.08*OM%*days (growing season 110 d assumed)
-    n_target = 90.0 * yield_factor   # mid-range
+    n_target = 90.0 * yield_factor  # mid-range
     n_om_credit = max(0.0, om_pct * 0.08 * 110)  # ~OM% * 8.8 kg/ha
     n_rec = max(0.0, n_target - n_kgha - n_om_credit)
 
@@ -573,6 +614,7 @@ def nutrient_plan_from_lab(crop: str, yield_factor: float, om_pct: float,
         }
     }
 
+
 def compute_density_factor(crop: str, row_spacing_cm: float, plant_spacing_cm: float) -> tuple[float, float]:
     """
     Return (density_factor, plants_per_ha) from spacings.
@@ -587,10 +629,12 @@ def compute_density_factor(crop: str, row_spacing_cm: float, plant_spacing_cm: f
     factor = clamp(raw_factor, DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX)
     return factor, plants_per_ha
 
+
 def _rng_for(*parts) -> random.Random:
     # deterministic RNG based on parts + GLOBAL_SEED
     s = "|".join(map(str, parts))
     return random.Random(hash(s) ^ GLOBAL_SEED)
+
 
 def weather_hourly_df(lat: float, lon: float, days_past=7, days_forward=2, tz="Africa/Lusaka") -> pd.DataFrame:
     j = fetch_weather(lat, lon, days_forward=days_forward, days_past=days_past, tz=tz)
@@ -598,12 +642,13 @@ def weather_hourly_df(lat: float, lon: float, days_past=7, days_forward=2, tz="A
     h = j["hourly"]
     df = pd.DataFrame({
         "ts": pd.to_datetime(h["time"]),
-        "precip_mm": h.get("precipitation", [0]*len(h["time"])),
-        "et0_mm": h.get("et0_fao_evapotranspiration", [0]*len(h["time"])),
-        "t2m": h.get("temperature_2m", [None]*len(h["time"])),
+        "precip_mm": h.get("precipitation", [0] * len(h["time"])),
+        "et0_mm": h.get("et0_fao_evapotranspiration", [0] * len(h["time"])),
+        "t2m": h.get("temperature_2m", [None] * len(h["time"])),
     })
     df["ts"] = df["ts"].dt.tz_localize(None).dt.floor("H")
     return df
+
 
 def ensure_farm_initialized(farm: Dict[str, Any]):
     fid = farm["farm_id"]
@@ -633,9 +678,11 @@ def ensure_farm_initialized(farm: Dict[str, Any]):
     st.session_state.farm_pending_actions[fid] = []
     st.session_state.farm_alerts[fid] = []
 
+
 def farm_density_factor(farm: Dict[str, Any]) -> float:
     crop = "maize" if farm["crop"] == "maize+beans" else farm["crop"]
     return compute_density_factor(crop, farm["row_cm"], farm["plant_cm"])[0]
+
 
 def update_farm_until_now(farm: Dict[str, Any]):
     """Append missing hours for this farm up to the current hour, using real weather & agent effects."""
@@ -654,8 +701,13 @@ def update_farm_until_now(farm: Dict[str, Any]):
 
     # Unpack latest state (convert NPK back to kg for the engine)
     s = hist[-1].copy()
-    n_kg = pct_to_kg("n", s["n"]); p_kg = pct_to_kg("p", s["p"]); k_kg = pct_to_kg("k", s["k"])
-    moisture = s["moisture"]; ph = s["ph"]; ec = s["ec"]; day_mean = s.get("temperature", 24.0)
+    n_kg = pct_to_kg("n", s["n"]);
+    p_kg = pct_to_kg("p", s["p"]);
+    k_kg = pct_to_kg("k", s["k"])
+    moisture = s["moisture"];
+    ph = s["ph"];
+    ec = s["ec"];
+    day_mean = s.get("temperature", 24.0)
 
     # Management multipliers
     density_factor = farm_density_factor(farm)
@@ -705,7 +757,7 @@ def update_farm_until_now(farm: Dict[str, Any]):
             for act in due_now:
                 if act["type"] == "water":
                     mm = act["meta"].get("mm", 25)
-                    moisture = clamp(moisture + 0.9 * (mm/1.0), 0, 95)  # bump moisture; simple mm→% proxy
+                    moisture = clamp(moisture + 0.9 * (mm / 1.0), 0, 95)  # bump moisture; simple mm→% proxy
                     ec = clamp(ec - 0.05, 0.1, 3.0)
                 elif act["type"] == "nitrogen":
                     n_kg = min(SUPPLY_CAP_KG_HA["n"], n_kg + 0.18 * SUPPLY_CAP_KG_HA["n"])
@@ -756,9 +808,9 @@ def update_farm_until_now(farm: Dict[str, Any]):
                 n_kg -= N_LEACH_KG_PER_HEAVY_RAIN * TEXTURE_LEACH_MULT[farm["soil_texture"]]
             # Plant uptake (weekly % → kg/day) with multipliers
             n_w, p_w, k_w = crop_uptake_weekly(("maize" if farm["crop"].startswith("maize") else farm["crop"]), dsp)
-            n_uptake = (n_w/7.0)/100.0 * SUPPLY_CAP_KG_HA["n"] * weekly_mult
-            p_uptake = (p_w/7.0)/100.0 * SUPPLY_CAP_KG_HA["p"] * weekly_mult
-            k_uptake = (k_w/7.0)/100.0 * SUPPLY_CAP_KG_HA["k"] * weekly_mult
+            n_uptake = (n_w / 7.0) / 100.0 * SUPPLY_CAP_KG_HA["n"] * weekly_mult
+            p_uptake = (p_w / 7.0) / 100.0 * SUPPLY_CAP_KG_HA["p"] * weekly_mult
+            k_uptake = (k_w / 7.0) / 100.0 * SUPPLY_CAP_KG_HA["k"] * weekly_mult
             n_kg = max(0.0, n_kg - n_uptake)
             p_kg = max(0.0, p_kg - p_uptake)
             k_kg = max(0.0, k_kg - k_uptake)
@@ -775,6 +827,8 @@ def update_farm_until_now(farm: Dict[str, Any]):
         hist.append(point)
         st.session_state.farm_last_ts[fid] = cur
         cur += timedelta(hours=1)
+
+
 # ------------------------------
 # Utility + Global Config
 # ------------------------------
@@ -795,6 +849,7 @@ st.markdown("""
 st.sidebar.image("https://i.ibb.co/QpWY5FP/myto-logo.png", width=180)
 st.sidebar.markdown("### 🌱 Mytochondria Advisor\nHelping farmers grow more with less.")
 
+
 def pct_to_cat(x: float) -> str:
     """Map numeric percent (0-100) to High/Medium/Low for NPK display."""
     if x >= 60:
@@ -803,8 +858,10 @@ def pct_to_cat(x: float) -> str:
         return "Medium"
     return "Low"
 
+
 def clamp(val: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, val))
+
 
 # ------------------------------
 # State initialization
@@ -855,6 +912,7 @@ if "farm_actions_confirm" not in st.session_state:
 # Seed the world: use a fixed seed so behavior is repeatable for the demo
 GLOBAL_SEED = 424242
 
+
 # ------------------------------
 # Data Generators (ported from dataGenerators.ts)  :contentReference[oaicite:2]{index=2}
 # ------------------------------
@@ -862,8 +920,10 @@ GLOBAL_SEED = 424242
 def clamp(v: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, v))
 
+
 def pct_to_cat(x: float) -> str:
     return "High" if x >= 60 else ("Medium" if x >= 30 else "Low")
+
 
 # crop-stage weekly depletion (simple agronomy patterns)
 def crop_uptake_weekly(crop: str, days_since_planting: int) -> Tuple[float, float, float]:
@@ -883,17 +943,19 @@ def crop_uptake_weekly(crop: str, days_since_planting: int) -> Tuple[float, floa
         n, p, k = 2.0, 1.2, 1.8
     return n, p, k
 
+
 def record_alert_history(mode: str, alerts: List[Dict[str, Any]]):
     ts = datetime.now().isoformat(timespec="seconds")
     for a in alerts:
         st.session_state.alert_history.append({
             "time": ts, "mode": mode,
             "title": a["title"], "type": a["type"],
-            "priority": a["priority"], "action": a.get("action","")
+            "priority": a["priority"], "action": a.get("action", "")
         })
     # trim
     if len(st.session_state.alert_history) > 500:
         st.session_state.alert_history = st.session_state.alert_history[-500:]
+
 
 def simulate_future_series(last_point: Dict[str, Any], planting_date: date, crop: str, days: int) -> list:
     series = []
@@ -917,9 +979,9 @@ def simulate_future_series(last_point: Dict[str, Any], planting_date: date, crop
         # crop-stage depletion
         days_since_planting = (cur_ts.date() - planting_date).days
         n_w, p_w, k_w = crop_uptake_weekly(crop, days_since_planting)
-        cur["n"] = clamp(cur["n"] - n_w/7, 0, 100)
-        cur["p"] = clamp(cur["p"] - p_w/7, 0, 100)
-        cur["k"] = clamp(cur["k"] - k_w/7, 0, 100)
+        cur["n"] = clamp(cur["n"] - n_w / 7, 0, 100)
+        cur["p"] = clamp(cur["p"] - p_w / 7, 0, 100)
+        cur["k"] = clamp(cur["k"] - k_w / 7, 0, 100)
 
         series.append({
             "timestamp": cur_ts,
@@ -932,6 +994,7 @@ def simulate_future_series(last_point: Dict[str, Any], planting_date: date, crop
             "k": cur["k"],
         })
     return series
+
 
 def gen_sensor_point(ts: datetime) -> Dict[str, Any]:
     """
@@ -973,6 +1036,7 @@ def gen_sensor_point(ts: datetime) -> Dict[str, Any]:
     }
     st.session_state.last_sensor = data
     return data
+
 
 def gen_demo_series(days: int = 30) -> List[Dict[str, Any]]:
     """
@@ -1030,6 +1094,7 @@ def gen_demo_series(days: int = 30) -> List[Dict[str, Any]]:
         })
     return data
 
+
 # ------------------------------
 # Depletion forecast utilities
 # ------------------------------
@@ -1041,6 +1106,7 @@ def forecast_depletion_days(current_pct: float, weekly_drop_pct: float, floor_pc
         return None
     weeks = (current_pct - floor_pct) / weekly_drop_pct
     return max(0, int(round(weeks * 7)))
+
 
 # keep alert history in session
 
@@ -1074,6 +1140,7 @@ def crop_uptake_weekly(crop: str, days_since_planting: int) -> Tuple[float, floa
         k = 1.8
 
     return n, p, k
+
 
 # ------------------------------
 # Rule Engine (ported + expanded)  :contentReference[oaicite:5]{index=5}
@@ -1191,6 +1258,7 @@ def generate_insights(input_row: Dict[str, Any]) -> List[Dict[str, Any]]:
     out.sort(key=lambda r: priority_score[r["priority"]], reverse=True)
     return out
 
+
 # ------------------------------
 # Checklist apply-effects
 # ------------------------------
@@ -1219,6 +1287,7 @@ def apply_action_effects(state: Dict[str, Any], task_label: str):
         if state["moisture"] > 80:
             state["moisture"] = clamp(state["moisture"] - 5, 0, 100)
 
+
 # ------------------------------
 # UI Components
 # ------------------------------
@@ -1244,7 +1313,7 @@ with tabs[0]:
         # ↓↓↓ everything from the "2) Choose ONE farm..." line to the end of the Sensor tab goes under this 'else:'
         # 2) Choose ONE farm (no multi-select)
 
-    # 2) Choose ONE farm (no multi-select)
+        # 2) Choose ONE farm (no multi-select)
         top_l, top_r = st.columns([3, 1])
         with top_l:
             ids = [f["farm_id"] for f in user_farms]
@@ -1292,9 +1361,9 @@ with tabs[0]:
 
             # NPK status cards (H/M/L)
             ncat, pcat, kcat = pct_to_cat(latest["n"]), pct_to_cat(latest["p"]), pct_to_cat(latest["k"])
-            _card("🟢 N", ncat, sub="Nitrogen",   color=_color_by_status(ncat))
+            _card("🟢 N", ncat, sub="Nitrogen", color=_color_by_status(ncat))
             _card("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat))
-            _card("🟠 K", kcat, sub="Potassium",  color=_color_by_status(kcat))
+            _card("🟠 K", kcat, sub="Potassium", color=_color_by_status(kcat))
 
             # Number of sensors per field (demo: 3)
             _card("📡 Sensors", "3", sub="per field", color="gray")
@@ -1316,7 +1385,8 @@ with tabs[0]:
             # Weather-aware tweak: if water needed and rain tomorrow >=10mm → suggest waiting
             try:
                 wx_day = fetch_weather(farm["lat"], farm["lon"], days_forward=3, days_past=0)
-                rain_next = float(wx_day["daily"]["precipitation_sum"][1]) if len(wx_day["daily"]["precipitation_sum"]) > 1 else 0.0
+                rain_next = float(wx_day["daily"]["precipitation_sum"][1]) if len(
+                    wx_day["daily"]["precipitation_sum"]) > 1 else 0.0
             except Exception:
                 rain_next = 0.0
 
@@ -1351,7 +1421,8 @@ with tabs[0]:
 
             # Daily alerts (all)
             alert_rows = st.session_state.farm_alerts.get(fid, [])
-            alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(columns=["day","type","title","status"])
+            alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(
+                columns=["day", "type", "title", "status"])
             if not alert_df.empty:
                 st.write("**Daily alerts (all)**")
                 st.dataframe(alert_df.sort_values("day", ascending=False),
@@ -1360,8 +1431,8 @@ with tabs[0]:
             # Applied actions (all) + confirmation ticks
             action_rows = st.session_state.farm_actions_log.get(fid, [])
             act_df = pd.DataFrame([{
-                    "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
-                } for a in action_rows]) if action_rows else pd.DataFrame(columns=["time","type","title","status"])
+                "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
+            } for a in action_rows]) if action_rows else pd.DataFrame(columns=["time", "type", "title", "status"])
             if not act_df.empty:
                 st.write("**Applied actions (all)**")
                 act_df = act_df.sort_values("time", ascending=False)
@@ -1388,9 +1459,9 @@ with tabs[0]:
             # CHARTS — full history at the bottom
             st.markdown("#### Charts")
             tail = df.set_index("timestamp")
-            st.line_chart(tail[["moisture","temperature"]], use_container_width=True)
-            st.line_chart(tail[["ph","ec"]], use_container_width=True)
-            st.line_chart(tail[["n","p","k"]], use_container_width=True)
+            st.line_chart(tail[["moisture", "temperature"]], use_container_width=True)
+            st.line_chart(tail[["ph", "ec"]], use_container_width=True)
+            st.line_chart(tail[["n", "p", "k"]], use_container_width=True)
 
         # RIGHT — past & forecast weather
         with right:
@@ -1399,12 +1470,12 @@ with tabs[0]:
                 wx = fetch_weather(farm["lat"], farm["lon"], days_forward=5, days_past=5)
                 days = [pd.to_datetime(d).date().strftime("%b %d") for d in wx["daily"]["time"]]
                 rain = wx["daily"]["precipitation_sum"]
-                et0  = wx["daily"]["et0_fao_evapotranspiration"]
+                et0 = wx["daily"]["et0_fao_evapotranspiration"]
                 tmax = wx["daily"]["temperature_2m_max"]
                 wdf = pd.DataFrame({"Day": days, "Rain (mm)": rain, "ET₀ (mm)": et0, "Tmax (°C)": tmax})
                 # split around “today”
                 today_idx = [i for i, d in enumerate(wx["daily"]["time"]) if pd.to_datetime(d).date() == date.today()]
-                cut = today_idx[0] if today_idx else len(days)//2
+                cut = today_idx[0] if today_idx else len(days) // 2
                 st.write("**Past days**")
                 st.dataframe(wdf.iloc[:cut], use_container_width=True, hide_index=True)
                 st.write("**Upcoming days**")
@@ -1434,7 +1505,7 @@ with tabs[1]:
         # intercropping (optional)
         with st.expander("Add a second crop (optional)"):
             crop2_on = st.checkbox("Enable intercropping")
-            crop2 = st.selectbox("Second crop", ["beans","maize","rice"], index=0, disabled=not crop2_on)
+            crop2 = st.selectbox("Second crop", ["beans", "maize", "rice"], index=0, disabled=not crop2_on)
 
         st.subheader("Space between your plants")
         row_cm = st.slider("Row spacing (cm)", 20.0, 60.0, 75.0, 5.0, key="lab_row_spacing_cm")
@@ -1447,8 +1518,8 @@ with tabs[1]:
 
             dens2, plants2 = compute_density_factor(crop2, row2, plant2)
             # combined density capped (simple)
-            dens_factor = clamp(dens_factor + 0.5*dens2, 0.8, 1.4)
-            plants_ha = plants_ha + 0.5*plants2
+            dens_factor = clamp(dens_factor + 0.5 * dens2, 0.8, 1.4)
+            plants_ha = plants_ha + 0.5 * plants2
         st.caption(f"Estimated stand: **{plants_ha:,.0f} plants/ha**, density factor used **{dens_factor:.2f}**")
 
         st.subheader("Management & Soil")
@@ -1522,7 +1593,7 @@ with tabs[1]:
             st.write(f"- **Erosion risk days** (≥30 mm/day): **{risks['erosion_days']}**")
             st.write(f"- **Heat-stress days** (Tmax ≥35°C): **{risks['heat_stress_days']}**")
             st.write(f"- **Cool germination risk** (early stage, low Tmax): **{risks['cool_germination_days']}**")
-            st.line_chart(df.set_index("date")[["Rain_mm","ETc_mm","Deficit_mm"]], use_container_width=True)
+            st.line_chart(df.set_index("date")[["Rain_mm", "ETc_mm", "Deficit_mm"]], use_container_width=True)
 
             # 2) Nutrient plan from lab
 
@@ -1584,16 +1655,21 @@ with tabs[1]:
             # 3) Condition-specific tips (pH/EC/texture/AER/weather)
             tips = []
             if p["ph"] < 5.5:
-                tips += ["Soil is acidic: consider liming to reach ~pH 6.0–6.5 before planting (apply 2–4 months ahead)."]
+                tips += [
+                    "Soil is acidic: consider liming to reach ~pH 6.0–6.5 before planting (apply 2–4 months ahead)."]
             if p["ec"] >= 2.0:
-                tips += ["High salinity risk: avoid chloride-heavy K sources; schedule leaching irrigation after heavy rains."]
+                tips += [
+                    "High salinity risk: avoid chloride-heavy K sources; schedule leaching irrigation after heavy rains."]
             if p["aer"] == "IIb" or p["soil_texture"] == "sand":
-                tips += ["Kalahari sands/sandy soils: add **organic matter** (residues/compost/manure) to improve water & nutrient holding."]
+                tips += [
+                    "Kalahari sands/sandy soils: add **organic matter** (residues/compost/manure) to improve water & nutrient holding."]
 
             if risks["erosion_days"] >= 1:
-                tips += ["Forecast has ≥30 mm/day rain: keep residue cover, contour ploughing or tied ridges to reduce runoff."]
+                tips += [
+                    "Forecast has ≥30 mm/day rain: keep residue cover, contour ploughing or tied ridges to reduce runoff."]
             if risks["heat_stress_days"] >= 1 and p["crop"] == "maize":
-                tips += ["Heat near flowering can cut kernel set: ensure no water stress 1 week before to 2 weeks after tasseling."]
+                tips += [
+                    "Heat near flowering can cut kernel set: ensure no water stress 1 week before to 2 weeks after tasseling."]
 
             if tips:
                 st.markdown("### Tips")
@@ -1613,7 +1689,6 @@ with tabs[1]:
                 outlook = "At risk"
             st.markdown(f"### Yield outlook: **{outlook}**")
             st.caption("Heuristic: compares ETc vs rain+irrigation, checks N sufficiency & heat-stress days.")
-
 
 # ---------------------------------
 # 3) Manage Account
@@ -1636,11 +1711,11 @@ with tabs[2]:
     st.subheader("👤 Account Dashboard")
 
     left, right = st.columns([2, 1])
-    
+
     with right:
         st.markdown("### Account Info")
         st.write(f"**Username:** {user['username']}")
-        st.write(f"**Email:** {user.get('email','-')}")
+        st.write(f"**Email:** {user.get('email', '-')}")
         if st.button("Logout"):
             st.session_state.user = None
             st.rerun()
@@ -1648,56 +1723,85 @@ with tabs[2]:
     # Add New Farm Section
     # ------------------------------------------------
     with left:
+        st.markdown("### 🌱 Your Farms")
+        for farm in user.get("farms", []):
+            st.write(f"**{farm['farm_id']}** : {farm['crop']} at {farm['location']}")
+            st.caption(
+                f"Planted: {farm['planting_date']} • "
+                f"Spacing: {farm['spacing']} • "
+                f"Row: {farm.get('row_cm', '?')} cm • Plant: {farm.get('plant_cm', '?')} cm • "
+                f"Texture: {farm.get('soil_texture', '?')} • "
+                f"Compliance: {farm['compliance']}"
+            )
+
+            del_key = f"delete_{farm['farm_id']}"
+            if st.button(f"🗑️ Delete {farm['farm_id']}", key=del_key):
+                st.session_state.confirm_delete = farm["farm_id"]
+
+        # Confirmation prompt
+        if "confirm_delete" in st.session_state and st.session_state.confirm_delete:
+            fid = st.session_state.confirm_delete
+            st.error(f"⚠️ Are you sure you want to delete farm {fid}? This action cannot be undone.")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Yes, delete permanently"):
+                    delete_farm(fid)
+                    st.session_state.user = find_user(user["username"])
+                    st.success(f"Farm {fid} deleted successfully.")
+                    st.session_state.confirm_delete = None
+                    st.rerun()
+            with col2:
+                if st.button("❌ Cancel"):
+                    st.session_state.confirm_delete = None
+                    st.info("Deletion canceled.")
+
+        # Toggle to show the Add Farm form
         st.markdown("### ➕ Add New Farm")
+        if st.button("Add Farm"):
+            st.session_state.show_add_farm = not st.session_state.get("show_add_farm", False)
 
-        # Choose crop and location first (outside form so they update live)
-        crop_choice = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
-        location_choice = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
-        lat, lon, aer = ZAMBIA_SITES.get(location_choice, (None, None, None))
+        if st.session_state.get("show_add_farm", False):
+            crop_choice = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
+            location_choice = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
+            lat, lon, aer = ZAMBIA_SITES.get(location_choice, (None, None, None))
 
-        # Live recommendations
-        rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop_choice, (60, 20))
-        rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
+            rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop_choice, (60, 20))
+            rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
 
-        st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
-                f"{rec_row}×{rec_plant} cm • Soil: {rec_texture} ")
-        st.warning("⚠️ These are typical recommendations. "
-                   "If your soil texture is different or you prefer another spacing, "
-                   "please adjust the values manually below.")
+            st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
+                    f"{rec_row}×{rec_plant} cm • Soil: {rec_texture} ")
+            st.warning("⚠️ Adjust manually if your soil/spacing differs.")
 
-        # Actual form for adding a farm
-        with st.form("add_farm", clear_on_submit=True):
-            farm_id = st.text_input("Farm ID", key="add_farm_id")
-            system_id = st.text_input("System ID", key="add_system_id")
+            with st.form("add_farm", clear_on_submit=True):
+                farm_id = st.text_input("Farm ID", key="add_farm_id")
+                system_id = st.text_input("System ID", key="add_system_id")
+                row_cm = st.number_input("Row spacing (cm)", 10, 150,
+                                         value=rec_row, step=5, key="add_row_cm")
+                plant_cm = st.number_input("Plant spacing (cm)", 5, 100,
+                                           value=rec_plant, step=5, key="add_plant_cm")
+                soil_texture = st.selectbox("Soil texture", ["sand", "loam", "clay"],
+                                            index=["sand", "loam", "clay"].index(rec_texture),
+                                            key="add_soil_texture")
+                planting_date = st.date_input("Planting date", key="add_planting_date")
+                compliance = st.selectbox("Compliance behavior", ["immediate", "delayed"], key="add_compliance")
 
-            row_cm = st.number_input("Row spacing (cm)", 10, 150,
-                                     value=rec_row, step=5, key="add_row_cm")
-            plant_cm = st.number_input("Plant spacing (cm)", 5, 100,
-                                       value=rec_plant, step=5, key="add_plant_cm")
-
-            soil_texture = st.selectbox("Soil texture", ["sand","loam","clay"],
-                                        index=["sand","loam","clay"].index(rec_texture),
-                                        key="add_soil_texture")
-
-            planting_date = st.date_input("Planting date", key="add_planting_date")
-            compliance = st.selectbox("Compliance behavior", ["immediate", "delayed"], key="add_compliance")
-
-            if st.form_submit_button("Save Farm"):
-                spacing = f"{row_cm}x{plant_cm} cm"
-                new_farm = {
-                    "farm_id": farm_id, "system_id": system_id, "crop": crop_choice,
-                    "location": location_choice, "lat": lat, "lon": lon,
-                    "soil_texture": soil_texture,
-                    "row_cm": row_cm, "plant_cm": plant_cm, "spacing": spacing,
-                    "planting_date": str(planting_date), "compliance": compliance,
-                    "yield_factor": 1.0, "om_pct": 2.0,
-                    "agent": {
-                        "compliance": (0.8 if compliance == "immediate" else 0.5),
-                        "delay_min_h": 6,
-                        "delay_max_h": 24
+                if st.form_submit_button("Save Farm"):
+                    spacing = f"{row_cm}x{plant_cm} cm"
+                    new_farm = {
+                        "farm_id": farm_id, "system_id": system_id, "crop": crop_choice,
+                        "location": location_choice, "lat": lat, "lon": lon,
+                        "soil_texture": soil_texture,
+                        "row_cm": row_cm, "plant_cm": plant_cm, "spacing": spacing,
+                        "planting_date": str(planting_date), "compliance": compliance,
+                        "yield_factor": 1.0, "om_pct": 2.0,
+                        "agent": {
+                            "compliance": (0.8 if compliance == "immediate" else 0.5),
+                            "delay_min_h": 6,
+                            "delay_max_h": 24
+                        }
                     }
-                }
-                save_farm(user["username"], new_farm)
-                st.session_state.user = find_user(user["username"])
-                st.success("✅ Farm added successfully!")
-                st.rerun()
+                    save_farm(user["username"], new_farm)
+                    st.session_state.user = find_user(user["username"])
+                    st.success("✅ Farm added successfully!")
+                    st.session_state.show_add_farm = False
+                    st.rerun()
