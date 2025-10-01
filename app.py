@@ -846,7 +846,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.sidebar.image("https://i.ibb.co/QpWY5FP/myto-logo.png", width=180)
+st.sidebar.image("g34788.png", width=180)
 st.sidebar.markdown("### 🌱 Mytochondria Advisor\nHelping farmers grow more with less.")
 
 
@@ -1555,6 +1555,7 @@ with tabs[1]:
 
     with left:
         st.subheader("Insights & Actions")
+        st.subheader("                  ")
         if "ns_last" not in st.session_state:
             st.info("Fill the panel and click **Generate plan**.")
         else:
@@ -1805,3 +1806,4 @@ with tabs[2]:
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
+                    
