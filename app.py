@@ -251,14 +251,15 @@ st.markdown("""
 <style>
 .card-grid {
   display: flex;
-  flex-wrap: wrap;         /* allow items to wrap to next row */
+  flex-wrap: wrap;
   justify-content: flex-start;
-  gap: 16px;
+  gap: 12px;
 }
 
 .card {
-  flex: 0 0 calc(50% - 16px);  /* exactly 2 cards per row */
-  max-width: calc(50% - 16px);
+  flex: 0 0 calc(48% - 12px);   /* ~48% of the parent, allows 2 per row */
+  max-width: calc(48% - 12px);
+  min-width: 200px;             /* cards can shrink if column is narrow */
   box-sizing: border-box;
 
   border-radius: 14px; 
