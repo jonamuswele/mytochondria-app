@@ -48,53 +48,47 @@ if st.session_state.theme == "dark":
     st.markdown("""
         <style>
         body, .stApp, .block-container {
-            background-color: #121212 !important; /* darker black */
+            background-color: #121212 !important;
             color: #e0e0e0 !important;
         }
-        h1, h2, h3, h4 { color: #2563eb !important; } /* bright blue */
+        h1, h2, h3, h4 { color: #2563eb !important; }
 
         /* Nav buttons */
         div[data-testid="stHorizontalBlock"] div.stButton > button {
-            background-color: #1e1e1e !important;
-            color: #2563eb !important;
-            border: 1px solid #2563eb;
-        }
-        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
             background-color: #2563eb !important;
-            color: #121212 !important;
-        }
-
-        /* Cards */
-        .card { background: #1f2937 !important; color: #e0e0e0 !important; }
-
-        /* Inputs */
-        input, textarea, select {
-            color: #e0e0e0 !important;
-            background-color: #1e1e1e !important;
-            border: 1px solid #2563eb55 !important;
-            border-radius: 4px;
-        }
-
-        /* Sliders */
-        .stSlider > div[data-baseweb="slider"] > div { color: #2563eb !important; }
-        .stSlider [role="slider"] {
-            background-color: #2563eb !important;
-            border: 2px solid #2563eb !important;
-        }
-        .stSlider > div > div {
-            background: linear-gradient(to right, #1e3a8a, #2563eb) !important;
-        }
-
-        /* Tables */
-        .stDataFrame th, .stTable th {
-            background-color: #1e3a8a !important;
             color: white !important;
+            border: 1px solid #2563eb !important;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
-        .stDataFrame td, .stTable td { color: #e0e0e0 !important; }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
+            background-color: #1e40af !important; /* darker blue */
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:active,
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+            background-color: #121212 !important; /* dark background */
+            color: #2563eb !important;
+            border: 1px solid #2563eb !important;
+        }
 
-        canvas { background-color: #121212 !important; }
+        /* Global buttons */
+        .stButton>button {
+            background-color: #2563eb !important;
+            color: white !important;
+            border: 1px solid #2563eb !important;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .stButton>button:hover {
+            background-color: #1e40af !important;
+        }
+        .stButton>button:active {
+            background-color: #121212 !important;
+            color: #2563eb !important;
+        }
         </style>
     """, unsafe_allow_html=True)
+
 else:
     st.markdown("""
         <style>
@@ -102,74 +96,41 @@ else:
             background-color: #ffffff !important;
             color: #111 !important;
         }
+        h1, h2, h3, h4 { color: #4caf50 !important; }
 
-        /* Headings & text */
-        h1, h2, h3, h4, label, .stMarkdown, .stText, .stSelectbox label, .stRadio label {
-            color: #4caf50 !important; /* lighter green */
-        }
-        div[data-testid="stMarkdownContainer"] p,
-        div[data-testid="stMarkdownContainer"] span {
-            color: #111 !important;
-        }
-
-        /* Inputs */
-        input, textarea, select {
-            color: #111 !important;
-            background-color: #ffffff !important;
-            border: 1px solid #4caf5055 !important;
-            border-radius: 4px;
-        }
-        .stNumberInput input, .stTextInput input, .stDateInput input {
-            color: #111 !important;
-            background-color: #ffffff !important;
-        }
-
-        /* Radio, checkbox */
-        .stRadio div[role="radiogroup"] label,
-        .stCheckbox label { color: #111 !important; }
-
-        /* Sliders */
-        .stSlider > div[data-baseweb="slider"] > div { color: #4caf50 !important; }
-        .stSlider [role="slider"] {
-            background-color: #4caf50 !important;
-            border: 2px solid #4caf50 !important;
-        }
-        .stSlider > div > div {
-            background: linear-gradient(to right, #4caf50, #a5d6a7) !important;
-        }
-
-        /* Buttons */
+        /* Nav buttons */
         div[data-testid="stHorizontalBlock"] div.stButton > button {
-            background-color: white !important;
-            color: #4caf50 !important;
-            border: 1px solid #4caf50;
-        }
-        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
             background-color: #4caf50 !important;
             color: white !important;
+            border: 1px solid #4caf50 !important;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
+            background-color: #388e3c !important; /* darker green */
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:active,
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+            background-color: #ffffff !important; /* light background */
+            color: #4caf50 !important;
+            border: 1px solid #4caf50 !important;
+        }
+
+        /* Global buttons */
         .stButton>button {
             background-color: #4caf50 !important;
             color: white !important;
+            border: 1px solid #4caf50 !important;
             border-radius: 6px;
-            border: none;
+            transition: all 0.2s ease;
         }
         .stButton>button:hover {
             background-color: #388e3c !important;
-            color: white !important;
         }
-
-        /* Dataframes / Tables */
-        .stDataFrame, .stTable { background-color: #ffffff !important; color: #111 !important; }
-        .stDataFrame th, .stTable th {
-            background-color: #4caf50 !important;
-            color: white !important;
+        .stButton>button:active {
+            background-color: #ffffff !important;
+            color: #4caf50 !important;
         }
-        .stDataFrame td, .stTable td { color: #111 !important; }
-
-        /* Charts */
-        .vega-bindings, .vega-bindings span, .vega-bindings label { color: #4caf50 !important; }
-        canvas { background-color: #ffffff !important; }
         </style>
     """, unsafe_allow_html=True)
 
