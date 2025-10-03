@@ -921,9 +921,9 @@ with mode_col:
 
     # Update theme only if changed
     if new_toggle and not is_dark:
-        st.session_state.theme = "dark"
-    elif not new_toggle and is_dark:
         st.session_state.theme = "light"
+    elif not new_toggle and is_dark:
+        st.session_state.theme = "dark"
 
 # --- Top Navigation Bar ---
 st.markdown(
