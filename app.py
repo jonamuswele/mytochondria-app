@@ -899,11 +899,16 @@ st.markdown("""
 
 logo_col, space_col, mode_col = st.columns([1, 5, 1])
 with logo_col:
-    st.image("https://mytochondria.com/assets/logo.png", width=60)  # adjust path/URL to your logo
-with mode_col:
-    dark_mode = st.toggle("🌙", value=(st.session_state.theme == "dark"))
-    st.session_state.theme = "dark" if dark_mode else "light"
+    st.image("https://mytochondria.com/assets/logo.png", width=60)  # adjust path/URL
 
+with mode_col:
+    # Directly bind the toggle to session_state
+    st.session_state.theme = "dark" if st.toggle(
+        "🌙 Dark Mode",
+        value=(st.session_state.theme == "dark"),
+        key="theme_toggle"
+    ) else "light"
+    
 # --- Top Navigation Bar ---
 st.markdown(
     """
