@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 import json, os
 import sqlite3
-import urllib.parse
+import altair as alt
 
 USERS_FILE = "users.json"
 
@@ -1861,8 +1861,22 @@ elif active == "Crop Planner":
             st.write(f"- **Heat-stress days** (Tmax ≥35°C): **{risks['heat_stress_days']}**")
             st.write(
                 f"- **Cool germination risk** (early stage, low Tmax): **{risks['cool_germination_days']}**")
-            st.line_chart(df.set_index("date")[["Rain_mm", "ETc_mm", "Deficit_mm"]], use_container_width=True)
+            chart = alt.Chart(df).mark_line(point=True).encode(
+                x="date:T",
+                y=alt.Y("Rain_mm:Q", axis=alt.Axis(title="Rain (mm)")),
+                color=alt.value("#2563eb")
+            ).properties(
+                width="container",
+                height=300
+            ).configure_axis(
+                labelColor="#e0e0e0" if st.session_state.theme == "dark" else "#111",
+                titleColor="#e0e0e0" if st.session_state.theme == "dark" else "#111",
+                gridColor="#2563eb33" if st.session_state.theme == "dark" else "#4caf5022"
+            ).configure_view(
+                strokeOpacity=0
+            )
 
+            st.altair_chart(chart, use_container_width=True)
             # 2) Nutrient plan from lab
 
             st.markdown("### Nutrient plan")
@@ -2081,3 +2095,4 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
+
