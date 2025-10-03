@@ -44,120 +44,134 @@ with mode_col:
     # Update state immediately when changed
     st.session_state.theme = "dark" if new_toggle else "light"
 
-
 if st.session_state.theme == "dark":
     st.markdown("""
         <style>
         body, .stApp, .block-container {
-            background-color: #1e1e1e !important;
-            color: #f0f0f0 !important;
+            background-color: #121212 !important; /* darker black */
+            color: #e0e0e0 !important;
         }
-        h1, h2, h3, h4 { color: #8dd48d !important; }
+        h1, h2, h3, h4 { color: #2563eb !important; } /* bright blue */
+
+        /* Nav buttons */
         div[data-testid="stHorizontalBlock"] div.stButton > button {
-            background-color: #333 !important;
-            color: #8dd48d !important;
-            border: 1px solid #8dd48d;
+            background-color: #1e1e1e !important;
+            color: #2563eb !important;
+            border: 1px solid #2563eb;
         }
         div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
-            background-color: #8dd48d !important;
-            color: #1e1e1e !important;
+            background-color: #2563eb !important;
+            color: #121212 !important;
         }
-        .card { background: #2a2a2a !important; color: white !important; }
+
+        /* Cards */
+        .card { background: #1f2937 !important; color: #e0e0e0 !important; }
+
+        /* Inputs */
+        input, textarea, select {
+            color: #e0e0e0 !important;
+            background-color: #1e1e1e !important;
+            border: 1px solid #2563eb55 !important;
+            border-radius: 4px;
+        }
+
+        /* Sliders */
+        .stSlider > div[data-baseweb="slider"] > div { color: #2563eb !important; }
+        .stSlider [role="slider"] {
+            background-color: #2563eb !important;
+            border: 2px solid #2563eb !important;
+        }
+        .stSlider > div > div {
+            background: linear-gradient(to right, #1e3a8a, #2563eb) !important;
+        }
+
+        /* Tables */
+        .stDataFrame th, .stTable th {
+            background-color: #1e3a8a !important;
+            color: white !important;
+        }
+        .stDataFrame td, .stTable td { color: #e0e0e0 !important; }
+
+        canvas { background-color: #121212 !important; }
         </style>
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
-            <style>
-            body, .stApp, .block-container {
-                background-color: #ffffff !important;
-                color: #111 !important;
-            }
+        <style>
+        body, .stApp, .block-container {
+            background-color: #ffffff !important;
+            color: #111 !important;
+        }
 
-            /* Headings & text */
-            h1, h2, h3, h4, label, .stMarkdown, .stText, .stSelectbox label, .stRadio label {
-                color: #2d572c !important;
-            }
-            div[data-testid="stMarkdownContainer"] p,
-            div[data-testid="stMarkdownContainer"] span {
-                color: #111 !important;
-            }
+        /* Headings & text */
+        h1, h2, h3, h4, label, .stMarkdown, .stText, .stSelectbox label, .stRadio label {
+            color: #4caf50 !important; /* lighter green */
+        }
+        div[data-testid="stMarkdownContainer"] p,
+        div[data-testid="stMarkdownContainer"] span {
+            color: #111 !important;
+        }
 
-            /* Inputs */
-            input, textarea, select {
-                color: #111 !important;
-                background-color: #ffffff !important;
-                border: 1px solid #2d572c55 !important;
-                border-radius: 4px;
-            }
-            .stNumberInput input, .stTextInput input, .stDateInput input {
-                color: #111 !important;
-                background-color: #ffffff !important;
-            }
+        /* Inputs */
+        input, textarea, select {
+            color: #111 !important;
+            background-color: #ffffff !important;
+            border: 1px solid #4caf5055 !important;
+            border-radius: 4px;
+        }
+        .stNumberInput input, .stTextInput input, .stDateInput input {
+            color: #111 !important;
+            background-color: #ffffff !important;
+        }
 
-            /* Radio, checkbox */
-            .stRadio div[role="radiogroup"] label,
-            .stCheckbox label {
-                color: #111 !important;
-            }
+        /* Radio, checkbox */
+        .stRadio div[role="radiogroup"] label,
+        .stCheckbox label { color: #111 !important; }
 
-            /* Sliders */
-            .stSlider > div[data-baseweb="slider"] > div {
-                color: #2d572c !important;
-            }
-            .stSlider [role="slider"] {
-                background-color: #2d572c !important;
-                border: 2px solid #2d572c !important;
-            }
-            .stSlider [role="slider"]::before {
-                background-color: #2d572c !important;
-            }
-            .stSlider > div > div {
-                background: linear-gradient(to right, #2d572c, #a8d5a2) !important;
-            }
+        /* Sliders */
+        .stSlider > div[data-baseweb="slider"] > div { color: #4caf50 !important; }
+        .stSlider [role="slider"] {
+            background-color: #4caf50 !important;
+            border: 2px solid #4caf50 !important;
+        }
+        .stSlider > div > div {
+            background: linear-gradient(to right, #4caf50, #a5d6a7) !important;
+        }
 
-            /* Buttons */
-            div[data-testid="stHorizontalBlock"] div.stButton > button {
-                background-color: white !important;
-                color: #2d572c !important;
-                border: 1px solid #2d572c;
-            }
-            div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
-                background-color: #2d572c !important;
-                color: white !important;
-            }
-            .stButton>button {
-                background-color: #2d572c !important;
-                color: white !important;
-                border-radius: 6px;
-                border: none;
-            }
-            .stButton>button:hover {
-                background-color: #245423 !important;
-                color: white !important;
-            }
+        /* Buttons */
+        div[data-testid="stHorizontalBlock"] div.stButton > button {
+            background-color: white !important;
+            color: #4caf50 !important;
+            border: 1px solid #4caf50;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+            background-color: #4caf50 !important;
+            color: white !important;
+        }
+        .stButton>button {
+            background-color: #4caf50 !important;
+            color: white !important;
+            border-radius: 6px;
+            border: none;
+        }
+        .stButton>button:hover {
+            background-color: #388e3c !important;
+            color: white !important;
+        }
 
-            /* Dataframes / Tables */
-            .stDataFrame, .stTable {
-                background-color: #ffffff !important;
-                color: #111 !important;
-            }
-            .stDataFrame th, .stTable th {
-                background-color: #2d572c !important;
-                color: white !important;
-            }
-            .stDataFrame td, .stTable td {
-                color: #111 !important;
-            }
+        /* Dataframes / Tables */
+        .stDataFrame, .stTable { background-color: #ffffff !important; color: #111 !important; }
+        .stDataFrame th, .stTable th {
+            background-color: #4caf50 !important;
+            color: white !important;
+        }
+        .stDataFrame td, .stTable td { color: #111 !important; }
 
-            /* Charts (Altair, line_chart, bar_chart) */
-            .vega-bindings, .vega-bindings span, .vega-bindings label {
-                color: #2d572c !important;
-            }
-            canvas {
-                background-color: #ffffff !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
+        /* Charts */
+        .vega-bindings, .vega-bindings span, .vega-bindings label { color: #4caf50 !important; }
+        canvas { background-color: #ffffff !important; }
+        </style>
+    """, unsafe_allow_html=True)
 
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
