@@ -37,6 +37,16 @@ if st.session_state.theme == "dark":
     st.markdown("""
         <style>
         body { background-color: #1e1e1e; color: #f0f0f0; }
+        h1, h2, h3, h4 { color: #8dd48d; }
+        div[data-testid="stHorizontalBlock"] div.stButton > button {
+            background-color: #333 !important;
+            color: #8dd48d !important;
+            border: 1px solid #8dd48d;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+            background-color: #8dd48d !important;
+            color: #1e1e1e !important;
+        }
         .card { background: #2a2a2a; color: white; }
         </style>
     """, unsafe_allow_html=True)
@@ -44,9 +54,20 @@ else:
     st.markdown("""
         <style>
         body { background-color: #ffffff; color: #111; }
+        h1, h2, h3, h4 { color: #2d572c; }
+        div[data-testid="stHorizontalBlock"] div.stButton > button {
+            background-color: white !important;
+            color: #2d572c !important;
+            border: 1px solid #2d572c;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+            background-color: #2d572c !important;
+            color: white !important;
+        }
         .card { background: #f4f9f4; color: black; }
         </style>
     """, unsafe_allow_html=True)
+
 
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
@@ -878,6 +899,13 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+logo_col, space_col, mode_col = st.columns([1, 5, 1])
+with logo_col:
+    st.image("https://mytochondria.com/assets/logo.png", width=60)  # adjust path/URL to your logo
+with mode_col:
+    dark_mode = st.toggle("🌙", value=(st.session_state.theme == "dark"))
+    st.session_state.theme = "dark" if dark_mode else "light"
+
 # --- Top Navigation Bar ---
 st.markdown(
     """
@@ -1323,8 +1351,6 @@ def apply_action_effects(state: Dict[str, Any], task_label: str):
 # ------------------------------
 # UI Components
 # ------------------------------
-
-st.title("🌱 Mytochondria AgriAdvisor ")
 
 AER_TEXTURE_DEFAULT = {
     "I": "sand",
