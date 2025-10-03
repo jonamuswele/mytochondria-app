@@ -1298,7 +1298,7 @@ CROP_SPACING_DEFAULT = {
     "maize+beans": (75, 25)
 }
 
-active = st.session_state.active_tab
+active = tab_names[st.session_state.active_tab]
 
 if active == "Home":
     st.subheader("🌾 Your Farm Dashboard")
