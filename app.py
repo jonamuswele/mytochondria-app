@@ -65,7 +65,7 @@ if st.session_state.theme == "dark":
         .card { background: #2a2a2a !important; color: white !important; }
         </style>
     """, unsafe_allow_html=True)
-    else:
+else:
     st.markdown("""
             <style>
             body, .stApp, .block-container {
