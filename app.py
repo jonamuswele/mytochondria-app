@@ -77,7 +77,7 @@ if st.session_state.theme == "dark":
             border: 1px solid #2563eb !important;
         }
 
-        /* --- INPUTS (selectboxes, date, radios, sliders, text/number) --- */
+        /* --- INPUTS --- */
         div[data-baseweb="select"] > div,
         input, textarea, .stDateInput input {
             background-color: #1c1c28 !important;
@@ -115,25 +115,23 @@ if st.session_state.theme == "dark":
             padding: 8px;
         }
 
-        /* --- TABLES --- */
-        div[data-testid="stDataFrame"], div[data-testid="stTable"] {
-            background-color: #1c1c28 !important;
-            border: 1px solid #2563eb55 !important;
+        /* --- TABLES (st.dataframe) --- */
+        div[data-testid="stDataFrame"] {
             border-radius: 8px !important;
+            border: 1px solid #2563eb55 !important;
         }
-        div[data-testid="stDataFrame"] table,
-        div[data-testid="stTable"] table {
-            background-color: #1c1c28 !important;
-            color: #e0e0e0 !important;
-        }
-        div[data-testid="stDataFrame"] th,
-        div[data-testid="stTable"] th {
+        div[data-testid="stDataFrame"] .row_heading,
+        div[data-testid="stDataFrame"] .col_heading,
+        div[data-testid="stDataFrame"] .blank {
             background-color: #2563eb !important;
             color: white !important;
+            font-weight: 600 !important;
+            border: none !important;
         }
-        div[data-testid="stDataFrame"] td,
-        div[data-testid="stTable"] td {
+        div[data-testid="stDataFrame"] .data {
+            background-color: #1c1c28 !important;
             color: #e0e0e0 !important;
+            border: none !important;
         }
 
         /* --- CHARTS --- */
@@ -195,7 +193,7 @@ else:
             border: 1px solid #4caf50 !important;
         }
 
-        /* --- INPUTS (selectboxes, date, radios, sliders, text/number) --- */
+        /* --- INPUTS --- */
         div[data-baseweb="select"] > div,
         input, textarea, .stDateInput input {
             background-color: #f9fcf9 !important;
@@ -233,25 +231,23 @@ else:
             padding: 8px;
         }
 
-        /* --- TABLES --- */
-        div[data-testid="stDataFrame"], div[data-testid="stTable"] {
-            background-color: #f9fcf9 !important;
-            border: 1px solid #4caf5044 !important;
+        /* --- TABLES (st.dataframe) --- */
+        div[data-testid="stDataFrame"] {
             border-radius: 8px !important;
+            border: 1px solid #4caf5044 !important;
         }
-        div[data-testid="stDataFrame"] table,
-        div[data-testid="stTable"] table {
-            background-color: #f9fcf9 !important;
-            color: #111 !important;
-        }
-        div[data-testid="stDataFrame"] th,
-        div[data-testid="stTable"] th {
+        div[data-testid="stDataFrame"] .row_heading,
+        div[data-testid="stDataFrame"] .col_heading,
+        div[data-testid="stDataFrame"] .blank {
             background-color: #4caf50 !important;
             color: white !important;
+            font-weight: 600 !important;
+            border: none !important;
         }
-        div[data-testid="stDataFrame"] td,
-        div[data-testid="stTable"] td {
+        div[data-testid="stDataFrame"] .data {
+            background-color: #f9fcf9 !important;
             color: #111 !important;
+            border: none !important;
         }
 
         /* --- CHARTS --- */
@@ -2095,4 +2091,3 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
-
