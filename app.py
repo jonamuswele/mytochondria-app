@@ -85,12 +85,17 @@ if st.session_state.theme == "dark":
             border: 1px solid #2563eb !important;
             border-radius: 6px;
         }
-        .stRadio div[role="radiogroup"] label { color: #e0e0e0 !important; }
+        .stRadio div[role="radiogroup"] label,
         .stCheckbox label { color: #e0e0e0 !important; }
 
+        .stNumberInput, .stNumberInput > div, .stNumberInput input {
+            background-color: transparent !important;
+        }
         .stNumberInput button {
             border: 1px solid #2563eb !important;
             border-radius: 4px !important;
+            background-color: inherit !important;
+            color: inherit !important;
         }
 
         .stSlider [role="slider"] {
@@ -111,20 +116,26 @@ if st.session_state.theme == "dark":
         }
 
         /* --- TABLES --- */
-        .stDataFrame, .stTable {
+        div[data-testid="stDataFrame"], div[data-testid="stTable"] {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        div[data-testid="stDataFrame"] table,
+        div[data-testid="stTable"] table {
             background-color: #1c1c28 !important;
             color: #e0e0e0 !important;
             border: 1px solid #2563eb55 !important;
-            border-radius: 8px;
+            border-radius: 8px !important;
         }
         .stDataFrame td, .stDataFrame th { border-color: #2563eb33 !important; }
 
         /* --- CHARTS --- */
-        canvas {
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #1c1c28 !important;
-            border-radius: 8px;
-            border: 1px solid #2563eb55;
-            padding: 8px;
+            border-radius: 8px !important;
+            border: 1px solid #2563eb55 !important;
+            padding: 8px !important;
         }
 
         /* --- EXPANDERS --- */
@@ -177,12 +188,17 @@ else:
             border: 1px solid #4caf50 !important;
             border-radius: 6px;
         }
-        .stRadio div[role="radiogroup"] label { color: #111 !important; }
+        .stRadio div[role="radiogroup"] label,
         .stCheckbox label { color: #111 !important; }
 
+        .stNumberInput, .stNumberInput > div, .stNumberInput input {
+            background-color: transparent !important;
+        }
         .stNumberInput button {
             border: 1px solid #4caf50 !important;
             border-radius: 4px !important;
+            background-color: inherit !important;
+            color: inherit !important;
         }
 
         .stSlider [role="slider"] {
@@ -203,20 +219,26 @@ else:
         }
 
         /* --- TABLES --- */
-        .stDataFrame, .stTable {
+        div[data-testid="stDataFrame"], div[data-testid="stTable"] {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        div[data-testid="stDataFrame"] table,
+        div[data-testid="stTable"] table {
             background-color: #f9fcf9 !important;
             color: #111 !important;
             border: 1px solid #4caf5044 !important;
-            border-radius: 8px;
+            border-radius: 8px !important;
         }
         .stDataFrame td, .stDataFrame th { border-color: #4caf5022 !important; }
 
         /* --- CHARTS --- */
-        canvas {
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #f9fcf9 !important;
-            border-radius: 8px;
-            border: 1px solid #4caf5044;
-            padding: 8px;
+            border-radius: 8px !important;
+            border: 1px solid #4caf5044 !important;
+            padding: 8px !important;
         }
 
         /* --- EXPANDERS --- */
@@ -227,7 +249,7 @@ else:
         }
         </style>
     """, unsafe_allow_html=True)
-
+    
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
 
