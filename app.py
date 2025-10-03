@@ -119,25 +119,24 @@ if st.session_state.theme == "dark":
             padding: 8px;
         }
 
-        /* === TABLES === */
+        /* === TABLES (Dark Mode) === */
         div[data-testid="stDataFrame"] {
-            border-radius: 8px !important;
+            border-radius: 10px !important;
             border: 1px solid #2563eb55 !important;
+            overflow: hidden !important;
         }
-        div[data-testid="stDataFrame"] .row_heading,
-        div[data-testid="stDataFrame"] .col_heading,
-        div[data-testid="stDataFrame"] .blank {
+        div[data-testid="stDataFrame"] thead tr th {
             background-color: #2563eb !important;
             color: white !important;
             font-weight: 600 !important;
             border: none !important;
         }
-        div[data-testid="stDataFrame"] .data {
+        div[data-testid="stDataFrame"] tbody tr td {
             background-color: #1c1c28 !important;
             color: #e0e0e0 !important;
             border: none !important;
         }
-        div[data-testid="stDataFrame"] .data:hover {
+        div[data-testid="stDataFrame"] tbody tr:hover td {
             background-color: rgba(37,99,235,0.15) !important;
         }
 
@@ -145,9 +144,10 @@ if st.session_state.theme == "dark":
         .stPlotlyChart, .stVegaLiteChart, .stAltairChart,
         .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #1c1c28 !important;
-            border-radius: 8px !important;
+            border-radius: 10px !important;
             border: 1px solid #2563eb55 !important;
             padding: 8px !important;
+            overflow: hidden !important;
         }
         .vega-bindings, .vega-bindings span, .vega-bindings label {
             color: #e0e0e0 !important;
@@ -242,41 +242,41 @@ else:
             padding: 8px;
         }
 
-        /* === TABLES === */
+        /* === TABLES (Light Mode) === */
         div[data-testid="stDataFrame"] {
-            border-radius: 8px !important;
+            border-radius: 10px !important;
             border: 1px solid #4caf5044 !important;
+            overflow: hidden !important;
         }
-        div[data-testid="stDataFrame"] .row_heading,
-        div[data-testid="stDataFrame"] .col_heading,
-        div[data-testid="stDataFrame"] .blank {
+        div[data-testid="stDataFrame"] thead tr th {
             background-color: #4caf50 !important;
             color: white !important;
             font-weight: 600 !important;
             border: none !important;
         }
-        div[data-testid="stDataFrame"] .data {
-            background-color: #f9fcf9 !important;
+        div[data-testid="stDataFrame"] tbody tr td {
+            background-color: #ffffff !important;
             color: #111 !important;
             border: none !important;
         }
-        div[data-testid="stDataFrame"] .data:hover {
+        div[data-testid="stDataFrame"] tbody tr:hover td {
             background-color: rgba(76,175,80,0.15) !important;
         }
 
         /* === CHART CONTAINERS === */
         .stPlotlyChart, .stVegaLiteChart, .stAltairChart,
         .stPydeckChart, .stDeckGlChart, .stEchartsChart {
-            background-color: #f9fcf9 !important;
-            border-radius: 8px !important;
+            background-color: #ffffff !important;
+            border-radius: 10px !important;
             border: 1px solid #4caf5044 !important;
             padding: 8px !important;
+            overflow: hidden !important;
         }
         .vega-bindings, .vega-bindings span, .vega-bindings label {
             color: #111 !important;
         }
         .vega-tooltip {
-            background-color: #f9fcf9 !important;
+            background-color: #ffffff !important;
             color: #111 !important;
             border: 1px solid #4caf50 !important;
         }
