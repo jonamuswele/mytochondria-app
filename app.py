@@ -47,37 +47,41 @@ with mode_col:
 if st.session_state.theme == "dark":
     st.markdown("""
         <style>
+        /* === GLOBAL LAYOUT === */
         body, .stApp, .block-container {
             background-color: #121212 !important;
             color: #e0e0e0 !important;
         }
-        h1, h2, h3, h4 { color: #2563eb !important; }
+        h1, h2, h3, h4 {
+            color: #2563eb !important;
+        }
 
-        /* --- NAV + GLOBAL BUTTONS --- */
+        /* === NAVIGATION + BUTTONS === */
         div[data-testid="stHorizontalBlock"] div.stButton > button,
-        .stButton>button, div.stDownloadButton > button {
+        .stButton > button,
+        div.stDownloadButton > button {
             background-color: #2563eb !important;
             color: white !important;
             border: 1px solid #2563eb !important;
             border-radius: 6px;
-            transition: all 0.2s ease;
             font-weight: 600;
+            transition: all 0.2s ease;
         }
         div[data-testid="stHorizontalBlock"] div.stButton > button:hover,
-        .stButton>button:hover,
+        .stButton > button:hover,
         div.stDownloadButton > button:hover {
             background-color: #1e40af !important;
         }
         div[data-testid="stHorizontalBlock"] div.stButton > button:active,
         div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active,
-        .stButton>button:active,
+        .stButton > button:active,
         div.stDownloadButton > button:active {
             background-color: #121212 !important;
             color: #2563eb !important;
             border: 1px solid #2563eb !important;
         }
 
-        /* --- INPUTS --- */
+        /* === INPUTS === */
         div[data-baseweb="select"] > div,
         input, textarea, .stDateInput input {
             background-color: #1c1c28 !important;
@@ -86,8 +90,9 @@ if st.session_state.theme == "dark":
             border-radius: 6px;
         }
         .stRadio div[role="radiogroup"] label,
-        .stCheckbox label { color: #e0e0e0 !important; }
-
+        .stCheckbox label {
+            color: #e0e0e0 !important;
+        }
         .stNumberInput, .stNumberInput > div, .stNumberInput input {
             background-color: transparent !important;
         }
@@ -97,7 +102,6 @@ if st.session_state.theme == "dark":
             background-color: inherit !important;
             color: inherit !important;
         }
-
         .stSlider [role="slider"] {
             background-color: #2563eb !important;
             border: 2px solid #2563eb !important;
@@ -106,7 +110,7 @@ if st.session_state.theme == "dark":
             background: linear-gradient(to right, #2563eb, #1e40af) !important;
         }
 
-        /* --- CARDS --- */
+        /* === CARDS === */
         .card, .metric {
             background: linear-gradient(135deg, #121212, #1e1e2f);
             border: 1px solid #2563eb55;
@@ -115,7 +119,7 @@ if st.session_state.theme == "dark":
             padding: 8px;
         }
 
-        /* --- TABLES --- */
+        /* === TABLES === */
         div[data-testid="stDataFrame"] {
             border-radius: 8px !important;
             border: 1px solid #2563eb55 !important;
@@ -133,13 +137,12 @@ if st.session_state.theme == "dark":
             color: #e0e0e0 !important;
             border: none !important;
         }
-        /* Hover rows dark */
         div[data-testid="stDataFrame"] .data:hover {
             background-color: rgba(37,99,235,0.15) !important;
         }
 
-        /* --- CHART CONTAINERS --- */
-        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, 
+        /* === CHART CONTAINERS === */
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart,
         .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #1c1c28 !important;
             border-radius: 8px !important;
@@ -155,7 +158,7 @@ if st.session_state.theme == "dark":
             border: 1px solid #2563eb !important;
         }
 
-        /* --- EXPANDERS --- */
+        /* === EXPANDERS === */
         .streamlit-expanderHeader {
             font-weight: 600 !important;
             border: 1px solid #2563eb !important;
@@ -167,37 +170,41 @@ if st.session_state.theme == "dark":
 else:
     st.markdown("""
         <style>
+        /* === GLOBAL LAYOUT === */
         body, .stApp, .block-container {
             background-color: #ffffff !important;
             color: #111 !important;
         }
-        h1, h2, h3, h4 { color: #4caf50 !important; }
+        h1, h2, h3, h4 {
+            color: #4caf50 !important;
+        }
 
-        /* --- NAV + GLOBAL BUTTONS --- */
+        /* === NAVIGATION + BUTTONS === */
         div[data-testid="stHorizontalBlock"] div.stButton > button,
-        .stButton>button, div.stDownloadButton > button {
+        .stButton > button,
+        div.stDownloadButton > button {
             background-color: #4caf50 !important;
             color: white !important;
             border: 1px solid #4caf50 !important;
             border-radius: 6px;
-            transition: all 0.2s ease;
             font-weight: 600;
+            transition: all 0.2s ease;
         }
         div[data-testid="stHorizontalBlock"] div.stButton > button:hover,
-        .stButton>button:hover,
+        .stButton > button:hover,
         div.stDownloadButton > button:hover {
             background-color: #388e3c !important;
         }
         div[data-testid="stHorizontalBlock"] div.stButton > button:active,
         div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active,
-        .stButton>button:active,
+        .stButton > button:active,
         div.stDownloadButton > button:active {
             background-color: #ffffff !important;
             color: #4caf50 !important;
             border: 1px solid #4caf50 !important;
         }
 
-        /* --- INPUTS --- */
+        /* === INPUTS === */
         div[data-baseweb="select"] > div,
         input, textarea, .stDateInput input {
             background-color: #f9fcf9 !important;
@@ -206,8 +213,9 @@ else:
             border-radius: 6px;
         }
         .stRadio div[role="radiogroup"] label,
-        .stCheckbox label { color: #111 !important; }
-
+        .stCheckbox label {
+            color: #111 !important;
+        }
         .stNumberInput, .stNumberInput > div, .stNumberInput input {
             background-color: transparent !important;
         }
@@ -217,7 +225,6 @@ else:
             background-color: inherit !important;
             color: inherit !important;
         }
-
         .stSlider [role="slider"] {
             background-color: #4caf50 !important;
             border: 2px solid #4caf50 !important;
@@ -226,7 +233,7 @@ else:
             background: linear-gradient(to right, #4caf50, #a8d5a2) !important;
         }
 
-        /* --- CARDS --- */
+        /* === CARDS === */
         .card, .metric {
             background: linear-gradient(135deg, #ffffff, #f4f9f4);
             border: 1px solid #4caf5044;
@@ -235,7 +242,7 @@ else:
             padding: 8px;
         }
 
-        /* --- TABLES --- */
+        /* === TABLES === */
         div[data-testid="stDataFrame"] {
             border-radius: 8px !important;
             border: 1px solid #4caf5044 !important;
@@ -253,13 +260,12 @@ else:
             color: #111 !important;
             border: none !important;
         }
-        /* Hover rows light */
         div[data-testid="stDataFrame"] .data:hover {
             background-color: rgba(76,175,80,0.15) !important;
         }
 
-        /* --- CHART CONTAINERS --- */
-        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, 
+        /* === CHART CONTAINERS === */
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart,
         .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #f9fcf9 !important;
             border-radius: 8px !important;
@@ -275,7 +281,7 @@ else:
             border: 1px solid #4caf50 !important;
         }
 
-        /* --- EXPANDERS --- */
+        /* === EXPANDERS === */
         .streamlit-expanderHeader {
             font-weight: 600 !important;
             border: 1px solid #4caf50 !important;
@@ -283,38 +289,34 @@ else:
         }
         </style>
     """, unsafe_allow_html=True)
-
+    
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
 
 tab_names = ["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks", "Manage Account"]
 
-def themed_altair_chart(df, x, y, theme, chart_type="line"):
-    base_color = "#2563eb" if theme == "dark" else "#4caf50"
-    text_color = "#e0e0e0" if theme == "dark" else "#111"
-    bg_color = "#1c1c28" if theme == "dark" else "#f9fcf9"
-    grid_color = base_color + "33"
+def _accent(theme: str) -> str:
+    return "#2563eb" if theme == "dark" else "#4caf50"
 
-    if chart_type == "line":
-        chart = alt.Chart(df).mark_line(point=True, color=base_color)
-    elif chart_type == "bar":
-        chart = alt.Chart(df).mark_bar(color=base_color)
-    else:
-        chart = alt.Chart(df).mark_point(color=base_color)
+def _text_bg_grid(theme: str) -> tuple[str, str, str]:
+    text = "#e0e0e0" if theme == "dark" else "#111"
+    bg   = "#1c1c28" if theme == "dark" else "#f9fcf9"
+    grid = (_accent(theme) + "33")
+    return text, bg, grid
 
-    chart = chart.encode(
-        x=alt.X(x, axis=alt.Axis(labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
-        y=alt.Y(y, axis=alt.Axis(labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
-    ).configure_view(
-        strokeOpacity=0,
-        fill=bg_color
-    ).configure_axis(
-        grid=True
-    ).configure_legend(
-        labelColor=text_color,
-        titleColor=text_color
+def style_chart(chart: "alt.Chart", theme: str) -> "alt.Chart":
+    """
+    Apply consistent theming to ANY Altair chart you pass in.
+    Keeps your marks/encodings; only styles axes, legend, grid, and view background.
+    """
+    text, bg, grid = _text_bg_grid(theme)
+    return (
+        chart
+        .configure_view(strokeOpacity=0, fill=bg)
+        .configure_axis(labelColor=text, titleColor=text, grid=True, gridColor=grid)
+        .configure_legend(labelColor=text, titleColor=text)
+        .resolve_scale(color="independent")  # don't force one scale across layered charts
     )
-    return chart
 
 def _db():
     # Streamlit runs multi-threaded; set check_same_thread=False
@@ -1753,11 +1755,74 @@ elif active == "Sensor Mode":
 
             # CHARTS — full history at the bottom
             st.markdown("#### Charts")
-            tail = df.set_index("timestamp")
-            st.line_chart(tail[["moisture", "temperature"]], use_container_width=True)
-            st.line_chart(tail[["ph", "ec"]], use_container_width=True)
-            st.line_chart(tail[["n", "p", "k"]], use_container_width=True)
+            tail = df.copy()  # keep 'timestamp' column
+            accent = _accent(st.session_state.theme)
 
+            # 1) Moisture & Temperature (two series)
+            moist_temp = (
+                alt.Chart(tail)
+                .transform_fold(["moisture", "temperature"], as_=["Metric", "Value"])
+                .mark_line(point=True)
+                .encode(
+                    x=alt.X("timestamp:T", title=""),
+                    y=alt.Y("Value:Q", title=""),
+                    color=alt.Color(
+                        "Metric:N",
+                        scale=alt.Scale(range=[accent, "#8899aa"]),  # accent + neutral
+                        legend=alt.Legend(title=None)
+                    ),
+                    tooltip=[
+                        alt.Tooltip("timestamp:T", title="Time"),
+                        alt.Tooltip("Metric:N"),
+                        alt.Tooltip("Value:Q", format=".2f")
+                    ],
+                )
+            )
+            st.altair_chart(style_chart(moist_temp, st.session_state.theme), use_container_width=True)
+
+            # 2) pH & EC
+            ph_ec = (
+                alt.Chart(tail)
+                .transform_fold(["ph", "ec"], as_=["Metric", "Value"])
+                .mark_line(point=True)
+                .encode(
+                    x=alt.X("timestamp:T", title=""),
+                    y=alt.Y("Value:Q", title=""),
+                    color=alt.Color(
+                        "Metric:N",
+                        scale=alt.Scale(range=[accent, "#c0a5ff"]),
+                        legend=alt.Legend(title=None)
+                    ),
+                    tooltip=[
+                        alt.Tooltip("timestamp:T", title="Time"),
+                        alt.Tooltip("Metric:N"),
+                        alt.Tooltip("Value:Q", format=".2f")
+                    ],
+                )
+            )
+            st.altair_chart(style_chart(ph_ec, st.session_state.theme), use_container_width=True)
+
+            # 3) N, P, K
+            npk = (
+                alt.Chart(tail)
+                .transform_fold(["n", "p", "k"], as_=["Nutrient", "Percent"])
+                .mark_line(point=True)
+                .encode(
+                    x=alt.X("timestamp:T", title=""),
+                    y=alt.Y("Percent:Q", title=""),
+                    color=alt.Color(
+                        "Nutrient:N",
+                        scale=alt.Scale(range=[accent, "#6aa07b", "#c59b30"]),
+                        legend=alt.Legend(title=None)
+                    ),
+                    tooltip=[
+                        alt.Tooltip("timestamp:T", title="Time"),
+                        alt.Tooltip("Nutrient:N"),
+                        alt.Tooltip("Percent:Q", format=".0f")
+                    ],
+                )
+            )
+            st.altair_chart(style_chart(npk, st.session_state.theme), use_container_width=True)
         # RIGHT — past & forecast weather
         with right:
             st.markdown("#### Weather (past & forecast)")
@@ -1893,10 +1958,18 @@ elif active == "Crop Planner":
             st.write(f"- **Heat-stress days** (Tmax ≥35°C): **{risks['heat_stress_days']}**")
             st.write(
                 f"- **Cool germination risk** (early stage, low Tmax): **{risks['cool_germination_days']}**")
-            
 
-            st.altair_chart(themed_altair_chart(df, "date:T", "Rain_mm:Q", st.session_state.theme, chart_type="line"), use_container_width=True)
-
+            rain_line = (
+                alt.Chart(df)
+                .mark_line(point=True, color=_accent(st.session_state.theme))
+                .encode(
+                    x=alt.X("date:T", title=""),
+                    y=alt.Y("Rain_mm:Q", title="Rain (mm)"),
+                    tooltip=[alt.Tooltip("date:T", title="Day"),
+                             alt.Tooltip("Rain_mm:Q", title="Rain (mm)", format=".1f")]
+                )
+            )
+            st.altair_chart(style_chart(rain_line, st.session_state.theme), use_container_width=True)
             # 2) Nutrient plan from lab
 
             st.markdown("### Nutrient plan")
