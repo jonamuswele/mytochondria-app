@@ -65,56 +65,99 @@ if st.session_state.theme == "dark":
         .card { background: #2a2a2a !important; color: white !important; }
         </style>
     """, unsafe_allow_html=True)
-else:
+    else:
     st.markdown("""
-        <style>
-        body, .stApp, .block-container {
-            background-color: #ffffff !important;
-            color: #111 !important;
-        }
-        h1, h2, h3, h4, label, .stMarkdown, .stText, .stSelectbox label, .stRadio label {
-            color: #2d572c !important;
-        }
-        div[data-testid="stMarkdownContainer"] p,
-        div[data-testid="stMarkdownContainer"] span {
-            color: #111 !important;
-        }
-        input, textarea, select {
-            color: #111 !important;
-            background-color: #ffffff !important;
-        }
-        .stNumberInput input, .stTextInput input, .stDateInput input {
-            color: #111 !important;
-        }
-        .stRadio div[role="radiogroup"] label {
-            color: #111 !important;
-        }
+            <style>
+            body, .stApp, .block-container {
+                background-color: #ffffff !important;
+                color: #111 !important;
+            }
 
-        /* Buttons */
-        div[data-testid="stHorizontalBlock"] div.stButton > button {
-            background-color: white !important;
-            color: #2d572c !important;
-            border: 1px solid #2d572c;
-        }
-        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
-            background-color: #2d572c !important;
-            color: white !important;
-        }
-        .stButton>button {
-            background-color: #2d572c !important;
-            color: white !important;
-            border-radius: 6px;
-            border: none;
-        }
-        .stButton>button:hover {
-            background-color: #245423 !important;
-            color: white !important;
-        }
+            /* Headings & text */
+            h1, h2, h3, h4, label, .stMarkdown, .stText, .stSelectbox label, .stRadio label {
+                color: #2d572c !important;
+            }
+            div[data-testid="stMarkdownContainer"] p,
+            div[data-testid="stMarkdownContainer"] span {
+                color: #111 !important;
+            }
 
-        /* Card styling */
-        .card { background: #f4f9f4 !important; color: #111 !important; }
-        </style>
-    """, unsafe_allow_html=True)
+            /* Inputs */
+            input, textarea, select {
+                color: #111 !important;
+                background-color: #ffffff !important;
+                border: 1px solid #2d572c55 !important;
+                border-radius: 4px;
+            }
+            .stNumberInput input, .stTextInput input, .stDateInput input {
+                color: #111 !important;
+                background-color: #ffffff !important;
+            }
+
+            /* Radio, checkbox */
+            .stRadio div[role="radiogroup"] label,
+            .stCheckbox label {
+                color: #111 !important;
+            }
+
+            /* Sliders */
+            .stSlider > div[data-baseweb="slider"] > div {
+                color: #2d572c !important;
+            }
+            .stSlider [role="slider"] {
+                background-color: #2d572c !important;
+                border: 2px solid #2d572c !important;
+            }
+            .stSlider [role="slider"]::before {
+                background-color: #2d572c !important;
+            }
+            .stSlider > div > div {
+                background: linear-gradient(to right, #2d572c, #a8d5a2) !important;
+            }
+
+            /* Buttons */
+            div[data-testid="stHorizontalBlock"] div.stButton > button {
+                background-color: white !important;
+                color: #2d572c !important;
+                border: 1px solid #2d572c;
+            }
+            div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+                background-color: #2d572c !important;
+                color: white !important;
+            }
+            .stButton>button {
+                background-color: #2d572c !important;
+                color: white !important;
+                border-radius: 6px;
+                border: none;
+            }
+            .stButton>button:hover {
+                background-color: #245423 !important;
+                color: white !important;
+            }
+
+            /* Dataframes / Tables */
+            .stDataFrame, .stTable {
+                background-color: #ffffff !important;
+                color: #111 !important;
+            }
+            .stDataFrame th, .stTable th {
+                background-color: #2d572c !important;
+                color: white !important;
+            }
+            .stDataFrame td, .stTable td {
+                color: #111 !important;
+            }
+
+            /* Charts (Altair, line_chart, bar_chart) */
+            .vega-bindings, .vega-bindings span, .vega-bindings label {
+                color: #2d572c !important;
+            }
+            canvas {
+                background-color: #ffffff !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
