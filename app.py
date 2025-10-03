@@ -115,7 +115,7 @@ if st.session_state.theme == "dark":
             padding: 8px;
         }
 
-        /* --- TABLES (st.dataframe) --- */
+        /* --- TABLES --- */
         div[data-testid="stDataFrame"] {
             border-radius: 8px !important;
             border: 1px solid #2563eb55 !important;
@@ -133,8 +133,12 @@ if st.session_state.theme == "dark":
             color: #e0e0e0 !important;
             border: none !important;
         }
+        /* Hover rows dark */
+        div[data-testid="stDataFrame"] .data:hover {
+            background-color: rgba(37,99,235,0.15) !important;
+        }
 
-        /* --- CHARTS --- */
+        /* --- CHART CONTAINERS --- */
         .stPlotlyChart, .stVegaLiteChart, .stAltairChart, 
         .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #1c1c28 !important;
@@ -231,7 +235,7 @@ else:
             padding: 8px;
         }
 
-        /* --- TABLES (st.dataframe) --- */
+        /* --- TABLES --- */
         div[data-testid="stDataFrame"] {
             border-radius: 8px !important;
             border: 1px solid #4caf5044 !important;
@@ -249,8 +253,12 @@ else:
             color: #111 !important;
             border: none !important;
         }
+        /* Hover rows light */
+        div[data-testid="stDataFrame"] .data:hover {
+            background-color: rgba(76,175,80,0.15) !important;
+        }
 
-        /* --- CHARTS --- */
+        /* --- CHART CONTAINERS --- */
         .stPlotlyChart, .stVegaLiteChart, .stAltairChart, 
         .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #f9fcf9 !important;
@@ -280,6 +288,24 @@ if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
 
 tab_names = ["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks", "Manage Account"]
+
+def themed_altair_chart(df, theme):
+    base_color = "#2563eb" if theme == "dark" else "#4caf50"
+    text_color = "#e0e0e0" if theme == "dark" else "#111"
+    grid_color = base_color + "33"
+
+    chart = (
+        alt.Chart(df)
+        .mark_line(point=True, color=base_color)
+        .encode(
+            x=alt.X("date:T", axis=alt.Axis(title="Date", labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
+            y=alt.Y("Rain_mm:Q", axis=alt.Axis(title="Rain (mm)", labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
+        )
+        .configure_view(strokeOpacity=0, fill="#1c1c28" if theme == "dark" else "#f9fcf9")
+        .configure_legend(labelColor=text_color, titleColor=text_color)
+    )
+    return chart
+
 def _db():
     # Streamlit runs multi-threaded; set check_same_thread=False
     return sqlite3.connect(DB_FILE, check_same_thread=False)
@@ -1872,7 +1898,7 @@ elif active == "Crop Planner":
                 strokeOpacity=0
             )
 
-            st.altair_chart(chart, use_container_width=True)
+            st.altair_chart(themed_altair_chart(df, st.session_state.theme), use_container_width=True)
             # 2) Nutrient plan from lab
 
             st.markdown("### Nutrient plan")
