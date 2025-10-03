@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 import json, os
 import sqlite3
+import urllib.parse
 
 USERS_FILE = "users.json"
 
@@ -878,11 +879,57 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- Top Navigation Bar ---
-nav_cols = st.columns(len(tab_names))
+st.markdown(
+    """
+    <style>
+    .nav-container {
+        display: flex;
+        justify-content: space-around;
+        background-color: #2d572c; /* deep green bar */
+        padding: 10px 0;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+    .nav-item {
+        flex: 1;
+        text-align: center;
+        padding: 8px 0;
+        margin: 0 4px;
+        font-weight: 600;
+        border-radius: 6px;
+        color: #2d572c;
+        background-color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .nav-item:hover {
+        background-color: #eaf4ea;
+    }
+    .nav-active {
+        background-color: #2d572c !important;
+        color: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Render the nav bar with clickable links
+nav_html = '<div class="nav-container">'
 for i, name in enumerate(tab_names):
-    if nav_cols[i].button(name):
-        st.session_state.active_tab = i
-        st.rerun()
+    active_class = "nav-item nav-active" if st.session_state.active_tab == i else "nav-item"
+    nav_html += f'<div class="{active_class}" onclick="window.location.href=\'?tab={i}\'">{name}</div>'
+nav_html += '</div>'
+st.markdown(nav_html, unsafe_allow_html=True)
+
+# Sync session state with query param
+
+query_params = st.query_params
+if "tab" in query_params:
+    try:
+        st.session_state.active_tab = int(query_params["tab"])
+    except:
+        st.session_state.active_tab = 0
 
 
 # ------------------------------
@@ -1857,3 +1904,4 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
+
