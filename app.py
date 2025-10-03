@@ -882,27 +882,21 @@ st.markdown("""
 st.markdown(
     """
     <style>
-    .nav-container {
-        display: flex;
-        justify-content: space-around;
-        background-color: #2d572c; /* deep green bar */
-        padding: 10px 0;
-        border-radius: 6px;
-        margin-bottom: 20px;
-    }
-    .nav-item {
-        flex: 1;
+    .nav-button {
+        display: inline-block;
+        width: 100%;
         text-align: center;
-        padding: 8px 0;
-        margin: 0 4px;
         font-weight: 600;
         border-radius: 6px;
-        color: #2d572c;
-        background-color: white;
+        padding: 8px 0;
+        margin: 0 4px;
         cursor: pointer;
+        border: 1px solid #2d572c;
+        background-color: white;
+        color: #2d572c;
         transition: all 0.3s ease;
     }
-    .nav-item:hover {
+    .nav-button:hover {
         background-color: #eaf4ea;
     }
     .nav-active {
@@ -914,24 +908,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Render the nav bar with clickable links
-nav_html = '<div class="nav-container">'
+nav_cols = st.columns(len(tab_names))
 for i, name in enumerate(tab_names):
-    active_class = "nav-item nav-active" if st.session_state.active_tab == i else "nav-item"
-    nav_html += f'<div class="{active_class}" onclick="window.location.href=\'?tab={i}\'">{name}</div>'
-nav_html += '</div>'
-st.markdown(nav_html, unsafe_allow_html=True)
-
-# Sync session state with query param
-
-query_params = st.query_params
-if "tab" in query_params:
-    try:
-        st.session_state.active_tab = int(query_params["tab"])
-    except:
-        st.session_state.active_tab = 0
-
-
+    button_label = f"<div class='nav-button {'nav-active' if st.session_state.active_tab == i else ''}'>{name}</div>"
+    if nav_cols[i].button(button_label, key=f"nav_{i}", use_container_width=True):
+        st.session_state.active_tab = i
+        st.rerun()
 # ------------------------------
 # State initialization
 # ------------------------------
@@ -1904,4 +1886,3 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
-
