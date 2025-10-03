@@ -1298,572 +1298,562 @@ CROP_SPACING_DEFAULT = {
     "maize+beans": (75, 25)
 }
 
-for i, name in enumerate(tab_names):
-    with tabs[i]:
-        if st.session_state.active_tab ==i:
-            st.subheader(f"{name}")
-            
-            if name =="Home":
-                st.subheader("🌾 Your Farm Dashboard")
+active = st.session_state.active_tab
 
-                # Alerts snapshot
-                st.markdown("### 🚨 Active Alerts")
-                if not user_farms:
-                    st.info("No farms yet. Add a farm to start receiving alerts.")
-                else:
-                    for f in user_farms:
-                        fid = f["farm_id"]
-                        alerts = st.session_state.farm_alerts.get(fid, [])
-                        if alerts:
-                            for a in alerts[-3:]:  # last 3 alerts
-                                st.warning(f"**{f['crop']} ({f['location']})** → {a['title']} ({a['status']})")
-                        else:
-                            st.success(f"No new alerts for **{f['crop']} ({f['location']})**")
+if active == "Home":
+    st.subheader("🌾 Your Farm Dashboard")
 
-                # Quick Actions
-                st.markdown("### ⚡ Quick Actions")
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    if st.button("➕ Add Farm"):
-                        st.session_state.active_tab = 4
-                        st.rerun()
-                with col2:
-                    st.button("📦 View Products")
-                with col3:
-                    st.button("📖 Tutorials")
+    # Alerts snapshot
+    st.markdown("### 🚨 Active Alerts")
+    if not user_farms:
+        st.info("No farms yet. Add a farm to start receiving alerts.")
+    else:
+        for f in user_farms:
+            fid = f["farm_id"]
+            alerts = st.session_state.farm_alerts.get(fid, [])
+            if alerts:
+                for a in alerts[-3:]:  # last 3 alerts
+                    st.warning(f"**{f['crop']} ({f['location']})** → {a['title']} ({a['status']})")
+            else:
+                st.success(f"No new alerts for **{f['crop']} ({f['location']})**")
 
-                # Snapshot overview
-                st.markdown("### 📊 Overview")
-                colA, colB, colC = st.columns(3)
-                colA.metric("🌱 Farms Managed", len(user_farms))
-                total_alerts = sum(len(st.session_state.farm_alerts.get(f["farm_id"], [])) for f in user_farms)
-                colB.metric("🚨 Total Alerts", total_alerts)
-                colC.metric("☀️ Weather Risk", "Rain forecast" if random.random() < 0.5 else "Clear")
+    # Quick Actions
+    st.markdown("### ⚡ Quick Actions")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("➕ Add Farm"):
+            st.session_state.active_tab = 4
+            st.rerun()
+    with col2:
+        st.button("📦 View Products")
+    with col3:
+        st.button("📖 Tutorials")
 
-            elif name == "Sensor Mode":
-                st.subheader("Sensor Mode Live ")
+    # Snapshot overview
+    st.markdown("### 📊 Overview")
+    colA, colB, colC = st.columns(3)
+    colA.metric("🌱 Farms Managed", len(user_farms))
+    total_alerts = sum(len(st.session_state.farm_alerts.get(f["farm_id"], [])) for f in user_farms)
+    colB.metric("🚨 Total Alerts", total_alerts)
+    colC.metric("☀️ Weather Risk", "Rain forecast" if random.random() < 0.5 else "Clear")
 
-                # 1) Backfill all farms to current hour so data is always up-to-date
+elif active == "Sensor Mode":
+    st.subheader("Sensor Mode Live ")
+
+    # 1) Backfill all farms to current hour so data is always up-to-date
+    for _farm in user_farms:
+        update_farm_until_now(_farm)
+
+    if not user_farms:
+        st.info("You don’t have any farms yet. Add one in **Manage Account** or use **Crop pplanner**.")
+        st.caption("You can still generate plans in the Non-Sensor tab without adding a farm.")
+    else:
+        # ↓↓↓ everything from the "2) Choose ONE farm..." line to the end of the Sensor tab goes under this 'else:'
+        # 2) Choose ONE farm (no multi-select)
+
+        # 2) Choose ONE farm (no multi-select)
+        top_l, top_r = st.columns([3, 1])
+        with top_l:
+            ids = [f["farm_id"] for f in user_farms]
+            sel_id = st.selectbox("Choose a farm", ids, index=0, key="one_farm_select")
+        with top_r:
+            if st.button("Sync to current hour"):
                 for _farm in user_farms:
                     update_farm_until_now(_farm)
+                st.rerun()
 
-                if not user_farms:
-                    st.info("You don’t have any farms yet. Add one in **Manage Account** or use **Crop pplanner**.")
-                    st.caption("You can still generate plans in the Non-Sensor tab without adding a farm.")
-                else:
-                    # ↓↓↓ everything from the "2) Choose ONE farm..." line to the end of the Sensor tab goes under this 'else:'
-                    # 2) Choose ONE farm (no multi-select)
+        # 3) Load selected farm + latest data
+        farm = next(f for f in user_farms if f["farm_id"] == sel_id)
+        fid = farm["farm_id"]
+        df = pd.DataFrame(st.session_state.farm_hist[fid]).sort_values("timestamp")
+        latest = df.iloc[-1].to_dict()
+        planting_date = df.iloc[0]["planting_date"]
+        days_since = (datetime.now().date() - planting_date).days
+        eta_days = max(0, _expected_days_to_harvest(farm["crop"]) - days_since)
 
-                    # 2) Choose ONE farm (no multi-select)
-                    top_l, top_r = st.columns([3, 1])
-                    with top_l:
-                        ids = [f["farm_id"] for f in user_farms]
-                        sel_id = st.selectbox("Choose a farm", ids, index=0, key="one_farm_select")
-                    with top_r:
-                        if st.button("Sync to current hour"):
-                            for _farm in user_farms:
-                                update_farm_until_now(_farm)
-                            st.rerun()
+        # 4) Layout: left (cards + insights + logs + charts) / right (weather)
+        left, right = st.columns([3, 1])
 
-                    # 3) Load selected farm + latest data
-                    farm = next(f for f in user_farms if f["farm_id"] == sel_id)
-                    fid = farm["farm_id"]
-                    df = pd.DataFrame(st.session_state.farm_hist[fid]).sort_values("timestamp")
-                    latest = df.iloc[-1].to_dict()
-                    planting_date = df.iloc[0]["planting_date"]
-                    days_since = (datetime.now().date() - planting_date).days
-                    eta_days = max(0, _expected_days_to_harvest(farm["crop"]) - days_since)
+        # LEFT — summary cards (squares) + insights + full history + charts
+        with left:
+            st.markdown("#### Farm overview")
 
-                    # 4) Layout: left (cards + insights + logs + charts) / right (weather)
-                    left, right = st.columns([3, 1])
+            # Grid of cards (“squares”)
+            st.markdown('<div class="card-grid">', unsafe_allow_html=True)
 
-                    # LEFT — summary cards (squares) + insights + full history + charts
-                    with left:
-                        st.markdown("#### Farm overview")
+            # Spacing & dates
+            _card("📅 Planting & Spacing",
+                  f"{planting_date.strftime('%b %d')} • {farm['row_cm']}×{farm['plant_cm']} cm",
+                  sub=f"Expected harvest: ~{eta_days} days", color="blue")
 
-                        # Grid of cards (“squares”)
-                        st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+            # Sensor health
+            last72 = df.tail(72)
+            uptime = 100.0 * len(last72) / 72.0 if len(df) >= 72 else 100.0
+            _card("🩺 Sensor Health", f"{uptime:.0f}%", sub="Expand for details",
+                  color=("green" if uptime >= 95 else ("amber" if uptime >= 80 else "red")))
 
-                        # Spacing & dates
-                        _card("📅 Planting & Spacing",
-                              f"{planting_date.strftime('%b %d')} • {farm['row_cm']}×{farm['plant_cm']} cm",
-                              sub=f"Expected harvest: ~{eta_days} days", color="blue")
+            # Moisture card (traffic-light)
+            mcol = _moisture_color(latest["moisture"])
+            _card("💧 Soil Moisture", f"{latest['moisture']:.0f}%",
+                  sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")), color=mcol)
 
-                        # Sensor health
-                        last72 = df.tail(72)
-                        uptime = 100.0 * len(last72) / 72.0 if len(df) >= 72 else 100.0
-                        _card("🩺 Sensor Health", f"{uptime:.0f}%", sub="Expand for details",
-                              color=("green" if uptime >= 95 else ("amber" if uptime >= 80 else "red")))
+            # NPK status cards (H/M/L)
+            ncat, pcat, kcat = pct_to_cat(latest["n"]), pct_to_cat(latest["p"]), pct_to_cat(latest["k"])
+            _card("🟢 N", ncat, sub="Nitrogen", color=_color_by_status(ncat))
+            _card("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat))
+            _card("🟠 K", kcat, sub="Potassium", color=_color_by_status(kcat))
 
-                        # Moisture card (traffic-light)
-                        mcol = _moisture_color(latest["moisture"])
-                        _card("💧 Soil Moisture", f"{latest['moisture']:.0f}%",
-                              sub=("Adequate" if mcol == "green" else ("Watch" if mcol == "amber" else "Low")), color=mcol)
+            # Number of sensors per field (demo: 3)
+            _card("📡 Sensors", "3", sub="per field", color="gray")
 
-                        # NPK status cards (H/M/L)
-                        ncat, pcat, kcat = pct_to_cat(latest["n"]), pct_to_cat(latest["p"]), pct_to_cat(latest["k"])
-                        _card("🟢 N", ncat, sub="Nitrogen", color=_color_by_status(ncat))
-                        _card("🔵 P", pcat, sub="Phosphorus", color=_color_by_status(pcat))
-                        _card("🟠 K", kcat, sub="Potassium", color=_color_by_status(kcat))
+            st.markdown('</div>', unsafe_allow_html=True)
 
-                        # Number of sensors per field (demo: 3)
-                        _card("📡 Sensors", "3", sub="per field", color="gray")
+            # Expandable sensor health details
+            with st.expander("Sensor health details"):
+                st.write(f"Uptime last 72h: **{uptime:.0f}%**")
+                st.write(f"Last reading time: **{df['timestamp'].iloc[-1]}**")
+                st.write("Out-of-range count (demo): 0")
 
-                        st.markdown('</div>', unsafe_allow_html=True)
+            # TODAY’S INSIGHTS (plain language)
+            st.markdown("#### Today’s insights")
+            latest["planting_date"] = planting_date
+            latest["crop"] = farm["crop"]
+            insights = generate_insights(latest)
 
-                        # Expandable sensor health details
-                        with st.expander("Sensor health details"):
-                            st.write(f"Uptime last 72h: **{uptime:.0f}%**")
-                            st.write(f"Last reading time: **{df['timestamp'].iloc[-1]}**")
-                            st.write("Out-of-range count (demo): 0")
+            # Weather-aware tweak: if water needed and rain tomorrow >=10mm → suggest waiting
+            try:
+                wx_day = fetch_weather(farm["lat"], farm["lon"], days_forward=3, days_past=0)
+                rain_next = float(wx_day["daily"]["precipitation_sum"][1]) if len(
+                    wx_day["daily"]["precipitation_sum"]) > 1 else 0.0
+            except Exception:
+                rain_next = 0.0
 
-                        # TODAY’S INSIGHTS (plain language)
-                        st.markdown("#### Today’s insights")
-                        latest["planting_date"] = planting_date
-                        latest["crop"] = farm["crop"]
-                        insights = generate_insights(latest)
+            for it in insights:
+                msg = f"**[{it['priority'].upper()}] {it['title']}** : {it['action']}"
+                # Smarter context
+                if it["type"] == "water" and rain_next >= 10:
+                    msg += f" _(Rain ~{int(rain_next)} mm expected tomorrow: you may delay irrigation.)_"
+                if it["type"] == "fertilizer" and latest["moisture"] < 40:
+                    msg += " ⚠️ Soil moisture is low, apply nutrients only after irrigation for better uptake."
+                if it["type"] == "ph" and farm["soil_texture"] == "sand":
+                    msg += " Sandy soils lose lime faster, repeat liming every 2–3 years."
+                st.info(msg)
 
-                        # Weather-aware tweak: if water needed and rain tomorrow >=10mm → suggest waiting
-                        try:
-                            wx_day = fetch_weather(farm["lat"], farm["lon"], days_forward=3, days_past=0)
-                            rain_next = float(wx_day["daily"]["precipitation_sum"][1]) if len(
-                                wx_day["daily"]["precipitation_sum"]) > 1 else 0.0
-                        except Exception:
-                            rain_next = 0.0
-
-                        for it in insights:
-                            msg = f"**[{it['priority'].upper()}] {it['title']}** : {it['action']}"
-                            # Smarter context
-                            if it["type"] == "water" and rain_next >= 10:
-                                msg += f" _(Rain ~{int(rain_next)} mm expected tomorrow: you may delay irrigation.)_"
-                            if it["type"] == "fertilizer" and latest["moisture"] < 40:
-                                msg += " ⚠️ Soil moisture is low, apply nutrients only after irrigation for better uptake."
-                            if it["type"] == "ph" and farm["soil_texture"] == "sand":
-                                msg += " Sandy soils lose lime faster, repeat liming every 2–3 years."
-                            st.info(msg)
-
-                            # Simple organic tips (farmer-friendly)
-                        with st.expander("🌍 Soil & Plant Health Tips"):
-                            # pool of rotating, localizable tips
-                            tips = [
-                                "🌱 **Nitrogen**: composted manure or legume residues; intercrop maize with beans for N boost.",
-                                "🌿 **Phosphorus**: bone meal, manure, or rock phosphate on acidic soils.",
-                                "🍌 **Potassium**: banana peels, wood ash (lightly, avoid in alkaline soils).",
-                                "🪱 **Soil health**: add compost/vermicompost to build microbes & water holding.",
-                                "🌾 **Irrigation timing**: water early morning/evening to reduce evaporation.",
-                                "🍂 **Residues**: leave crop residues on the field to protect against erosion.",
-                                "🌳 **Agroforestry**: plant trees on field edges for shade, litter, and moisture retention.",
-                                "🐓 **Manure use**: poultry manure adds quick N, cattle manure adds long-term OM."
-                            ]
-                            for tip in random.sample(tips, 3):
-                                st.success("• " + tip)
-                                # PAST: daily alerts & applied actions with farmer “ticks”
-                        st.markdown("#### Past alerts & actions")
-
-                        # Daily alerts (all)
-                        alert_rows = st.session_state.farm_alerts.get(fid, [])
-                        alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(
-                            columns=["day", "type", "title", "status"])
-                        if not alert_df.empty:
-                            st.write("**Daily alerts (all)**")
-                            st.dataframe(alert_df.sort_values("day", ascending=False),
-                                         use_container_width=True, hide_index=True)
-
-                        # Applied actions (all) + confirmation ticks
-                        action_rows = st.session_state.farm_actions_log.get(fid, [])
-                        act_df = pd.DataFrame([{
-                            "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
-                        } for a in action_rows]) if action_rows else pd.DataFrame(
-                            columns=["time", "type", "title", "status"])
-                        if not act_df.empty:
-                            st.write("**Applied actions (all)**")
-                            act_df = act_df.sort_values("time", ascending=False)
-                            # Quick confirmation/checklist for the latest 20
-                            with st.form(f"confirm_actions_{fid}"):
-                                show = act_df.head(20).copy()
-                                confirms = []
-                                for i, row in show.iterrows():
-                                    k = (fid, str(row["time"]), row["type"])
-                                    checked = k in st.session_state.farm_actions_confirm
-                                    confirms.append(st.checkbox(
-                                        f"{row['time']} : {row['title']} ({row['type']})",
-                                        value=checked, key=f"cfm_{fid}_{i}"
-                                    ))
-                                if st.form_submit_button("Save confirmations"):
-                                    for i, row in show.iterrows():
-                                        k = (fid, str(row["time"]), row["type"])
-                                        if confirms[i]:
-                                            st.session_state.farm_actions_confirm.add(k)
-                                        else:
-                                            st.session_state.farm_actions_confirm.discard(k)
-                            st.dataframe(act_df, use_container_width=True, hide_index=True)
-
-                        # CHARTS — full history at the bottom
-                        st.markdown("#### Charts")
-                        tail = df.set_index("timestamp")
-                        st.line_chart(tail[["moisture", "temperature"]], use_container_width=True)
-                        st.line_chart(tail[["ph", "ec"]], use_container_width=True)
-                        st.line_chart(tail[["n", "p", "k"]], use_container_width=True)
-
-                    # RIGHT — past & forecast weather
-                    with right:
-                        st.markdown("#### Weather (past & forecast)")
-                        try:
-                            wx = fetch_weather(farm["lat"], farm["lon"], days_forward=5, days_past=5)
-                            days = [pd.to_datetime(d).date().strftime("%b %d") for d in wx["daily"]["time"]]
-                            rain = wx["daily"]["precipitation_sum"]
-                            et0 = wx["daily"]["et0_fao_evapotranspiration"]
-                            tmax = wx["daily"]["temperature_2m_max"]
-                            wdf = pd.DataFrame({"Day": days, "Rain (mm)": rain, "ET₀ (mm)": et0, "Tmax (°C)": tmax})
-                            # split around “today”
-                            today_idx = [i for i, d in enumerate(wx["daily"]["time"]) if
-                                         pd.to_datetime(d).date() == date.today()]
-                            cut = today_idx[0] if today_idx else len(days) // 2
-                            st.write("**Past days**")
-                            st.dataframe(wdf.iloc[:cut], use_container_width=True, hide_index=True)
-                            st.write("**Upcoming days**")
-                            st.dataframe(wdf.iloc[cut:], use_container_width=True, hide_index=True)
-                        except Exception:
-                            st.info("Weather unavailable right now.")
-
-            elif name == "Crop Planner":
-                left, right = st.columns([2, 1])
-
-                with right:
-                    st.subheader("Location & Planting")
-                    site = st.selectbox("Choose your location", list(ZAMBIA_SITES.keys()) + ["Custom lat/lon"])
-                    if site == "Custom lat/lon":
-                        lat = st.number_input("Latitude", -90.0, 90.0, -15.416, 0.001)
-                        lon = st.number_input("Longitude", -180.0, 180.0, 28.283, 0.001)
-                        aer = st.selectbox("Agro-ecological Region", list(AER.keys()), index=1)
-                    else:
-                        lat, lon, aer = ZAMBIA_SITES[site]
-
-                    st.caption(
-                        f"AER **{aer}** : typical annual rainfall {AER[aer]['rain_mm']} mm; soils: {AER[aer]['soil_note']}.")
-
-                    planting_date = st.date_input("Planned planting date", value=date.today())
-                    crop = st.selectbox("Main crop", ["maize", "beans", "rice"])
-                    # intercropping (optional)
-                    with st.expander("Add a second crop (optional)"):
-                        crop2_on = st.checkbox("Enable intercropping")
-                        crop2 = st.selectbox("Second crop", ["beans", "maize", "rice"], index=0, disabled=not crop2_on)
-
-                    st.subheader("Space between your plants")
-                    row_cm = st.slider("Row spacing (cm)", 20.0, 60.0, 75.0, 5.0, key="lab_row_spacing_cm")
-
-                    plant_cm = st.slider("In-row spacing (cm)", 10.0, 50.0, 25.0, 5.0, key="lab_plant_spacing_cm")
-                    dens_factor, plants_ha = compute_density_factor(crop, row_cm, plant_cm)
-                    if crop2_on:
-                        row2 = st.slider("Row spacing (2nd crop) (cm)", 20.0, 60.0, 45.0, 5.0, key="lab_row_spacing2_cm")
-                        plant2 = st.slider("In-row spacing (2nd crop) (cm)", 10.0, 50.0, 20.0, 5.0,
-                                           key="lab_plant_spacing2_cm")
-
-                        dens2, plants2 = compute_density_factor(crop2, row2, plant2)
-                        # combined density capped (simple)
-                        dens_factor = clamp(dens_factor + 0.5 * dens2, 0.8, 1.4)
-                        plants_ha = plants_ha + 0.5 * plants2
-                    st.caption(
-                        f"Estimated stand: **{plants_ha:,.0f} plants/ha**, density factor used **{dens_factor:.2f}**")
-
-                    st.subheader("Management & Soil")
-                    soil_texture = st.selectbox("Soil texture (typical)", ["loam", "sand", "clay"],
-                                                index=0 if aer != "IIb" else 1,
-                                                key="lab_soil_texture")
-                    om_pct = st.slider("Organic matter (%)", 0.0, 6.0, 2.0, 0.1, key="lab_om_pct")
-                    yield_factor = st.slider("Target yield factor", 0.8, 1.2, 1.0, 0.05, key="lab_yield_factor")
-                    bd = st.slider("Bulk density (g/cm³)", 1.1, 1.6, 1.3, 0.05, key="lab_bd")
-                    depth_m = st.slider("Sampling depth (m)", 0.10, 0.30, 0.20, 0.01, key="lab_depth_m")
-
-                    st.subheader("Lab results (enter real values)")
-                    ph = st.number_input("pH (water)", 3.5, 9.0, 6.0, 0.1)
-                    ec = st.number_input("EC (dS/m): Electric conductivity of the soil", 0.0, 5.0, 0.8, 0.1)
-                    # N: allow entering nitrate-N kg/ha or estimate from mg/kg
-                    n_mode = st.radio("Nitrogen input mode", ["kg/ha available N", "mg/kg nitrate-N"], horizontal=True)
-                    if n_mode == "kg/ha available N":
-                        n_kgha = st.number_input("Available N (kg/ha)", 0.0, 300.0, 20.0, 1.0)
-                    else:
-                        n_mgkg = st.number_input("Nitrate-N (mg/kg)", 0.0, 100.0, 10.0, 0.5)
-                        n_kgha = mgkg_to_kgha(n_mgkg, bd, depth_m)
-                    p_mgkg = st.number_input("Soil test P (mg/kg)", 0.0, 200.0, 12.0, 0.5)
-                    k_mgkg = st.number_input("Soil test K (mg/kg)", 0.0, 400.0, 80.0, 1.0)
-
-                    if st.button("Generate plan with real weather"):
-                        wx = fetch_weather(lat, lon, days_forward=10, days_past=7)
-                        st.session_state.ns_last = dict(
-                            lat=lat, lon=lon, aer=aer, planting_date=planting_date, crop=crop,
-                            dens_factor=dens_factor, plants_ha=plants_ha, soil_texture=soil_texture,
-                            om_pct=om_pct, yield_factor=yield_factor, bd=bd, depth_m=depth_m,
-                            ph=ph, ec=ec, n_kgha=n_kgha, p_mgkg=p_mgkg, k_mgkg=k_mgkg,
-                            weather=wx, crop2=crop2 if crop2_on else None
-                        )
-
-                with left:
-                    st.subheader("Insights & Actions")
-                    st.subheader("                  ")
-                    if "ns_last" not in st.session_state:
-                        st.info("Fill the panel and click **Generate plan**.")
-                    else:
-                        p = st.session_state.ns_last
-                        daily = p["weather"]["daily"]
-                        df, water = irrigation_recommendations(
-                            p["crop"], p["planting_date"], daily, p["yield_factor"], p["dens_factor"]
-                        )
-                        weekly = water["weekly_plan"]
-                        risks = water["risks"]
-
-                        plan = nutrient_plan_from_lab(
-                            p["crop"], p["yield_factor"], p["om_pct"],
-                            p["n_kgha"], p["p_mgkg"], p["k_mgkg"], p["bd"], p["depth_m"]
-                        )
-
-                        # 5) actions in simple english
-                        actions = generate_simple_actions(p, plan, weekly, risks, df)
-                        st.markdown("### What to do (simple steps)")
-                        for a in actions:
-                            st.write("• " + a)
-
-                        # (optional) one-click export
-                        from io import StringIO
-
-                        buf = StringIO()
-                        buf.write("Mytochondria – Non-Sensor Plan\n\n")
-                        for a in actions:
-                            buf.write("• " + a + "\n")
-                        st.download_button("Download actions as text", buf.getvalue(), file_name="field_actions.txt",
-                                           key="lab_actions_dl")
-
-                        # 1) Weather-driven irrigation & risks
-                        st.markdown("### Water plan (next 10 days)")
-                        st.dataframe(weekly, use_container_width=True, hide_index=True)
-                        st.write(f"- **Erosion risk days** (≥30 mm/day): **{risks['erosion_days']}**")
-                        st.write(f"- **Heat-stress days** (Tmax ≥35°C): **{risks['heat_stress_days']}**")
-                        st.write(
-                            f"- **Cool germination risk** (early stage, low Tmax): **{risks['cool_germination_days']}**")
-                        st.line_chart(df.set_index("date")[["Rain_mm", "ETc_mm", "Deficit_mm"]], use_container_width=True)
-
-                        # 2) Nutrient plan from lab
-
-                        st.markdown("### Nutrient plan")
-                        st.write(f"**Nitrogen (N):** apply ~**{plan['N_rec_kg_ha']} kg/ha** "
-                                 f"(credit from OM: {plan['notes']['n_credit_om']} kg/ha). "
-                                 "👉 Alternative: use **farmyard manure, compost, or incorporate legume residues** to slow depletion of N.")
-
-                        st.write(f"**Phosphorus (P₂O₅):** **{plan['P2O5_rec_kg_ha']} kg/ha** "
-                                 "👉 Alternative: use **bone meal or rock phosphate** on acidic soils.")
-
-                        st.write(f"**Potassium (K₂O):** **{plan['K2O_rec_kg_ha']} kg/ha** "
-                                 "👉 Alternative: apply **wood ash (small amounts), composted banana peels, or sulfate K if saline soils**.")
-
-                        st.caption(f"Estimated P pool: {plan['notes']['p_pool_kgha']} kg/ha, "
-                                   f"K pool: {plan['notes']['k_pool_kgha']} kg/ha (top {p['depth_m']} m).")
-
-                        # --- Extra irrigation plan (based on last year's weather) ---
-                        st.markdown("### Irrigation plan (based on last year’s forecast)")
-                        try:
-                            past_wx = fetch_weather(p["lat"], p["lon"], days_forward=0, days_past=365)
-                            df_past, irr_plan = irrigation_recommendations(
-                                p["crop"], p["planting_date"], past_wx["daily"], p["yield_factor"], p["dens_factor"]
-                            )
-                            st.write(
-                                "Using last year’s rainfall and ET₀ (evapotranspiration), here is a weekly irrigation plan:")
-
-                            st.dataframe(irr_plan["weekly_plan"], use_container_width=True, hide_index=True)
-
-                            st.markdown("#### 👩‍🌾 Coach’s Note")
-                            st.info("""
-                                This plan shows **how much water your crop will miss if you do nothing**.  
-                                👉 Apply the suggested irrigation in 2–3 splits per week.  
-                                👉 Focus water at root zone (20–30 cm).  
-                                👉 Watch for erosion if >30 mm rain/day is forecast.  
-                                """)
-
-                            with st.expander("ℹ️ Understanding the irrigation table"):
-                                st.write("""
-                                    - **Week**: Calendar week.
-                                    - **ETc_mm**: Crop demand.
-                                    - **Rain_mm**: Rain received.
-                                    - **Deficit_mm**: Shortfall. If positive, irrigation is needed.
-                                    - **Irrigation_mm**: Suggested water to close the gap.
-                                    """)
-                                st.caption(
-                                    "Tip: Apply irrigation in 2–3 smaller splits per week rather than one large application.")
-
-                            #  Optional explanation text
-                            st.markdown("#### Why deficits matter")
-                            st.write("""
-                                • **ETc (crop water demand)** is how much water the crop actually needs each week.  
-                                • **Rainfall** supplies part of that demand.  
-                                • **Deficit** is the shortfall: if positive, the crop will stress unless you irrigate.  
-                                • The plan tells you how much to irrigate to keep plants healthy.  
-                                """)
-                        except Exception:
-                            st.info("Irrigation plan unavailable (weather data fetch failed).")
-
-                        # 3) Condition-specific tips (pH/EC/texture/AER/weather)
-                        tips = []
-                        if p["ph"] < 5.5:
-                            tips += [
-                                "Soil is acidic: consider liming to reach ~pH 6.0–6.5 before planting (apply 2–4 months ahead)."]
-                        if p["ec"] >= 2.0:
-                            tips += [
-                                "High salinity risk: avoid chloride-heavy K sources; schedule leaching irrigation after heavy rains."]
-                        if p["aer"] == "IIb" or p["soil_texture"] == "sand":
-                            tips += [
-                                "Kalahari sands/sandy soils: add **organic matter** (residues/compost/manure) to improve water & nutrient holding."]
-
-                        if risks["erosion_days"] >= 1:
-                            tips += [
-                                "Forecast has ≥30 mm/day rain: keep residue cover, contour ploughing or tied ridges to reduce runoff."]
-                        if risks["heat_stress_days"] >= 1 and p["crop"] == "maize":
-                            tips += [
-                                "Heat near flowering can cut kernel set: ensure no water stress 1 week before to 2 weeks after tasseling."]
-
-                        if tips:
-                            st.markdown("### Tips")
-                            for t in tips:
-                                st.write("• " + t)
-
-                        # 4) Yield outlook (very simple score)
-                        total_etc = df["ETc_mm"].sum()
-                        total_rain = df["Rain_mm"].sum()
-                        water_ratio = (total_rain + weekly["Irrigation_mm"].sum()) / max(1.0, total_etc)
-                        n_ok = (plan["N_rec_kg_ha"] < 20)  # if additional N need is small, we assume N adequate
-                        if water_ratio >= 0.9 and n_ok and risks["heat_stress_days"] == 0:
-                            outlook = "Good"
-                        elif water_ratio >= 0.75:
-                            outlook = "Watch"
-                        else:
-                            outlook = "At risk"
-                        st.markdown(f"### Yield outlook: **{outlook}**")
-                        st.caption("Heuristic: compares ETc vs rain+irrigation, checks N sufficiency & heat-stress days.")
-
-            elif name == "Tips & Tricks":
-                st.subheader("💡 Tips & Tricks for Farmers")
-
-                do_list = [
-                    "Rotate crops each season to improve soil health.",
-                    "Use compost or manure to build organic matter.",
-                    "Mulch around plants to reduce evaporation.",
-                    "Irrigate early morning or late evening to save water."
+                # Simple organic tips (farmer-friendly)
+            with st.expander("🌍 Soil & Plant Health Tips"):
+                # pool of rotating, localizable tips
+                tips = [
+                    "🌱 **Nitrogen**: composted manure or legume residues; intercrop maize with beans for N boost.",
+                    "🌿 **Phosphorus**: bone meal, manure, or rock phosphate on acidic soils.",
+                    "🍌 **Potassium**: banana peels, wood ash (lightly, avoid in alkaline soils).",
+                    "🪱 **Soil health**: add compost/vermicompost to build microbes & water holding.",
+                    "🌾 **Irrigation timing**: water early morning/evening to reduce evaporation.",
+                    "🍂 **Residues**: leave crop residues on the field to protect against erosion.",
+                    "🌳 **Agroforestry**: plant trees on field edges for shade, litter, and moisture retention.",
+                    "🐓 **Manure use**: poultry manure adds quick N, cattle manure adds long-term OM."
                 ]
-                dont_list = [
-                    "Don’t over-irrigate during the day (high losses).",
-                    "Avoid mixing lime with ammonium fertilizers.",
-                    "Never burn crop residues — compost them instead.",
-                    "Don’t apply fertilizer right before heavy rain."
-                ]
+                for tip in random.sample(tips, 3):
+                    st.success("• " + tip)
+                    # PAST: daily alerts & applied actions with farmer “ticks”
+            st.markdown("#### Past alerts & actions")
 
-                st.markdown("### ✅ Do’s")
-                for d in do_list:
-                    st.success(d)
+            # Daily alerts (all)
+            alert_rows = st.session_state.farm_alerts.get(fid, [])
+            alert_df = pd.DataFrame(alert_rows) if alert_rows else pd.DataFrame(
+                columns=["day", "type", "title", "status"])
+            if not alert_df.empty:
+                st.write("**Daily alerts (all)**")
+                st.dataframe(alert_df.sort_values("day", ascending=False),
+                             use_container_width=True, hide_index=True)
 
-                st.markdown("### ❌ Don’ts")
-                for d in dont_list:
-                    st.error(d)
+            # Applied actions (all) + confirmation ticks
+            action_rows = st.session_state.farm_actions_log.get(fid, [])
+            act_df = pd.DataFrame([{
+                "time": a["ts"], "type": a["type"], "title": a["title"], "status": a["status"]
+            } for a in action_rows]) if action_rows else pd.DataFrame(
+                columns=["time", "type", "title", "status"])
+            if not act_df.empty:
+                st.write("**Applied actions (all)**")
+                act_df = act_df.sort_values("time", ascending=False)
+                # Quick confirmation/checklist for the latest 20
+                with st.form(f"confirm_actions_{fid}"):
+                    show = act_df.head(20).copy()
+                    confirms = []
+                    for i, row in show.iterrows():
+                        k = (fid, str(row["time"]), row["type"])
+                        checked = k in st.session_state.farm_actions_confirm
+                        confirms.append(st.checkbox(
+                            f"{row['time']} : {row['title']} ({row['type']})",
+                            value=checked, key=f"cfm_{fid}_{i}"
+                        ))
+                    if st.form_submit_button("Save confirmations"):
+                        for i, row in show.iterrows():
+                            k = (fid, str(row["time"]), row["type"])
+                            if confirms[i]:
+                                st.session_state.farm_actions_confirm.add(k)
+                            else:
+                                st.session_state.farm_actions_confirm.discard(k)
+                st.dataframe(act_df, use_container_width=True, hide_index=True)
 
-            elif name == "Manage Account":
-                st.subheader("👤 Account Dashboard")
+            # CHARTS — full history at the bottom
+            st.markdown("#### Charts")
+            tail = df.set_index("timestamp")
+            st.line_chart(tail[["moisture", "temperature"]], use_container_width=True)
+            st.line_chart(tail[["ph", "ec"]], use_container_width=True)
+            st.line_chart(tail[["n", "p", "k"]], use_container_width=True)
 
-                left, right = st.columns([2, 1])
+        # RIGHT — past & forecast weather
+        with right:
+            st.markdown("#### Weather (past & forecast)")
+            try:
+                wx = fetch_weather(farm["lat"], farm["lon"], days_forward=5, days_past=5)
+                days = [pd.to_datetime(d).date().strftime("%b %d") for d in wx["daily"]["time"]]
+                rain = wx["daily"]["precipitation_sum"]
+                et0 = wx["daily"]["et0_fao_evapotranspiration"]
+                tmax = wx["daily"]["temperature_2m_max"]
+                wdf = pd.DataFrame({"Day": days, "Rain (mm)": rain, "ET₀ (mm)": et0, "Tmax (°C)": tmax})
+                # split around “today”
+                today_idx = [i for i, d in enumerate(wx["daily"]["time"]) if
+                             pd.to_datetime(d).date() == date.today()]
+                cut = today_idx[0] if today_idx else len(days) // 2
+                st.write("**Past days**")
+                st.dataframe(wdf.iloc[:cut], use_container_width=True, hide_index=True)
+                st.write("**Upcoming days**")
+                st.dataframe(wdf.iloc[cut:], use_container_width=True, hide_index=True)
+            except Exception:
+                st.info("Weather unavailable right now.")
 
-                with right:
-                    st.markdown("### Account Info")
-                    st.write(f"**Username:** {user['username']}")
-                    st.write(f"**Email:** {user.get('email', '-')}")
-                    if st.button("Logout"):
-                        st.session_state.user = None
-                        st.rerun()
-                # ------------------------------------------------
-                # Add New Farm Section
-                # ------------------------------------------------
-                with left:
-                    st.markdown("### 🌱 Your Farms")
-                    for farm in user.get("farms", []):
-                        st.write(f"**{farm['farm_id']}** : {farm['crop']} at {farm['location']}")
-                        st.caption(
-                            f"Planted: {farm['planting_date']} • "
-                            f"Spacing: {farm['spacing']} • "
-                            f"Row: {farm.get('row_cm', '?')} cm • Plant: {farm.get('plant_cm', '?')} cm • "
-                            f"Texture: {farm.get('soil_texture', '?')} • "
-                            f"Compliance: {farm['compliance']}"
-                        )
+elif active == "Crop Planner":
+    left, right = st.columns([2, 1])
 
-                        del_key = f"delete_{farm['farm_id']}"
-                        if st.button(f"🗑️ Delete {farm['farm_id']}", key=del_key):
-                            st.session_state.confirm_delete = farm["farm_id"]
+    with right:
+        st.subheader("Location & Planting")
+        site = st.selectbox("Choose your location", list(ZAMBIA_SITES.keys()) + ["Custom lat/lon"])
+        if site == "Custom lat/lon":
+            lat = st.number_input("Latitude", -90.0, 90.0, -15.416, 0.001)
+            lon = st.number_input("Longitude", -180.0, 180.0, 28.283, 0.001)
+            aer = st.selectbox("Agro-ecological Region", list(AER.keys()), index=1)
+        else:
+            lat, lon, aer = ZAMBIA_SITES[site]
 
-                    # Confirmation prompt
-                    if "confirm_delete" in st.session_state and st.session_state.confirm_delete:
-                        fid = st.session_state.confirm_delete
-                        st.error(f"⚠️ Are you sure you want to delete farm {fid}? This action cannot be undone.")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if st.button("✅ Yes, delete permanently"):
-                                delete_farm(fid)
-                                st.session_state.user = find_user(user["username"])
-                                st.success(f"Farm {fid} deleted successfully.")
-                                st.session_state.confirm_delete = None
-                                st.rerun()
-                        with col2:
-                            if st.button("❌ Cancel"):
-                                st.session_state.confirm_delete = None
-                                st.info("Deletion canceled.")
+        st.caption(
+            f"AER **{aer}** : typical annual rainfall {AER[aer]['rain_mm']} mm; soils: {AER[aer]['soil_note']}.")
 
-                    # Toggle to show the Add Farm form
-                    st.markdown("### ➕ Add New Farm")
-                    if st.button("Add Farm"):
-                        st.session_state.show_add_farm = not st.session_state.get("show_add_farm", False)
+        planting_date = st.date_input("Planned planting date", value=date.today())
+        crop = st.selectbox("Main crop", ["maize", "beans", "rice"])
+        # intercropping (optional)
+        with st.expander("Add a second crop (optional)"):
+            crop2_on = st.checkbox("Enable intercropping")
+            crop2 = st.selectbox("Second crop", ["beans", "maize", "rice"], index=0, disabled=not crop2_on)
 
-                    if st.session_state.get("show_add_farm", False):
-                        crop_choice = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
-                        location_choice = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
-                        lat, lon, aer = ZAMBIA_SITES.get(location_choice, (None, None, None))
+        st.subheader("Space between your plants")
+        row_cm = st.slider("Row spacing (cm)", 20.0, 60.0, 75.0, 5.0, key="lab_row_spacing_cm")
 
-                        rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop_choice, (60, 20))
-                        rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
+        plant_cm = st.slider("In-row spacing (cm)", 10.0, 50.0, 25.0, 5.0, key="lab_plant_spacing_cm")
+        dens_factor, plants_ha = compute_density_factor(crop, row_cm, plant_cm)
+        if crop2_on:
+            row2 = st.slider("Row spacing (2nd crop) (cm)", 20.0, 60.0, 45.0, 5.0, key="lab_row_spacing2_cm")
+            plant2 = st.slider("In-row spacing (2nd crop) (cm)", 10.0, 50.0, 20.0, 5.0,
+                               key="lab_plant_spacing2_cm")
 
-                        st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
-                                f"{rec_row}×{rec_plant} cm • Soil: {rec_texture} ")
-                        st.warning("⚠️ Adjust manually if your soil/spacing differs.")
+            dens2, plants2 = compute_density_factor(crop2, row2, plant2)
+            # combined density capped (simple)
+            dens_factor = clamp(dens_factor + 0.5 * dens2, 0.8, 1.4)
+            plants_ha = plants_ha + 0.5 * plants2
+        st.caption(
+            f"Estimated stand: **{plants_ha:,.0f} plants/ha**, density factor used **{dens_factor:.2f}**")
 
-                        with st.form("add_farm", clear_on_submit=True):
-                            farm_id = st.text_input("Farm ID", key="add_farm_id")
-                            system_id = st.text_input("System ID", key="add_system_id")
-                            row_cm = st.number_input("Row spacing (cm)", 10, 150,
-                                                     value=rec_row, step=5, key="add_row_cm")
-                            plant_cm = st.number_input("Plant spacing (cm)", 5, 100,
-                                                       value=rec_plant, step=5, key="add_plant_cm")
-                            soil_texture = st.selectbox("Soil texture", ["sand", "loam", "clay"],
-                                                        index=["sand", "loam", "clay"].index(rec_texture),
-                                                        key="add_soil_texture")
-                            planting_date = st.date_input("Planting date", key="add_planting_date")
-                            compliance = st.selectbox("Compliance behavior", ["immediate", "delayed"], key="add_compliance")
+        st.subheader("Management & Soil")
+        soil_texture = st.selectbox("Soil texture (typical)", ["loam", "sand", "clay"],
+                                    index=0 if aer != "IIb" else 1,
+                                    key="lab_soil_texture")
+        om_pct = st.slider("Organic matter (%)", 0.0, 6.0, 2.0, 0.1, key="lab_om_pct")
+        yield_factor = st.slider("Target yield factor", 0.8, 1.2, 1.0, 0.05, key="lab_yield_factor")
+        bd = st.slider("Bulk density (g/cm³)", 1.1, 1.6, 1.3, 0.05, key="lab_bd")
+        depth_m = st.slider("Sampling depth (m)", 0.10, 0.30, 0.20, 0.01, key="lab_depth_m")
 
-                            if st.form_submit_button("Save Farm"):
-                                spacing = f"{row_cm}x{plant_cm} cm"
-                                new_farm = {
-                                    "farm_id": farm_id, "system_id": system_id, "crop": crop_choice,
-                                    "location": location_choice, "lat": lat, "lon": lon,
-                                    "soil_texture": soil_texture,
-                                    "row_cm": row_cm, "plant_cm": plant_cm, "spacing": spacing,
-                                    "planting_date": str(planting_date), "compliance": compliance,
-                                    "yield_factor": 1.0, "om_pct": 2.0,
-                                    "agent": {
-                                        "compliance": (0.8 if compliance == "immediate" else 0.5),
-                                        "delay_min_h": 6,
-                                        "delay_max_h": 24
-                                    }
-                                }
-                                save_farm(user["username"], new_farm)
-                                st.session_state.user = find_user(user["username"])
-                                st.success("✅ Farm added successfully!")
-                                st.session_state.show_add_farm = False
-                                st.rerun()
+        st.subheader("Lab results (enter real values)")
+        ph = st.number_input("pH (water)", 3.5, 9.0, 6.0, 0.1)
+        ec = st.number_input("EC (dS/m): Electric conductivity of the soil", 0.0, 5.0, 0.8, 0.1)
+        # N: allow entering nitrate-N kg/ha or estimate from mg/kg
+        n_mode = st.radio("Nitrogen input mode", ["kg/ha available N", "mg/kg nitrate-N"], horizontal=True)
+        if n_mode == "kg/ha available N":
+            n_kgha = st.number_input("Available N (kg/ha)", 0.0, 300.0, 20.0, 1.0)
+        else:
+            n_mgkg = st.number_input("Nitrate-N (mg/kg)", 0.0, 100.0, 10.0, 0.5)
+            n_kgha = mgkg_to_kgha(n_mgkg, bd, depth_m)
+        p_mgkg = st.number_input("Soil test P (mg/kg)", 0.0, 200.0, 12.0, 0.5)
+        k_mgkg = st.number_input("Soil test K (mg/kg)", 0.0, 400.0, 80.0, 1.0)
 
+        if st.button("Generate plan with real weather"):
+            wx = fetch_weather(lat, lon, days_forward=10, days_past=7)
+            st.session_state.ns_last = dict(
+                lat=lat, lon=lon, aer=aer, planting_date=planting_date, crop=crop,
+                dens_factor=dens_factor, plants_ha=plants_ha, soil_texture=soil_texture,
+                om_pct=om_pct, yield_factor=yield_factor, bd=bd, depth_m=depth_m,
+                ph=ph, ec=ec, n_kgha=n_kgha, p_mgkg=p_mgkg, k_mgkg=k_mgkg,
+                weather=wx, crop2=crop2 if crop2_on else None
+            )
 
+    with left:
+        st.subheader("Insights & Actions")
+        st.subheader("                  ")
+        if "ns_last" not in st.session_state:
+            st.info("Fill the panel and click **Generate plan**.")
+        else:
+            p = st.session_state.ns_last
+            daily = p["weather"]["daily"]
+            df, water = irrigation_recommendations(
+                p["crop"], p["planting_date"], daily, p["yield_factor"], p["dens_factor"]
+            )
+            weekly = water["weekly_plan"]
+            risks = water["risks"]
 
+            plan = nutrient_plan_from_lab(
+                p["crop"], p["yield_factor"], p["om_pct"],
+                p["n_kgha"], p["p_mgkg"], p["k_mgkg"], p["bd"], p["depth_m"]
+            )
 
+            # 5) actions in simple english
+            actions = generate_simple_actions(p, plan, weekly, risks, df)
+            st.markdown("### What to do (simple steps)")
+            for a in actions:
+                st.write("• " + a)
 
+            # (optional) one-click export
+            from io import StringIO
 
+            buf = StringIO()
+            buf.write("Mytochondria – Non-Sensor Plan\n\n")
+            for a in actions:
+                buf.write("• " + a + "\n")
+            st.download_button("Download actions as text", buf.getvalue(), file_name="field_actions.txt",
+                               key="lab_actions_dl")
 
+            # 1) Weather-driven irrigation & risks
+            st.markdown("### Water plan (next 10 days)")
+            st.dataframe(weekly, use_container_width=True, hide_index=True)
+            st.write(f"- **Erosion risk days** (≥30 mm/day): **{risks['erosion_days']}**")
+            st.write(f"- **Heat-stress days** (Tmax ≥35°C): **{risks['heat_stress_days']}**")
+            st.write(
+                f"- **Cool germination risk** (early stage, low Tmax): **{risks['cool_germination_days']}**")
+            st.line_chart(df.set_index("date")[["Rain_mm", "ETc_mm", "Deficit_mm"]], use_container_width=True)
+
+            # 2) Nutrient plan from lab
+
+            st.markdown("### Nutrient plan")
+            st.write(f"**Nitrogen (N):** apply ~**{plan['N_rec_kg_ha']} kg/ha** "
+                     f"(credit from OM: {plan['notes']['n_credit_om']} kg/ha). "
+                     "👉 Alternative: use **farmyard manure, compost, or incorporate legume residues** to slow depletion of N.")
+
+            st.write(f"**Phosphorus (P₂O₅):** **{plan['P2O5_rec_kg_ha']} kg/ha** "
+                     "👉 Alternative: use **bone meal or rock phosphate** on acidic soils.")
+
+            st.write(f"**Potassium (K₂O):** **{plan['K2O_rec_kg_ha']} kg/ha** "
+                     "👉 Alternative: apply **wood ash (small amounts), composted banana peels, or sulfate K if saline soils**.")
+
+            st.caption(f"Estimated P pool: {plan['notes']['p_pool_kgha']} kg/ha, "
+                       f"K pool: {plan['notes']['k_pool_kgha']} kg/ha (top {p['depth_m']} m).")
+
+            # --- Extra irrigation plan (based on last year's weather) ---
+            st.markdown("### Irrigation plan (based on last year’s forecast)")
+            try:
+                past_wx = fetch_weather(p["lat"], p["lon"], days_forward=0, days_past=365)
+                df_past, irr_plan = irrigation_recommendations(
+                    p["crop"], p["planting_date"], past_wx["daily"], p["yield_factor"], p["dens_factor"]
+                )
+                st.write(
+                    "Using last year’s rainfall and ET₀ (evapotranspiration), here is a weekly irrigation plan:")
+
+                st.dataframe(irr_plan["weekly_plan"], use_container_width=True, hide_index=True)
+
+                st.markdown("#### 👩‍🌾 Coach’s Note")
+                st.info("""
+                    This plan shows **how much water your crop will miss if you do nothing**.  
+                    👉 Apply the suggested irrigation in 2–3 splits per week.  
+                    👉 Focus water at root zone (20–30 cm).  
+                    👉 Watch for erosion if >30 mm rain/day is forecast.  
+                    """)
+
+                with st.expander("ℹ️ Understanding the irrigation table"):
+                    st.write("""
+                        - **Week**: Calendar week.
+                        - **ETc_mm**: Crop demand.
+                        - **Rain_mm**: Rain received.
+                        - **Deficit_mm**: Shortfall. If positive, irrigation is needed.
+                        - **Irrigation_mm**: Suggested water to close the gap.
+                        """)
+                    st.caption(
+                        "Tip: Apply irrigation in 2–3 smaller splits per week rather than one large application.")
+
+                #  Optional explanation text
+                st.markdown("#### Why deficits matter")
+                st.write("""
+                    • **ETc (crop water demand)** is how much water the crop actually needs each week.  
+                    • **Rainfall** supplies part of that demand.  
+                    • **Deficit** is the shortfall: if positive, the crop will stress unless you irrigate.  
+                    • The plan tells you how much to irrigate to keep plants healthy.  
+                    """)
+            except Exception:
+                st.info("Irrigation plan unavailable (weather data fetch failed).")
+
+            # 3) Condition-specific tips (pH/EC/texture/AER/weather)
+            tips = []
+            if p["ph"] < 5.5:
+                tips += [
+                    "Soil is acidic: consider liming to reach ~pH 6.0–6.5 before planting (apply 2–4 months ahead)."]
+            if p["ec"] >= 2.0:
+                tips += [
+                    "High salinity risk: avoid chloride-heavy K sources; schedule leaching irrigation after heavy rains."]
+            if p["aer"] == "IIb" or p["soil_texture"] == "sand":
+                tips += [
+                    "Kalahari sands/sandy soils: add **organic matter** (residues/compost/manure) to improve water & nutrient holding."]
+
+            if risks["erosion_days"] >= 1:
+                tips += [
+                    "Forecast has ≥30 mm/day rain: keep residue cover, contour ploughing or tied ridges to reduce runoff."]
+            if risks["heat_stress_days"] >= 1 and p["crop"] == "maize":
+                tips += [
+                    "Heat near flowering can cut kernel set: ensure no water stress 1 week before to 2 weeks after tasseling."]
+
+            if tips:
+                st.markdown("### Tips")
+                for t in tips:
+                    st.write("• " + t)
+
+            # 4) Yield outlook (very simple score)
+            total_etc = df["ETc_mm"].sum()
+            total_rain = df["Rain_mm"].sum()
+            water_ratio = (total_rain + weekly["Irrigation_mm"].sum()) / max(1.0, total_etc)
+            n_ok = (plan["N_rec_kg_ha"] < 20)  # if additional N need is small, we assume N adequate
+            if water_ratio >= 0.9 and n_ok and risks["heat_stress_days"] == 0:
+                outlook = "Good"
+            elif water_ratio >= 0.75:
+                outlook = "Watch"
+            else:
+                outlook = "At risk"
+            st.markdown(f"### Yield outlook: **{outlook}**")
+            st.caption("Heuristic: compares ETc vs rain+irrigation, checks N sufficiency & heat-stress days.")
+
+elif active == "Tips & Tricks":
+    st.subheader("💡 Tips & Tricks for Farmers")
+
+    do_list = [
+        "Rotate crops each season to improve soil health.",
+        "Use compost or manure to build organic matter.",
+        "Mulch around plants to reduce evaporation.",
+        "Irrigate early morning or late evening to save water."
+    ]
+    dont_list = [
+        "Don’t over-irrigate during the day (high losses).",
+        "Avoid mixing lime with ammonium fertilizers.",
+        "Never burn crop residues — compost them instead.",
+        "Don’t apply fertilizer right before heavy rain."
+    ]
+
+    st.markdown("### ✅ Do’s")
+    for d in do_list:
+        st.success(d)
+
+    st.markdown("### ❌ Don’ts")
+    for d in dont_list:
+        st.error(d)
+
+elif active == "Manage Account":
+    st.subheader("👤 Account Dashboard")
+
+    left, right = st.columns([2, 1])
+
+    with right:
+        st.markdown("### Account Info")
+        st.write(f"**Username:** {user['username']}")
+        st.write(f"**Email:** {user.get('email', '-')}")
+        if st.button("Logout"):
+            st.session_state.user = None
+            st.rerun()
+    # ------------------------------------------------
+    # Add New Farm Section
+    # ------------------------------------------------
+    with left:
+        st.markdown("### 🌱 Your Farms")
+        for farm in user.get("farms", []):
+            st.write(f"**{farm['farm_id']}** : {farm['crop']} at {farm['location']}")
+            st.caption(
+                f"Planted: {farm['planting_date']} • "
+                f"Spacing: {farm['spacing']} • "
+                f"Row: {farm.get('row_cm', '?')} cm • Plant: {farm.get('plant_cm', '?')} cm • "
+                f"Texture: {farm.get('soil_texture', '?')} • "
+                f"Compliance: {farm['compliance']}"
+            )
+
+            del_key = f"delete_{farm['farm_id']}"
+            if st.button(f"🗑️ Delete {farm['farm_id']}", key=del_key):
+                st.session_state.confirm_delete = farm["farm_id"]
+
+        # Confirmation prompt
+        if "confirm_delete" in st.session_state and st.session_state.confirm_delete:
+            fid = st.session_state.confirm_delete
+            st.error(f"⚠️ Are you sure you want to delete farm {fid}? This action cannot be undone.")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Yes, delete permanently"):
+                    delete_farm(fid)
+                    st.session_state.user = find_user(user["username"])
+                    st.success(f"Farm {fid} deleted successfully.")
+                    st.session_state.confirm_delete = None
+                    st.rerun()
+            with col2:
+                if st.button("❌ Cancel"):
+                    st.session_state.confirm_delete = None
+                    st.info("Deletion canceled.")
+
+        # Toggle to show the Add Farm form
+        st.markdown("### ➕ Add New Farm")
+        if st.button("Add Farm"):
+            st.session_state.show_add_farm = not st.session_state.get("show_add_farm", False)
+
+        if st.session_state.get("show_add_farm", False):
+            crop_choice = st.selectbox("Crop", ["maize", "beans", "rice", "maize+beans"], key="add_crop")
+            location_choice = st.selectbox("Location", list(ZAMBIA_SITES.keys()), key="add_location")
+            lat, lon, aer = ZAMBIA_SITES.get(location_choice, (None, None, None))
+
+            rec_row, rec_plant = CROP_SPACING_DEFAULT.get(crop_choice, (60, 20))
+            rec_texture = AER_TEXTURE_DEFAULT.get(aer, "loam")
+
+            st.info(f"📌 Recommended for {crop_choice} in {location_choice}: "
+                    f"{rec_row}×{rec_plant} cm • Soil: {rec_texture} ")
+            st.warning("⚠️ Adjust manually if your soil/spacing differs.")
+
+            with st.form("add_farm", clear_on_submit=True):
+                farm_id = st.text_input("Farm ID", key="add_farm_id")
+                system_id = st.text_input("System ID", key="add_system_id")
+                row_cm = st.number_input("Row spacing (cm)", 10, 150,
+                                         value=rec_row, step=5, key="add_row_cm")
+                plant_cm = st.number_input("Plant spacing (cm)", 5, 100,
+                                           value=rec_plant, step=5, key="add_plant_cm")
+                soil_texture = st.selectbox("Soil texture", ["sand", "loam", "clay"],
+                                            index=["sand", "loam", "clay"].index(rec_texture),
+                                            key="add_soil_texture")
+                planting_date = st.date_input("Planting date", key="add_planting_date")
+                compliance = st.selectbox("Compliance behavior", ["immediate", "delayed"], key="add_compliance")
+
+                if st.form_submit_button("Save Farm"):
+                    spacing = f"{row_cm}x{plant_cm} cm"
+                    new_farm = {
+                        "farm_id": farm_id, "system_id": system_id, "crop": crop_choice,
+                        "location": location_choice, "lat": lat, "lon": lon,
+                        "soil_texture": soil_texture,
+                        "row_cm": row_cm, "plant_cm": plant_cm, "spacing": spacing,
+                        "planting_date": str(planting_date), "compliance": compliance,
+                        "yield_factor": 1.0, "om_pct": 2.0,
+                        "agent": {
+                            "compliance": (0.8 if compliance == "immediate" else 0.5),
+                            "delay_min_h": 6,
+                            "delay_max_h": 24
+                        }
+                    }
+                    save_farm(user["username"], new_farm)
+                    st.session_state.user = find_user(user["username"])
+                    st.success("✅ Farm added successfully!")
+                    st.session_state.show_add_farm = False
+                    st.rerun()
