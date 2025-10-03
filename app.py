@@ -911,12 +911,19 @@ with logo_col:
     st.image("https://mytochondria.com/assets/logo.png", width=60)  # adjust path/URL
 
 with mode_col:
-    # Directly bind the toggle to session_state
-    st.session_state.theme = "light" if st.toggle(
+    # Show toggle based on current theme
+    is_dark = (st.session_state.theme == "dark")
+    new_toggle = st.toggle(
         "🌙 Dark Mode",
-        value=(st.session_state.theme == "dark"),
+        value=is_dark,
         key="theme_toggle"
-    ) else "dark"
+    )
+
+    # Update theme only if changed
+    if new_toggle and not is_dark:
+        st.session_state.theme = "dark"
+    elif not new_toggle and is_dark:
+        st.session_state.theme = "light"
 
 # --- Top Navigation Bar ---
 st.markdown(
