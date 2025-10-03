@@ -903,12 +903,12 @@ with logo_col:
 
 with mode_col:
     # Directly bind the toggle to session_state
-    st.session_state.theme = "dark" if st.toggle(
+    st.session_state.theme = "light" if st.toggle(
         "🌙 Dark Mode",
         value=(st.session_state.theme == "dark"),
         key="theme_toggle"
-    ) else "light"
-    
+    ) else "dark"
+
 # --- Top Navigation Bar ---
 st.markdown(
     """
