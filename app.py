@@ -28,7 +28,7 @@ CROP_SPACING_DEFAULT = {
 }
 
 if "theme" not in st.session_state:
-    st.session_state.theme = "light"
+    st.session_state.theme = "dark"
 
 
 if st.session_state.theme == "dark":
