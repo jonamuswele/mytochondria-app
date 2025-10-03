@@ -254,6 +254,18 @@ st.markdown("""
   flex-wrap: wrap;
   gap: 12px;
 }
+body { background-color: #ffffff; }
+h1, h2, h3, h4 { color: #2d572c; font-family: 'Segoe UI', sans-serif; }
+.card {
+  background: #f4f9f4; /* pale green background */
+  border: 1px solid #2d572c33;
+}
+.metric {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #2d572c33;
+}
 
 /* Each card will take ~50% of the parent width */
 .card {
@@ -856,9 +868,40 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.sidebar.image("g34788.png", width=180)
-st.sidebar.markdown("### 🌱 Mytochondria Advisor\nHelping farmers grow more with less.")
-
+# --- Top Navigation Bar ---
+st.markdown("""
+    <style>
+    .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 1.5rem;
+        background-color: #2d572c; /* green */
+        color: white;
+    }
+    .top-nav h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    .top-nav .menu a {
+        margin-left: 18px;
+        text-decoration: none;
+        color: white !important;
+        font-weight: 500;
+    }
+    </style>
+    <div class="top-nav">
+        <h2>🌱 Mytochondria</h2>
+        <div class="menu">
+            <a href="#Home">Home</a>
+            <a href="#Sensor-Mode">Sensor Mode</a>
+            <a href="#Crop-Planner">Crop Planner</a>
+            <a href="#Tips-Tricks">Tips & Tricks</a>
+            <a href="#Manage-Account">Manage Account</a>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 def pct_to_cat(x: float) -> str:
     """Map numeric percent (0-100) to High/Medium/Low for NPK display."""
@@ -1304,7 +1347,49 @@ def apply_action_effects(state: Dict[str, Any], task_label: str):
 
 st.title("🌱 Mytochondria AgriAdvisor ")
 
-tabs = st.tabs(["Sensor Mode", "Crop Planner", "Manage Account"])
+tabs = st.tabs(["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks", "Manage Account"])
+
+# ---------------------------------
+# 0) HOME PAGE (Dashboard)
+# ---------------------------------
+with tabs[0]:
+    st.subheader("🌾 Your Farm Dashboard")
+
+    # Alerts snapshot
+    st.markdown("### 🚨 Active Alerts")
+    if not user_farms:
+        st.info("No farms yet. Add a farm to start receiving alerts.")
+    else:
+        for f in user_farms:
+            fid = f["farm_id"]
+            alerts = st.session_state.farm_alerts.get(fid, [])
+            if alerts:
+                for a in alerts[-3:]:  # last 3 alerts
+                    st.warning(f"**{f['crop']} ({f['location']})** → {a['title']} ({a['status']})")
+            else:
+                st.success(f"No new alerts for **{f['crop']} ({f['location']})**")
+
+    # Quick Actions
+    st.markdown("### ⚡ Quick Actions")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("➕ Add Farm"):
+            st.switch_page("Manage Account")
+    with col2:
+        st.button("📦 View Products")
+    with col3:
+        st.button("📖 Tutorials")
+
+    # Snapshot overview
+    st.markdown("### 📊 Overview")
+    colA, colB, colC = st.columns(3)
+    colA.metric("🌱 Farms Managed", len(user_farms))
+    total_alerts = sum(len(st.session_state.farm_alerts.get(f["farm_id"], [])) for f in user_farms)
+    colB.metric("🚨 Total Alerts", total_alerts)
+    colC.metric("☀️ Weather Risk", "Rain forecast" if random.random() < 0.5 else "Clear")
+
+
+
 
 # ---------------------------------
 # 1) SENSOR MODE
@@ -1702,7 +1787,37 @@ with tabs[1]:
             st.caption("Heuristic: compares ETc vs rain+irrigation, checks N sufficiency & heat-stress days.")
 
 # ---------------------------------
-# 3) Manage Account
+# 3) TIPS & TRICKS
+# ---------------------------------
+with tabs[3]:
+    st.subheader("💡 Tips & Tricks for Farmers")
+
+    do_list = [
+        "Rotate crops each season to improve soil health.",
+        "Use compost or manure to build organic matter.",
+        "Mulch around plants to reduce evaporation.",
+        "Irrigate early morning or late evening to save water."
+    ]
+    dont_list = [
+        "Don’t over-irrigate during the day (high losses).",
+        "Avoid mixing lime with ammonium fertilizers.",
+        "Never burn crop residues — compost them instead.",
+        "Don’t apply fertilizer right before heavy rain."
+    ]
+
+    st.markdown("### ✅ Do’s")
+    for d in do_list:
+        st.success(d)
+
+    st.markdown("### ❌ Don’ts")
+    for d in dont_list:
+        st.error(d)
+
+
+
+
+# ---------------------------------
+# 4) Manage Account
 # ---------------------------------
 AER_TEXTURE_DEFAULT = {
     "I": "sand",
