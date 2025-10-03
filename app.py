@@ -117,25 +117,40 @@ if st.session_state.theme == "dark":
 
         /* --- TABLES --- */
         div[data-testid="stDataFrame"], div[data-testid="stTable"] {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
+            background-color: #1c1c28 !important;
+            border: 1px solid #2563eb55 !important;
+            border-radius: 8px !important;
         }
         div[data-testid="stDataFrame"] table,
         div[data-testid="stTable"] table {
             background-color: #1c1c28 !important;
             color: #e0e0e0 !important;
-            border: 1px solid #2563eb55 !important;
-            border-radius: 8px !important;
         }
-        .stDataFrame td, .stDataFrame th { border-color: #2563eb33 !important; }
+        div[data-testid="stDataFrame"] th,
+        div[data-testid="stTable"] th {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+        div[data-testid="stDataFrame"] td,
+        div[data-testid="stTable"] td {
+            color: #e0e0e0 !important;
+        }
 
         /* --- CHARTS --- */
-        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, .stPydeckChart, .stDeckGlChart, .stEchartsChart {
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, 
+        .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #1c1c28 !important;
             border-radius: 8px !important;
             border: 1px solid #2563eb55 !important;
             padding: 8px !important;
+        }
+        .vega-bindings, .vega-bindings span, .vega-bindings label {
+            color: #e0e0e0 !important;
+        }
+        .vega-tooltip {
+            background-color: #1c1c28 !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #2563eb !important;
         }
 
         /* --- EXPANDERS --- */
@@ -220,25 +235,40 @@ else:
 
         /* --- TABLES --- */
         div[data-testid="stDataFrame"], div[data-testid="stTable"] {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
+            background-color: #f9fcf9 !important;
+            border: 1px solid #4caf5044 !important;
+            border-radius: 8px !important;
         }
         div[data-testid="stDataFrame"] table,
         div[data-testid="stTable"] table {
             background-color: #f9fcf9 !important;
             color: #111 !important;
-            border: 1px solid #4caf5044 !important;
-            border-radius: 8px !important;
         }
-        .stDataFrame td, .stDataFrame th { border-color: #4caf5022 !important; }
+        div[data-testid="stDataFrame"] th,
+        div[data-testid="stTable"] th {
+            background-color: #4caf50 !important;
+            color: white !important;
+        }
+        div[data-testid="stDataFrame"] td,
+        div[data-testid="stTable"] td {
+            color: #111 !important;
+        }
 
         /* --- CHARTS --- */
-        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, .stPydeckChart, .stDeckGlChart, .stEchartsChart {
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart, 
+        .stPydeckChart, .stDeckGlChart, .stEchartsChart {
             background-color: #f9fcf9 !important;
             border-radius: 8px !important;
             border: 1px solid #4caf5044 !important;
             padding: 8px !important;
+        }
+        .vega-bindings, .vega-bindings span, .vega-bindings label {
+            color: #111 !important;
+        }
+        .vega-tooltip {
+            background-color: #f9fcf9 !important;
+            color: #111 !important;
+            border: 1px solid #4caf50 !important;
         }
 
         /* --- EXPANDERS --- */
@@ -249,7 +279,7 @@ else:
         }
         </style>
     """, unsafe_allow_html=True)
-    
+
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
 
