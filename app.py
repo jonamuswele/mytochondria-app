@@ -86,6 +86,41 @@ if st.session_state.theme == "dark":
             background-color: #121212 !important;
             color: #2563eb !important;
         }
+
+        /* Cards */
+        .card, .metric {
+            background: linear-gradient(135deg, #121212, #1e1e2f);
+            border: 1px solid #2563eb55;
+            color: #e0e0e0 !important;
+            border-radius: 10px;
+        }
+
+        /* Dataframes & Tables */
+        .stDataFrame, .stTable {
+            background-color: #1c1c28 !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #2563eb55 !important;
+            border-radius: 8px;
+        }
+        .stDataFrame td, .stDataFrame th {
+            border-color: #2563eb33 !important;
+        }
+
+        /* Charts */
+        canvas {
+            background-color: #1c1c28 !important;
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid #2563eb55;
+        }
+
+        /* Inputs (selectboxes, sliders, radios, number inputs) */
+        .stSelectbox, .stMultiSelect, .stSlider, .stRadio, .stNumberInput {
+            background: #1c1c28 !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #2563eb55 !important;
+            border-radius: 6px;
+        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -130,6 +165,41 @@ else:
         .stButton>button:active {
             background-color: #ffffff !important;
             color: #4caf50 !important;
+        }
+
+        /* Cards */
+        .card, .metric {
+            background: linear-gradient(135deg, #ffffff, #f4f9f4);
+            border: 1px solid #4caf5044;
+            color: #111 !important;
+            border-radius: 10px;
+        }
+
+        /* Dataframes & Tables */
+        .stDataFrame, .stTable {
+            background-color: #f9fcf9 !important;
+            color: #111 !important;
+            border: 1px solid #4caf5044 !important;
+            border-radius: 8px;
+        }
+        .stDataFrame td, .stDataFrame th {
+            border-color: #4caf5022 !important;
+        }
+
+        /* Charts */
+        canvas {
+            background-color: #f9fcf9 !important;
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid #4caf5044;
+        }
+
+        /* Inputs (selectboxes, sliders, radios, number inputs) */
+        .stSelectbox, .stMultiSelect, .stSlider, .stRadio, .stNumberInput {
+            background: #f9fcf9 !important;
+            color: #111 !important;
+            border: 1px solid #4caf5044 !important;
+            border-radius: 6px;
         }
         </style>
     """, unsafe_allow_html=True)
