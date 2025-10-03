@@ -637,21 +637,6 @@ def nutrient_plan_from_lab(crop: str, yield_factor: float, om_pct: float,
     }
 
 
-def compute_density_factor(crop: str, row_spacing_cm: float, plant_spacing_cm: float) -> tuple[float, float]:
-    """
-    Return (density_factor, plants_per_ha) from spacings.
-    factor is clamped to [DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX] for stability.
-    """
-    row_m = max(0.0001, row_spacing_cm / 100.0)
-    plant_m = max(0.0001, plant_spacing_cm / 100.0)
-    plants_per_ha = 10000.0 / (row_m * plant_m)  # 10,000 m² per ha
-
-    base = BASE_PLANT_DENSITY_HA.get((crop or "").lower(), 100000.0)
-    raw_factor = plants_per_ha / base
-    factor = clamp(raw_factor, DENSITY_FACTOR_MIN, DENSITY_FACTOR_MAX)
-    return factor, plants_per_ha
-
-
 def _rng_for(*parts) -> random.Random:
     # deterministic RNG based on parts + GLOBAL_SEED
     s = "|".join(map(str, parts))
@@ -1161,40 +1146,6 @@ def forecast_depletion_days(current_pct: float, weekly_drop_pct: float, floor_pc
     return max(0, int(round(weeks * 7)))
 
 
-# keep alert history in session
-
-def crop_uptake_weekly(crop: str, days_since_planting: int) -> Tuple[float, float, float]:
-    """
-    Return estimated weekly depletion for N,P,K based on crop & stage.
-    Mirrors the ideas from insightsEngine.ts (maize window) and our spec. :contentReference[oaicite:4]{index=4}
-    """
-    w = days_since_planting // 7
-    crop = (crop or "").strip().lower()
-
-    if crop == "maize":
-        # N heavy weeks 4-8, moderate otherwise
-        n = 5.0 if 4 <= w <= 8 else 2.5
-        p = 2.0 if w <= 4 else 1.0
-        k = 2.5 if 6 <= w <= 10 else 1.5
-    elif crop == "beans":
-        # N lower (fixation), P/K moderate
-        n = 1.0
-        p = 1.5
-        k = 2.0
-    elif crop == "rice":
-        # consistent water crop, N/K relevant at tillering/panicle initiation (approx w3-8)
-        n = 3.0 if 3 <= w <= 8 else 1.5
-        p = 1.0
-        k = 2.5 if 3 <= w <= 8 else 1.5
-    else:
-        # unknown crop -> conservative
-        n = 2.0
-        p = 1.2
-        k = 1.8
-
-    return n, p, k
-
-
 # ------------------------------
 # Rule Engine (ported + expanded)  :contentReference[oaicite:5]{index=5}
 # ------------------------------
@@ -1374,7 +1325,8 @@ with tabs[0]:
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("➕ Add Farm"):
-            st.switch_page("Manage Account")
+            st.session_state.active_tab = "Manage Account"
+            st.rerun()
     with col2:
         st.button("📦 View Products")
     with col3:
