@@ -28,7 +28,7 @@ CROP_SPACING_DEFAULT = {
 }
 
 if "theme" not in st.session_state:
-    st.session_state.theme = "dark"
+    st.session_state.theme = "light"
 
 
 if st.session_state.theme == "dark":
@@ -1935,3 +1935,4 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
+
