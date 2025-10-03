@@ -1394,7 +1394,7 @@ with tabs[0]:
 # ---------------------------------
 # 1) SENSOR MODE
 # ---------------------------------
-with tabs[0]:
+with tabs[1]:
     st.subheader("Sensor Mode Live ")
 
     # 1) Backfill all farms to current hour so data is always up-to-date
@@ -1580,7 +1580,7 @@ with tabs[0]:
 # ---------------------------------
 # 2) CROP PLANNER
 # ---------------------------------
-with tabs[1]:
+with tabs[2]:
     left, right = st.columns([2, 1])
 
     with right:
@@ -1833,7 +1833,7 @@ CROP_SPACING_DEFAULT = {
     "maize+beans": (75, 25)
 }
 
-with tabs[2]:
+with tabs[4]:
     st.subheader("👤 Account Dashboard")
 
     left, right = st.columns([2, 1])
