@@ -289,20 +289,30 @@ if "active_tab" not in st.session_state:
 
 tab_names = ["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks", "Manage Account"]
 
-def themed_altair_chart(df, theme):
+def themed_altair_chart(df, x, y, theme, chart_type="line"):
     base_color = "#2563eb" if theme == "dark" else "#4caf50"
     text_color = "#e0e0e0" if theme == "dark" else "#111"
+    bg_color = "#1c1c28" if theme == "dark" else "#f9fcf9"
     grid_color = base_color + "33"
 
-    chart = (
-        alt.Chart(df)
-        .mark_line(point=True, color=base_color)
-        .encode(
-            x=alt.X("date:T", axis=alt.Axis(title="Date", labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
-            y=alt.Y("Rain_mm:Q", axis=alt.Axis(title="Rain (mm)", labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
-        )
-        .configure_view(strokeOpacity=0, fill="#1c1c28" if theme == "dark" else "#f9fcf9")
-        .configure_legend(labelColor=text_color, titleColor=text_color)
+    if chart_type == "line":
+        chart = alt.Chart(df).mark_line(point=True, color=base_color)
+    elif chart_type == "bar":
+        chart = alt.Chart(df).mark_bar(color=base_color)
+    else:
+        chart = alt.Chart(df).mark_point(color=base_color)
+
+    chart = chart.encode(
+        x=alt.X(x, axis=alt.Axis(labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
+        y=alt.Y(y, axis=alt.Axis(labelColor=text_color, titleColor=text_color, gridColor=grid_color)),
+    ).configure_view(
+        strokeOpacity=0,
+        fill=bg_color
+    ).configure_axis(
+        grid=True
+    ).configure_legend(
+        labelColor=text_color,
+        titleColor=text_color
     )
     return chart
 
@@ -1883,22 +1893,10 @@ elif active == "Crop Planner":
             st.write(f"- **Heat-stress days** (Tmax ≥35°C): **{risks['heat_stress_days']}**")
             st.write(
                 f"- **Cool germination risk** (early stage, low Tmax): **{risks['cool_germination_days']}**")
-            chart = alt.Chart(df).mark_line(point=True).encode(
-                x="date:T",
-                y=alt.Y("Rain_mm:Q", axis=alt.Axis(title="Rain (mm)")),
-                color=alt.value("#2563eb")
-            ).properties(
-                width="container",
-                height=300
-            ).configure_axis(
-                labelColor="#e0e0e0" if st.session_state.theme == "dark" else "#111",
-                titleColor="#e0e0e0" if st.session_state.theme == "dark" else "#111",
-                gridColor="#2563eb33" if st.session_state.theme == "dark" else "#4caf5022"
-            ).configure_view(
-                strokeOpacity=0
-            )
+            
 
-            st.altair_chart(themed_altair_chart(df, st.session_state.theme), use_container_width=True)
+            st.altair_chart(themed_altair_chart(df, "date:T", "Rain_mm:Q", st.session_state.theme, chart_type="line"), use_container_width=True)
+
             # 2) Nutrient plan from lab
 
             st.markdown("### Nutrient plan")
