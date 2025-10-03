@@ -307,21 +307,26 @@ def _text_bg_grid(theme: str) -> tuple[str, str, str]:
 def style_chart(chart, theme: str):
     accent = "#2563eb" if theme == "dark" else "#4caf50"
     text   = "#e0e0e0" if theme == "dark" else "#111"
-    bg     = "#1c1c28" if theme == "dark" else "#ffffff"   # <-- fixed here
+    bg     = "#1c1c28" if theme == "dark" else "#ffffff"   # light mode = pure white
     grid   = accent + "33"
 
     return (
         chart
+        # Force chart area background
         .configure_view(
             strokeOpacity=0,
-            fill=bg   # proper background per theme
+            fill=bg
         )
+        # Force full chart background (outside of plot area)
+        .configure(background=bg)
+        # Axis styling
         .configure_axis(
             labelColor=text,
             titleColor=text,
             grid=True,
             gridColor=grid
         )
+        # Legend styling
         .configure_legend(
             labelColor=text,
             titleColor=text
