@@ -26,16 +26,33 @@ CROP_SPACING_DEFAULT = {
     "rice": (30, 20),
     "maize+beans": (75, 25)  # fallback, or you could ask both crops
 }
-
+# --- Initialize theme early ---
 if "theme" not in st.session_state:
     st.session_state.theme = "light"
+
+logo_col, space_col, mode_col = st.columns([1, 5, 1])
+with logo_col:
+    st.image("https://mytochondria.com/assets/logo.png", width=60)
+
+with mode_col:
+    # Toggle reflects current theme
+    new_toggle = st.toggle(
+        "🌙 Dark Mode",
+        value=(st.session_state.theme == "dark"),
+        key="theme_toggle"
+    )
+    # Update state immediately when changed
+    st.session_state.theme = "dark" if new_toggle else "light"
 
 
 if st.session_state.theme == "dark":
     st.markdown("""
         <style>
-        body { background-color: #1e1e1e; color: #f0f0f0; }
-        h1, h2, h3, h4 { color: #8dd48d; }
+        body, .stApp, .block-container {
+            background-color: #1e1e1e !important;
+            color: #f0f0f0 !important;
+        }
+        h1, h2, h3, h4 { color: #8dd48d !important; }
         div[data-testid="stHorizontalBlock"] div.stButton > button {
             background-color: #333 !important;
             color: #8dd48d !important;
@@ -45,14 +62,17 @@ if st.session_state.theme == "dark":
             background-color: #8dd48d !important;
             color: #1e1e1e !important;
         }
-        .card { background: #2a2a2a; color: white; }
+        .card { background: #2a2a2a !important; color: white !important; }
         </style>
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
         <style>
-        body { background-color: #ffffff; color: #111; }
-        h1, h2, h3, h4 { color: #2d572c; }
+        body, .stApp, .block-container {
+            background-color: #ffffff !important;
+            color: #111 !important;
+        }
+        h1, h2, h3, h4 { color: #2d572c !important; }
         div[data-testid="stHorizontalBlock"] div.stButton > button {
             background-color: white !important;
             color: #2d572c !important;
@@ -62,10 +82,9 @@ else:
             background-color: #2d572c !important;
             color: white !important;
         }
-        .card { background: #f4f9f4; color: black; }
+        .card { background: #f4f9f4 !important; color: black !important; }
         </style>
     """, unsafe_allow_html=True)
-
 
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
@@ -897,24 +916,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-logo_col, space_col, mode_col = st.columns([1, 5, 1])
-with logo_col:
-    st.image("https://mytochondria.com/assets/logo.png", width=60)  # adjust path/URL
 
-with mode_col:
-    # Show toggle based on current theme
-    is_dark = (st.session_state.theme == "dark")
-    new_toggle = st.toggle(
-        "🌙 Dark Mode",
-        value=is_dark,
-        key="theme_toggle"
-    )
-
-    # Update theme only if changed
-    if new_toggle and not is_dark:
-        st.session_state.theme = "dark"
-    elif not new_toggle and is_dark:
-        st.session_state.theme = "light"
 
 # --- Top Navigation Bar ---
 st.markdown(
@@ -1935,4 +1937,3 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
-
