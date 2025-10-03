@@ -50,30 +50,21 @@ if st.session_state.theme == "dark":
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
-            <style>
-            /* Force light background on main app containers */
-            body, .stApp, .main, .block-container {
-                background-color: #ffffff !important;
-                color: #111 !important;
-            }
-            h1, h2, h3, h4 {
-                color: #2d572c !important;
-            }
-            div[data-testid="stHorizontalBlock"] div.stButton > button {
-                background-color: #ffffff !important;
-                color: #2d572c !important;
-                border: 1px solid #2d572c;
-            }
-            div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
-                background-color: #2d572c !important;
-                color: #ffffff !important;
-            }
-            .card {
-                background: #f4f9f4 !important;
-                color: #000 !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
+        <style>
+        body { background-color: #ffffff; color: #111; }
+        h1, h2, h3, h4 { color: #2d572c; }
+        div[data-testid="stHorizontalBlock"] div.stButton > button {
+            background-color: white !important;
+            color: #2d572c !important;
+            border: 1px solid #2d572c;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+            background-color: #2d572c !important;
+            color: white !important;
+        }
+        .card { background: #f4f9f4; color: black; }
+        </style>
+    """, unsafe_allow_html=True)
 
 
 if "active_tab" not in st.session_state:
