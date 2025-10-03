@@ -882,10 +882,8 @@ st.markdown("""
 st.markdown(
     """
     <style>
-    .nav-button {
+    div[data-testid="stHorizontalBlock"] div.stButton > button {
         display: inline-block;
-        width: 100%;
-        text-align: center;
         font-weight: 600;
         border-radius: 6px;
         padding: 8px 0;
@@ -896,10 +894,10 @@ st.markdown(
         color: #2d572c;
         transition: all 0.3s ease;
     }
-    .nav-button:hover {
+    div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
         background-color: #eaf4ea;
     }
-    .nav-active {
+    div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
         background-color: #2d572c !important;
         color: white !important;
     }
@@ -910,10 +908,26 @@ st.markdown(
 
 nav_cols = st.columns(len(tab_names))
 for i, name in enumerate(tab_names):
-    button_label = f"<div class='nav-button {'nav-active' if st.session_state.active_tab == i else ''}'>{name}</div>"
-    if nav_cols[i].button(button_label, key=f"nav_{i}", use_container_width=True):
+    if nav_cols[i].button(name, key=f"nav_{i}", use_container_width=True):
         st.session_state.active_tab = i
         st.rerun()
+
+# Apply active class by injecting JS after rendering
+active_idx = st.session_state.active_tab
+st.markdown(
+    f"""
+    <script>
+    const buttons = window.parent.document.querySelectorAll('div[data-testid="stHorizontalBlock"] div.stButton > button');
+    buttons.forEach((btn, idx) => {{
+        if (idx === {active_idx}) {{
+            btn.classList.add("nav-active");
+        }} else {{
+            btn.classList.remove("nav-active");
+        }}
+    }});
+    </script>
+    """,
+    unsafe_allow_html=True,)
 # ------------------------------
 # State initialization
 # ------------------------------
