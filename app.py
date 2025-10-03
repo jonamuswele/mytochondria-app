@@ -72,7 +72,25 @@ else:
             background-color: #ffffff !important;
             color: #111 !important;
         }
-        h1, h2, h3, h4 { color: #2d572c !important; }
+        h1, h2, h3, h4, label, .stMarkdown, .stText, .stSelectbox label, .stRadio label {
+            color: #2d572c !important;
+        }
+        div[data-testid="stMarkdownContainer"] p,
+        div[data-testid="stMarkdownContainer"] span {
+            color: #111 !important;
+        }
+        input, textarea, select {
+            color: #111 !important;
+            background-color: #ffffff !important;
+        }
+        .stNumberInput input, .stTextInput input, .stDateInput input {
+            color: #111 !important;
+        }
+        .stRadio div[role="radiogroup"] label {
+            color: #111 !important;
+        }
+
+        /* Buttons */
         div[data-testid="stHorizontalBlock"] div.stButton > button {
             background-color: white !important;
             color: #2d572c !important;
@@ -82,7 +100,19 @@ else:
             background-color: #2d572c !important;
             color: white !important;
         }
-        .card { background: #f4f9f4 !important; color: black !important; }
+        .stButton>button {
+            background-color: #2d572c !important;
+            color: white !important;
+            border-radius: 6px;
+            border: none;
+        }
+        .stButton>button:hover {
+            background-color: #245423 !important;
+            color: white !important;
+        }
+
+        /* Card styling */
+        .card { background: #f4f9f4 !important; color: #111 !important; }
         </style>
     """, unsafe_allow_html=True)
 
