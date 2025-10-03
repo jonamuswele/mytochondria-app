@@ -289,7 +289,7 @@ else:
         }
         </style>
     """, unsafe_allow_html=True)
-    
+
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
 
@@ -304,18 +304,28 @@ def _text_bg_grid(theme: str) -> tuple[str, str, str]:
     grid = (_accent(theme) + "33")
     return text, bg, grid
 
-def style_chart(chart: "alt.Chart", theme: str) -> "alt.Chart":
-    """
-    Apply consistent theming to ANY Altair chart you pass in.
-    Keeps your marks/encodings; only styles axes, legend, grid, and view background.
-    """
-    text, bg, grid = _text_bg_grid(theme)
+def style_chart(chart, theme: str):
+    accent = "#2563eb" if theme == "dark" else "#4caf50"
+    text   = "#e0e0e0" if theme == "dark" else "#111"
+    bg     = "#1c1c28" if theme == "dark" else "#ffffff"   # <-- fixed here
+    grid   = accent + "33"
+
     return (
         chart
-        .configure_view(strokeOpacity=0, fill=bg)
-        .configure_axis(labelColor=text, titleColor=text, grid=True, gridColor=grid)
-        .configure_legend(labelColor=text, titleColor=text)
-        .resolve_scale(color="independent")  # don't force one scale across layered charts
+        .configure_view(
+            strokeOpacity=0,
+            fill=bg   # proper background per theme
+        )
+        .configure_axis(
+            labelColor=text,
+            titleColor=text,
+            grid=True,
+            gridColor=grid
+        )
+        .configure_legend(
+            labelColor=text,
+            titleColor=text
+        )
     )
 
 def _db():
