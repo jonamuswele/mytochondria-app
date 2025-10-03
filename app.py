@@ -426,56 +426,6 @@ def kg_to_pct(nutrient: str, kg: float) -> float:
     if cap <= 0: return 0.0
     return clamp((kg / cap) * 100.0, 0.0, 100.0)
 
-
-# === Card UI helpers & CSS ===
-st.markdown("""
-<style>
-.card-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-body { background-color: #ffffff; }
-h1, h2, h3, h4 { color: #2d572c; font-family: 'Segoe UI', sans-serif; }
-.card {
-  background: #f4f9f4; /* pale green background */
-  border: 1px solid #2d572c33;
-}
-.metric {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid #2d572c33;
-}
-
-/* Each card will take ~50% of the parent width */
-.card {
-  flex: 1 1 calc(35% - 12px);
-  max-width: calc(35% - 12px);
-  min-width: 180px;  /* so they don’t shrink too small */
-  box-sizing: border-box;
-
-  border-radius: 14px;
-  padding: 14px 16px;
-  border: 1px solid rgba(0,0,0,0.06);
-  background: #ffffff;
-  color: #111 !important;
-}
-
-.card .title { 
-  font-weight: 600; 
-  font-size: 0.9rem; 
-  opacity: 0.75; 
-  color: #111 !important; 
-}
-
-.card .big { 
-  font-size: 1.2rem; 
-  font-weight: 600; 
-}
-</style>""", unsafe_allow_html=True)
-
-
 def _card(title: str, value: str, sub: str = "", color: str = "gray", emoji: str = ""):
     html = f"""
     <div class="card {color}">
