@@ -30,8 +30,6 @@ CROP_SPACING_DEFAULT = {
 if "theme" not in st.session_state:
     st.session_state.theme = "light"
 
-mode = st.toggle("🌙 Dark Mode", value=(st.session_state.theme=="dark"))
-st.session_state.theme = "dark" if mode else "light"
 
 if st.session_state.theme == "dark":
     st.markdown("""
