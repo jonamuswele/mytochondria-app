@@ -912,7 +912,7 @@ for i, name in enumerate(tab_names):
         st.session_state.active_tab = i
         st.rerun()
 
-# Apply active class by injecting JS after rendering
+# Apply active class to highlight selected
 active_idx = st.session_state.active_tab
 st.markdown(
     f"""
@@ -927,7 +927,8 @@ st.markdown(
     }});
     </script>
     """,
-    unsafe_allow_html=True,)
+    unsafe_allow_html=True,
+)
 # ------------------------------
 # State initialization
 # ------------------------------
@@ -1324,8 +1325,6 @@ def apply_action_effects(state: Dict[str, Any], task_label: str):
 # ------------------------------
 
 st.title("🌱 Mytochondria AgriAdvisor ")
-
-tabs = st.tabs(tab_names)
 
 AER_TEXTURE_DEFAULT = {
     "I": "sand",
