@@ -860,9 +860,10 @@ st.set_page_config(
 st.markdown("""
 <style>
 /* ===================================================
-   EMERALD GREEN THEME – Light & Dark Unified
-   Fixes red slider track, active borders, highlights
+   EMERALD GREEN THEME – Unified (Light & Dark)
+   Author: Jonathan Kaleme & ChatGPT
    =================================================== */
+
 :root {
   --accent: #059669;
   --accent-dark: #047857;
@@ -871,34 +872,35 @@ st.markdown("""
   --bg-dark: #0b1b12;
   --text-light: #1e293b;
   --text-dark: #e2e8f0;
-  --border-soft: rgba(5,150,105,0.2);
+  --border-soft: rgba(5,150,105,0.25);
+  --shadow-soft: 0 4px 12px rgba(5,150,105,0.1);
+  --radius: 12px;
 }
 
-/* ===== GLOBAL LAYOUT ===== */
+/* ===== GLOBAL ===== */
 body, .stApp, .block-container {
   background: linear-gradient(to bottom, var(--bg-light), #ffffff) !important;
   color: var(--text-light) !important;
-  font-family: 'Inter', sans-serif;
-}
-html[data-theme="dark"], body[data-theme="dark"], .stApp[data-theme="dark"] {
-  background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
-  color: var(--text-dark) !important;
+  font-family: 'Inter', sans-serif !important;
 }
 h1, h2, h3, h4 {
   color: var(--accent-dark) !important;
   font-weight: 700 !important;
 }
+p, span, label, small, div {
+  color: var(--text-light);
+}
 
 /* ===== BUTTONS ===== */
 .stButton > button, div[data-testid="stDownloadButton"] > button {
   background-color: var(--accent) !important;
-  color: white !important;
+  color: #ffffff !important;
   border: none !important;
-  border-radius: 10px !important;
+  border-radius: var(--radius) !important;
   padding: 0.6rem 1.2rem !important;
   font-weight: 600 !important;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 8px rgba(5,150,105,0.25);
+  box-shadow: var(--shadow-soft);
 }
 .stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {
   background-color: var(--accent-dark) !important;
@@ -906,12 +908,12 @@ h1, h2, h3, h4 {
 }
 .stButton > button:active { transform: scale(0.97); }
 
-/* ===== NAVIGATION ===== */
+/* ===== NAVIGATION BUTTONS ===== */
 div[data-testid="stHorizontalBlock"] div.stButton > button {
   background-color: white !important;
   color: var(--accent-dark) !important;
   border: 1px solid var(--accent) !important;
-  border-radius: 10px !important;
+  border-radius: var(--radius) !important;
   font-weight: 600 !important;
   transition: all 0.3s ease;
 }
@@ -920,16 +922,16 @@ div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
 }
 div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
   background-color: var(--accent) !important;
-  color: white !important;
+  color: #fff !important;
 }
 
-/* ===== INPUTS ===== */
+/* ===== INPUTS & SELECTS ===== */
 input, textarea, select, .stDateInput input {
   background-color: #ffffff !important;
   color: var(--text-light) !important;
   border: 1px solid var(--border-soft) !important;
-  border-radius: 8px !important;
-  transition: border-color 0.3s ease;
+  border-radius: var(--radius) !important;
+  transition: all 0.3s ease;
 }
 input:focus, textarea:focus, select:focus {
   border-color: var(--accent) !important;
@@ -951,13 +953,13 @@ input:focus, textarea:focus, select:focus {
   background-color: #ffffff !important;
   color: var(--text-light) !important;
   border: 1px solid rgba(5,150,105,0.3) !important;
-  border-radius: 8px !important;
+  border-radius: var(--radius) !important;
 }
 .stNumberInput button {
   background-color: var(--bg-light) !important;
   color: var(--accent-dark) !important;
   border: 1px solid rgba(5,150,105,0.4) !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
 }
 .stNumberInput button:hover {
   background-color: #d1fae5 !important;
@@ -968,16 +970,12 @@ input:focus, textarea:focus, select:focus {
 [data-testid="stSlider"] [role="slider"] {
   background-color: var(--accent) !important;
   border: 2px solid var(--accent) !important;
-  box-shadow: 0 0 6px rgba(5,150,105,0.6) !important;
+  box-shadow: 0 0 6px rgba(5,150,105,0.5) !important;
 }
 [data-testid="stSlider"] > div > div {
   background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
 }
-[data-testid="stSlider"] [data-baseweb="slider"] div[role="presentation"] > div {
-  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
-}
-[data-testid="stSlider"] .stSliderValue, 
-[data-testid="stSlider"] .css-1qrvfrg, 
+[data-testid="stSlider"] .stSliderValue,
 [data-testid="stSlider"] .css-14xtw13 {
   color: var(--accent-dark) !important;
   font-weight: 600 !important;
@@ -985,14 +983,14 @@ input:focus, textarea:focus, select:focus {
 
 /* ===== TABLES ===== */
 div[data-testid="stDataFrame"] {
-  border-radius: 14px !important;
+  border-radius: var(--radius) !important;
   border: 1px solid var(--border-soft) !important;
-  box-shadow: 0 4px 14px rgba(5,150,105,0.08) !important;
+  box-shadow: var(--shadow-soft);
   overflow: hidden !important;
 }
 div[data-testid="stDataFrame"] thead tr th {
   background-color: var(--accent) !important;
-  color: white !important;
+  color: #fff !important;
   font-weight: 600 !important;
 }
 div[data-testid="stDataFrame"] tbody tr:hover td {
@@ -1004,31 +1002,29 @@ div[data-testid="stDataFrame"] tbody tr:hover td {
   background: #ffffff !important;
   border: 1px solid var(--border-soft) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
+  box-shadow: var(--shadow-soft);
   padding: 14px 16px !important;
   color: var(--text-light) !important;
 }
 .card .title { font-weight: 600; font-size: 0.9rem; }
 .card .big { font-size: 1.4rem; font-weight: 700; color: var(--accent-dark); }
 
-/* ===== ALERT BOXES ===== */
+/* ===== INFO / ALERT BOXES ===== */
 .stInfo, .stSuccess, .stWarning, .stError {
-  border-radius: 12px !important;
+  border-radius: var(--radius) !important;
   border-left: 5px solid var(--accent) !important;
-  box-shadow: 0 2px 10px rgba(5,150,105,0.1);
+  box-shadow: var(--shadow-soft);
 }
 
 /* ===== CHARTS ===== */
 .stAltairChart, .stPlotlyChart {
   background-color: #ffffff !important;
-  border-radius: 16px !important;
+  border-radius: var(--radius) !important;
   border: 1px solid var(--border-soft) !important;
-  box-shadow: 0 8px 20px rgba(2,6,23,0.06) !important;
+  box-shadow: var(--shadow-soft);
   padding: 10px !important;
 }
-.vega-bindings, .vega-bindings label {
-  color: var(--text-light) !important;
-}
+.vega-bindings, .vega-bindings label { color: var(--text-light) !important; }
 .vega-tooltip {
   background-color: white !important;
   border: 1px solid var(--accent-light) !important;
@@ -1039,7 +1035,7 @@ div[data-testid="stDataFrame"] tbody tr:hover td {
 .streamlit-expanderHeader {
   font-weight: 600 !important;
   border: 1px solid var(--accent) !important;
-  border-radius: 10px !important;
+  border-radius: var(--radius) !important;
   background-color: #ffffff !important;
   color: var(--accent-dark) !important;
 }
@@ -1055,8 +1051,21 @@ div[data-testid="stDataFrame"] tbody tr:hover td {
 }
 
 /* ===== DARK MODE OVERRIDES ===== */
-html[data-theme="dark"] body, html[data-theme="dark"] .stApp {
+html[data-theme="dark"], body[data-theme="dark"], .stApp[data-theme="dark"] {
   background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
+  color: var(--text-dark) !important;
+}
+html[data-theme="dark"] h1, html[data-theme="dark"] h2, html[data-theme="dark"] h3 {
+  color: var(--accent-light) !important;
+}
+html[data-theme="dark"] .stButton > button,
+html[data-theme="dark"] div[data-testid="stDownloadButton"] > button {
+  background-color: var(--accent-light) !important;
+  color: #0b1b12 !important;
+}
+html[data-theme="dark"] .card, html[data-theme="dark"] .stAltairChart {
+  background-color: #0f1f17 !important;
+  border-color: rgba(16,185,129,0.3) !important;
   color: var(--text-dark) !important;
 }
 html[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
@@ -1066,13 +1075,8 @@ html[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
 html[data-theme="dark"] [data-testid="stSlider"] > div > div {
   background: linear-gradient(to right, var(--accent-light), var(--accent-dark)) !important;
 }
-html[data-theme="dark"] .stDataFrame thead tr th {
+html[data-theme="dark"] div[data-testid="stDataFrame"] thead tr th {
   background-color: var(--accent-dark) !important;
-}
-html[data-theme="dark"] .card, html[data-theme="dark"] .stAltairChart {
-  background-color: #0f1f17 !important;
-  border-color: rgba(16,185,129,0.3) !important;
-  color: var(--text-dark) !important;
 }
 html[data-theme="dark"] .streamlit-expanderHeader {
   background-color: #0b1b12 !important;
