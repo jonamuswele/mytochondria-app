@@ -1101,109 +1101,152 @@ st.set_page_config(
     page_icon="🌱",
     layout="wide",
 )
-st.markdown("""
+st.markdown(f"""
 <style>
-/* === GLOBAL LAYOUT === */
-body, .stApp, .block-container {
-    background: linear-gradient(to bottom, #ecfdf5, #ffffff) !important;
-    color: #1e293b !important;
-    font-family: 'Inter', sans-serif;
-}
-h1, h2, h3, h4 {
-    color: #065f46 !important;
-    font-weight: 700 !important;
-}
+:root {{
+  --accent: #059669;
+  --accent-dark: #047857;
+  --accent-light: #10b981;
+  --bg-light: #ecfdf5;
+  --bg-dark: #0b1b12;
+  --text-light: #1e293b;
+  --text-dark: #e2e8f0;
+  --border-soft: rgba(5,150,105,0.2);
+}}
 
-/* === CARDS & PANELS === */
-.card, .metric, div[data-testid="stDataFrame"], .stTabs, .stSelectbox, .stTextInput, .stNumberInput {
-    background-color: #ffffff !important;
-    border-radius: 16px !important;
-    border: 1px solid rgba(5,150,105,0.15) !important;
-    box-shadow: 0 10px 25px rgba(2,6,23,0.08) !important;
-    padding: 12px;
-}
+/* ===== GLOBAL LAYOUT ===== */
+body, .stApp, .block-container {{
+  background: linear-gradient(to bottom, var(--bg-light), #fff) !important;
+  color: var(--text-light) !important;
+  font-family: 'Inter', sans-serif;
+}}
+h1, h2, h3, h4 {{
+  color: var(--accent-dark) !important;
+  font-weight: 700 !important;
+}}
 
-/* === BUTTONS === */
-.stButton > button, div[data-testid="stDownloadButton"] > button {
-    background-color: #059669 !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 0.6rem 1.2rem !important;
-    font-weight: 600 !important;
-    transition: all 0.25s ease;
-}
-.stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {
-    background-color: #047857 !important;
-    transform: translateY(-1px);
-}
+/* ===== BUTTONS ===== */
+.stButton > button, div[data-testid="stDownloadButton"] > button {{
+  background-color: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 0.6rem 1.2rem !important;
+  font-weight: 600 !important;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 8px rgba(5,150,105,0.25);
+}}
+.stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {{
+  background-color: var(--accent-dark) !important;
+  transform: translateY(-1px);
+}}
+.stButton > button:active {{
+  transform: scale(0.97);
+}}
 
-/* === INPUT FIELDS === */
-input, textarea, select, .stDateInput input {
-    background-color: #f9fafb !important;
-    color: #1e293b !important;
-    border: 1px solid rgba(5,150,105,0.3) !important;
-    border-radius: 8px !important;
-    transition: border-color 0.3s ease;
-}
-input:focus, textarea:focus, select:focus {
-    border-color: #059669 !important;
-    box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
-}
+/* ===== NAVIGATION ===== */
+div[data-testid="stHorizontalBlock"] div.stButton > button {{
+  background-color: white !important;
+  color: var(--accent-dark) !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease;
+}}
+div[data-testid="stHorizontalBlock"] div.stButton > button:hover {{
+  background-color: var(--bg-light) !important;
+}}
+div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {{
+  background-color: var(--accent) !important;
+  color: white !important;
+}}
 
-/* === TABLES === */
-div[data-testid="stDataFrame"] thead tr th {
-    background-color: #10b981 !important;
-    color: white !important;
-    font-weight: 600 !important;
-}
-div[data-testid="stDataFrame"] tbody tr:hover td {
-    background-color: rgba(5,150,105,0.08) !important;
-}
+/* ===== INPUTS & SELECTS ===== */
+input, textarea, select, .stDateInput input {{
+  background-color: #f9fafb !important;
+  color: var(--text-light) !important;
+  border: 1px solid var(--border-soft) !important;
+  border-radius: 8px !important;
+  transition: border-color 0.3s ease;
+}}
+input:focus, textarea:focus, select:focus {{
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
+}}
+.stSlider [role="slider"] {{
+  background-color: var(--accent) !important;
+  border: 2px solid var(--accent) !important;
+}}
+.stSlider > div > div {{
+  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
+}}
 
-/* === CHARTS === */
-.stAltairChart, .stPlotlyChart {
-    background-color: #ffffff !important;
-    border-radius: 12px !important;
-    border: 1px solid rgba(5,150,105,0.15) !important;
-    box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
-    padding: 10px !important;
-}
+/* ===== TABLES ===== */
+div[data-testid="stDataFrame"] {{
+  border-radius: 14px !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: 0 4px 14px rgba(5,150,105,0.08) !important;
+  overflow: hidden !important;
+}}
+div[data-testid="stDataFrame"] thead tr th {{
+  background-color: var(--accent) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}}
+div[data-testid="stDataFrame"] tbody tr:hover td {{
+  background-color: rgba(5,150,105,0.07) !important;
+}}
 
-/* === INFO BOXES === */
-.stInfo, .stSuccess, .stWarning {
-    border-radius: 12px !important;
-    font-size: 0.95rem !important;
-}
+/* ===== CARDS ===== */
+.card, .metric {{
+  background: #ffffff !important;
+  border: 1px solid var(--border-soft) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
+  padding: 14px 16px !important;
+  color: var(--text-light) !important;
+}}
+.card .title {{ font-weight: 600; font-size: 0.9rem; }}
+.card .big {{ font-size: 1.4rem; font-weight: 700; color: var(--accent-dark); }}
 
-/* === NAVIGATION BUTTONS === */
-div[data-testid="stHorizontalBlock"] div.stButton > button {
-    background-color: #ffffff !important;
-    color: #065f46 !important;
-    border: 1px solid #059669 !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    transition: all 0.3s ease;
-}
-div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
-    background-color: #ecfdf5 !important;
-}
-div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
-    background-color: #059669 !important;
-    color: #ffffff !important;
-}
+/* ===== INFO BOXES ===== */
+.stInfo, .stSuccess, .stWarning, .stError {{
+  border-radius: 12px !important;
+  border-left: 5px solid var(--accent) !important;
+  box-shadow: 0 2px 10px rgba(5,150,105,0.1);
+}}
 
-/* === EXPANDERS === */
-.streamlit-expanderHeader {
-    font-weight: 600 !important;
-    border: 1px solid #059669 !important;
-    border-radius: 8px !important;
-}
+/* ===== CHARTS ===== */
+.stAltairChart, .stPlotlyChart {{
+  background-color: #ffffff !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06) !important;
+  padding: 10px !important;
+}}
+.vega-bindings, .vega-bindings label {{ color: var(--text-light) !important; }}
+.vega-tooltip {{
+  background-color: white !important;
+  border: 1px solid var(--accent-light) !important;
+  border-radius: 6px !important;
+}}
 
-/* === SCROLLBAR === */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-thumb { background-color: rgba(5,150,105,0.4); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background-color: rgba(5,150,105,0.7); }
+/* ===== EXPANDERS ===== */
+.streamlit-expanderHeader {{
+  font-weight: 600 !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: 10px !important;
+}}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {{ width: 8px; }}
+::-webkit-scrollbar-thumb {{
+  background-color: rgba(5,150,105,0.4);
+  border-radius: 4px;
+}}
+::-webkit-scrollbar-thumb:hover {{
+  background-color: rgba(5,150,105,0.7);
+}}
 </style>
 """, unsafe_allow_html=True)
 
