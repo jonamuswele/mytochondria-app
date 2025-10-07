@@ -860,25 +860,23 @@ st.set_page_config(
 st.markdown("""
 <style>
 /* ===================================================
-   EMERALD GREEN THEME – Unified Refined Version
-   Author: Jonathan Kaleme & ChatGPT
+   MYTOCHONDRIA — EMERALD GREEN THEME (Light Mode)
+   Unified single-style block
    =================================================== */
-
 :root {
   --accent: #059669;
   --accent-dark: #047857;
   --accent-light: #10b981;
-  --bg-main: #ecfdf5;
-  --text-main: #1e293b;
-  --border-soft: rgba(5,150,105,0.25);
-  --radius: 12px;
-  --shadow-soft: 0 4px 10px rgba(5,150,105,0.15);
+  --bg-light: #ecfdf5;
+  --text-light: #1e293b;
+  --border-soft: rgba(5,150,105,0.2);
+  --card-bg: #ffffff;
 }
 
-/* ===== GLOBAL ===== */
+/* ===== GLOBAL LAYOUT ===== */
 body, .stApp, .block-container {
-  background: linear-gradient(to bottom, var(--bg-main), #ffffff) !important;
-  color: var(--text-main) !important;
+  background: linear-gradient(to bottom, var(--bg-light), #ffffff) !important;
+  color: var(--text-light) !important;
   font-family: 'Inter', sans-serif !important;
 }
 h1, h2, h3, h4 {
@@ -891,80 +889,81 @@ h1, h2, h3, h4 {
   background-color: var(--accent) !important;
   color: white !important;
   border: none !important;
-  border-radius: var(--radius) !important;
+  border-radius: 10px !important;
   padding: 0.6rem 1.2rem !important;
   font-weight: 600 !important;
   transition: all 0.25s ease;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 4px 8px rgba(5,150,105,0.25);
 }
-.stButton > button:hover {
+.stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {
   background-color: var(--accent-dark) !important;
   transform: translateY(-1px);
 }
 .stButton > button:active { transform: scale(0.97); }
-.stButton > button:disabled {
-  background-color: #d1fae5 !important;
-  color: #6b7280 !important;
-  border: 1px solid rgba(5,150,105,0.25) !important;
-  box-shadow: none !important;
-}
 
-/* ===== NAVIGATION BUTTONS ===== */
+/* ===== NAVIGATION BAR ===== */
 div[data-testid="stHorizontalBlock"] div.stButton > button {
-  background-color: #ffffff !important;
+  background-color: white !important;
   color: var(--accent-dark) !important;
   border: 1px solid var(--accent) !important;
-  border-radius: var(--radius) !important;
+  border-radius: 10px !important;
   font-weight: 600 !important;
   transition: all 0.3s ease;
 }
 div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
-  background-color: #d1fae5 !important;
+  background-color: var(--bg-light) !important;
 }
 div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
   background-color: var(--accent) !important;
   color: white !important;
 }
 
-/* ===== INPUTS & SELECTS ===== */
+/* ===== INPUTS ===== */
 input, textarea, select, .stDateInput input {
   background-color: #ffffff !important;
-  color: var(--text-main) !important;
+  color: var(--text-light) !important;
   border: 1px solid var(--border-soft) !important;
-  border-radius: var(--radius) !important;
-  transition: all 0.3s ease;
+  border-radius: 8px !important;
+  transition: border-color 0.3s ease;
 }
 input:focus, textarea:focus, select:focus {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
 }
 
-/* ===== DROPDOWN FIX ===== */
-.stSelectbox div[data-baseweb="select"], .stMultiSelect div[data-baseweb="select"] {
-  background-color: #ffffff !important;
-  border: 1px solid var(--border-soft) !important;
-  border-radius: var(--radius) !important;
-  color: var(--text-main) !important;
-}
-.stSelectbox div[data-baseweb="popover"], .stMultiSelect div[data-baseweb="popover"] {
-  background-color: #f0fdf4 !important;
-  border: 1px solid rgba(5,150,105,0.3) !important;
-}
-.stSelectbox div[role="option"]:hover, .stMultiSelect div[role="option"]:hover {
-  background-color: #d1fae5 !important;
+/* ===== LABELS ===== */
+.stNumberInput label,
+.stRadio label,
+.stSelectbox label,
+.stSlider label,
+.stDateInput label {
   color: var(--accent-dark) !important;
+  font-weight: 600 !important;
 }
 
-/* ===== CHECKBOXES & RADIO BUTTONS ===== */
-.stCheckbox input[type="checkbox"], .stRadio input[type="radio"] {
-  accent-color: var(--accent) !important;
+/* ===== NUMBER INPUTS ===== */
+.stNumberInput, .stNumberInput > div, .stNumberInput input {
+  background-color: #ffffff !important;
+  color: var(--text-light) !important;
+  border: 1px solid rgba(5,150,105,0.3) !important;
+  border-radius: 8px !important;
+}
+.stNumberInput button {
+  background-color: var(--bg-light) !important;
+  color: var(--accent-dark) !important;
+  border: 1px solid rgba(5,150,105,0.4) !important;
+  border-radius: 6px !important;
+}
+.stNumberInput button:hover {
+  background-color: #d1fae5 !important;
+  border-color: var(--accent) !important;
 }
 
-/* ===== SLIDERS (Fix red track) ===== */
+/* ===== SLIDERS ===== */
 [data-testid="stSlider"] [role="slider"] {
   background-color: var(--accent) !important;
   border: 2px solid var(--accent) !important;
-  box-shadow: 0 0 6px rgba(5,150,105,0.5) !important;
+  box-shadow: 0 0 6px rgba(5,150,105,0.6) !important;
 }
 [data-testid="stSlider"] > div > div {
   background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
@@ -975,53 +974,50 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* ===== TABLES ===== */
-div[data-testid="stDataFrame"] table {
-  background-color: #ffffff !important;
-  border-collapse: collapse !important;
-  border-radius: var(--radius) !important;
-  box-shadow: var(--shadow-soft);
+div[data-testid="stDataFrame"] {
+  border-radius: 14px !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: 0 4px 14px rgba(5,150,105,0.08) !important;
+  overflow: hidden !important;
 }
 div[data-testid="stDataFrame"] thead tr th {
   background-color: var(--accent) !important;
   color: white !important;
   font-weight: 600 !important;
-  border: none !important;
-}
-div[data-testid="stDataFrame"] tbody tr td {
-  background-color: #ffffff !important;
-  color: var(--text-main) !important;
-  border-bottom: 1px solid rgba(5,150,105,0.1) !important;
 }
 div[data-testid="stDataFrame"] tbody tr:hover td {
-  background-color: #ecfdf5 !important;
+  background-color: rgba(5,150,105,0.07) !important;
 }
 
 /* ===== CARDS ===== */
 .card, .metric {
-  background: #ffffff !important;
+  background: var(--card-bg) !important;
   border: 1px solid var(--border-soft) !important;
-  border-radius: var(--radius) !important;
-  box-shadow: var(--shadow-soft);
+  border-radius: 16px !important;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
   padding: 14px 16px !important;
-  color: var(--text-main) !important;
+  color: var(--text-light) !important;
 }
-.card .title { font-weight: 600; font-size: 0.9rem; color: var(--accent-dark); }
+.card .title { font-weight: 600; font-size: 0.9rem; }
 .card .big { font-size: 1.4rem; font-weight: 700; color: var(--accent-dark); }
 
-/* ===== INFO / ALERT BOXES ===== */
+/* ===== ALERT BOXES ===== */
 .stInfo, .stSuccess, .stWarning, .stError {
-  border-radius: var(--radius) !important;
+  border-radius: 12px !important;
   border-left: 5px solid var(--accent) !important;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 2px 10px rgba(5,150,105,0.1);
 }
 
 /* ===== CHARTS ===== */
 .stAltairChart, .stPlotlyChart {
   background-color: #ffffff !important;
-  border-radius: var(--radius) !important;
+  border-radius: 16px !important;
   border: 1px solid var(--border-soft) !important;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06) !important;
   padding: 10px !important;
+}
+.vega-bindings, .vega-bindings label {
+  color: var(--text-light) !important;
 }
 .vega-tooltip {
   background-color: white !important;
@@ -1033,7 +1029,7 @@ div[data-testid="stDataFrame"] tbody tr:hover td {
 .streamlit-expanderHeader {
   font-weight: 600 !important;
   border: 1px solid var(--accent) !important;
-  border-radius: var(--radius) !important;
+  border-radius: 10px !important;
   background-color: #ffffff !important;
   color: var(--accent-dark) !important;
 }
@@ -1049,34 +1045,6 @@ div[data-testid="stDataFrame"] tbody tr:hover td {
 }
 </style>
 """, unsafe_allow_html=True)
-
-# --- Top Navigation Bar ---
-st.markdown(
-    """
-    <style>
-    div[data-testid="stHorizontalBlock"] div.stButton > button {
-        display: inline-block;
-        font-weight: 600;
-        border-radius: 6px;
-        padding: 8px 0;
-        margin: 0 4px;
-        cursor: pointer;
-        border: 1px solid #2d572c;
-        background-color: white;
-        color: #2d572c;
-        transition: all 0.3s ease;
-    }
-    div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
-        background-color: #eaf4ea;
-    }
-    div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
-        background-color: #2d572c !important;
-        color: white !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 nav_cols = st.columns(len(tab_names))
 for i, name in enumerate(tab_names):
