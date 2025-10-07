@@ -1140,9 +1140,7 @@ h1, h2, h3, h4 {{
   background-color: var(--accent-dark) !important;
   transform: translateY(-1px);
 }}
-.stButton > button:active {{
-  transform: scale(0.97);
-}}
+.stButton > button:active {{ transform: scale(0.97); }}
 
 /* ===== NAVIGATION ===== */
 div[data-testid="stHorizontalBlock"] div.stButton > button {{
@@ -1190,9 +1188,6 @@ input:focus, textarea:focus, select:focus {{
   border: 1px solid rgba(5,150,105,0.3) !important;
   border-radius: 8px !important;
 }}
-.stNumberInput input::placeholder {{
-  color: #6b7280 !important;
-}}
 .stNumberInput button {{
   background-color: var(--bg-light) !important;
   color: var(--accent-dark) !important;
@@ -1204,21 +1199,26 @@ input:focus, textarea:focus, select:focus {{
   background-color: #d1fae5 !important;
   border-color: var(--accent) !important;
 }}
-.stNumberInput input:focus {{
-  outline: none !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
-}}
 .stRadio div[role="radiogroup"] label p {{
   color: var(--text-light) !important;
   font-weight: 500 !important;
 }}
-.stSlider [role="slider"] {{
+
+/* ===== SLIDERS (WORKING EMERALD FIX) ===== */
+[data-testid="stSlider"] [role="slider"] {{
   background-color: var(--accent) !important;
   border: 2px solid var(--accent) !important;
+  box-shadow: 0 0 4px rgba(5,150,105,0.5) !important;
 }}
-.stSlider > div > div {{
+[data-testid="stSlider"] > div > div {{
   background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
+}}
+[data-testid="stSlider"] .css-1gv3huu, 
+[data-testid="stSlider"] .css-q8sbsg,
+[data-testid="stSlider"] .css-14xtw13, 
+[data-testid="stSlider"] .css-1qrvfrg {{
+  color: var(--accent-dark) !important;
+  font-weight: 600 !important;
 }}
 
 /* ===== TABLES ===== */
@@ -1289,32 +1289,6 @@ div[data-testid="stDataFrame"] tbody tr:hover td {{
 ::-webkit-scrollbar-thumb:hover {{
   background-color: rgba(5,150,105,0.7);
 }}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-/* === THEME-CORRECT SLIDER COLORS === */
-
-/* Light mode – Emerald Green */
-[data-testid="stSlider"] [role="slider"] {
-  background-color: var(--accent) !important;
-  border: 2px solid var(--accent) !important;
-}
-[data-testid="stSlider"] > div > div {
-  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
-}
-
-/* Dark mode override */
-html[data-theme="dark"] [data-testid="stSlider"] [role="slider"],
-body[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
-  background-color: #10b981 !important;      /* emerald light */
-  border: 2px solid #059669 !important;
-}
-html[data-theme="dark"] [data-testid="stSlider"] > div > div,
-body[data-theme="dark"] [data-testid="stSlider"] > div > div {
-  background: linear-gradient(to right, #10b981, #047857) !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -2410,3 +2384,4 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
+
