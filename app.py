@@ -860,109 +860,192 @@ st.set_page_config(
 st.markdown("""
 <style>
 /* ===================================================
-   EMERALD GREEN REFINEMENTS – for UI Consistency
+   EMERALD GREEN THEME – Unified Refined Version
+   Author: Jonathan Kaleme & ChatGPT
    =================================================== */
 
-/* === TABLES === */
-div[data-testid="stDataFrame"] table {
+:root {
+  --accent: #059669;
+  --accent-dark: #047857;
+  --accent-light: #10b981;
+  --bg-main: #ecfdf5;
+  --text-main: #1e293b;
+  --border-soft: rgba(5,150,105,0.25);
+  --radius: 12px;
+  --shadow-soft: 0 4px 10px rgba(5,150,105,0.15);
+}
+
+/* ===== GLOBAL ===== */
+body, .stApp, .block-container {
+  background: linear-gradient(to bottom, var(--bg-main), #ffffff) !important;
+  color: var(--text-main) !important;
+  font-family: 'Inter', sans-serif !important;
+}
+h1, h2, h3, h4 {
+  color: var(--accent-dark) !important;
+  font-weight: 700 !important;
+}
+
+/* ===== BUTTONS ===== */
+.stButton > button, div[data-testid="stDownloadButton"] > button {
+  background-color: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: var(--radius) !important;
+  padding: 0.6rem 1.2rem !important;
+  font-weight: 600 !important;
+  transition: all 0.25s ease;
+  box-shadow: var(--shadow-soft);
+}
+.stButton > button:hover {
+  background-color: var(--accent-dark) !important;
+  transform: translateY(-1px);
+}
+.stButton > button:active { transform: scale(0.97); }
+.stButton > button:disabled {
+  background-color: #d1fae5 !important;
+  color: #6b7280 !important;
+  border: 1px solid rgba(5,150,105,0.25) !important;
+  box-shadow: none !important;
+}
+
+/* ===== NAVIGATION BUTTONS ===== */
+div[data-testid="stHorizontalBlock"] div.stButton > button {
+  background-color: #ffffff !important;
+  color: var(--accent-dark) !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: var(--radius) !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease;
+}
+div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
+  background-color: #d1fae5 !important;
+}
+div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+  background-color: var(--accent) !important;
+  color: white !important;
+}
+
+/* ===== INPUTS & SELECTS ===== */
+input, textarea, select, .stDateInput input {
+  background-color: #ffffff !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-soft) !important;
+  border-radius: var(--radius) !important;
+  transition: all 0.3s ease;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
+}
+
+/* ===== DROPDOWN FIX ===== */
+.stSelectbox div[data-baseweb="select"], .stMultiSelect div[data-baseweb="select"] {
+  background-color: #ffffff !important;
+  border: 1px solid var(--border-soft) !important;
+  border-radius: var(--radius) !important;
+  color: var(--text-main) !important;
+}
+.stSelectbox div[data-baseweb="popover"], .stMultiSelect div[data-baseweb="popover"] {
   background-color: #f0fdf4 !important;
+  border: 1px solid rgba(5,150,105,0.3) !important;
+}
+.stSelectbox div[role="option"]:hover, .stMultiSelect div[role="option"]:hover {
+  background-color: #d1fae5 !important;
+  color: var(--accent-dark) !important;
+}
+
+/* ===== CHECKBOXES & RADIO BUTTONS ===== */
+.stCheckbox input[type="checkbox"], .stRadio input[type="radio"] {
+  accent-color: var(--accent) !important;
+}
+
+/* ===== SLIDERS (Fix red track) ===== */
+[data-testid="stSlider"] [role="slider"] {
+  background-color: var(--accent) !important;
+  border: 2px solid var(--accent) !important;
+  box-shadow: 0 0 6px rgba(5,150,105,0.5) !important;
+}
+[data-testid="stSlider"] > div > div {
+  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
+}
+[data-testid="stSlider"] .stSliderValue {
+  color: var(--accent-dark) !important;
+  font-weight: 600 !important;
+}
+
+/* ===== TABLES ===== */
+div[data-testid="stDataFrame"] table {
+  background-color: #ffffff !important;
   border-collapse: collapse !important;
-  width: 100% !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-soft);
 }
 div[data-testid="stDataFrame"] thead tr th {
-  background-color: #059669 !important;
+  background-color: var(--accent) !important;
   color: white !important;
   font-weight: 600 !important;
-  text-transform: capitalize;
   border: none !important;
 }
 div[data-testid="stDataFrame"] tbody tr td {
   background-color: #ffffff !important;
-  color: #1e293b !important;
+  color: var(--text-main) !important;
   border-bottom: 1px solid rgba(5,150,105,0.1) !important;
 }
 div[data-testid="stDataFrame"] tbody tr:hover td {
   background-color: #ecfdf5 !important;
 }
 
-/* === DROPDOWNS & SELECTBOXES === */
-.stSelectbox, .stMultiSelect, .stDateInput {
-  background-color: #ffffff !important;
-  border-radius: 10px !important;
-  border: 1px solid rgba(5,150,105,0.25) !important;
+/* ===== CARDS ===== */
+.card, .metric {
+  background: #ffffff !important;
+  border: 1px solid var(--border-soft) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-soft);
+  padding: 14px 16px !important;
+  color: var(--text-main) !important;
 }
-.stSelectbox div[data-baseweb="select"] {
-  background-color: #ffffff !important;
-  color: #1e293b !important;
-}
-.stSelectbox div[data-baseweb="popover"] {
-  background-color: #f0fdf4 !important;
-  border: 1px solid rgba(5,150,105,0.3) !important;
-}
-.stSelectbox div[role="option"]:hover {
-  background-color: #d1fae5 !important;
-  color: #065f46 !important;
+.card .title { font-weight: 600; font-size: 0.9rem; color: var(--accent-dark); }
+.card .big { font-size: 1.4rem; font-weight: 700; color: var(--accent-dark); }
+
+/* ===== INFO / ALERT BOXES ===== */
+.stInfo, .stSuccess, .stWarning, .stError {
+  border-radius: var(--radius) !important;
+  border-left: 5px solid var(--accent) !important;
+  box-shadow: var(--shadow-soft);
 }
 
-/* === SLIDERS (fix red track) === */
-[data-testid="stSlider"] [role="slider"] {
-  background-color: #059669 !important;
-  border: 2px solid #059669 !important;
-  box-shadow: 0 0 6px rgba(5,150,105,0.5) !important;
+/* ===== CHARTS ===== */
+.stAltairChart, .stPlotlyChart {
+  background-color: #ffffff !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: var(--shadow-soft);
+  padding: 10px !important;
 }
-[data-testid="stSlider"] > div > div {
-  background: linear-gradient(to right, #059669, #10b981) !important;
+.vega-tooltip {
+  background-color: white !important;
+  border: 1px solid var(--accent-light) !important;
+  border-radius: 6px !important;
 }
-[data-testid="stSlider"] .stSliderValue {
-  color: #047857 !important;
+
+/* ===== EXPANDERS ===== */
+.streamlit-expanderHeader {
   font-weight: 600 !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: var(--radius) !important;
+  background-color: #ffffff !important;
+  color: var(--accent-dark) !important;
 }
 
-/* === CHECKBOXES & RADIO === */
-.stCheckbox input[type="checkbox"], .stRadio input[type="radio"] {
-  accent-color: #059669 !important;
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb {
+  background-color: rgba(5,150,105,0.4);
+  border-radius: 4px;
 }
-
-/* === BUTTONS (hover softness) === */
-.stButton > button {
-  box-shadow: 0 4px 10px rgba(5,150,105,0.2) !important;
-}
-.stButton > button:disabled {
-  background-color: rgba(5,150,105,0.2) !important;
-  color: rgba(255,255,255,0.7) !important;
-}
-
-/* === DARK MODE FIXES === */
-html[data-theme="dark"] div[data-testid="stDataFrame"] table {
-  background-color: #0b1b12 !important;
-}
-html[data-theme="dark"] div[data-testid="stDataFrame"] thead tr th {
-  background-color: #047857 !important;
-}
-html[data-theme="dark"] div[data-testid="stDataFrame"] tbody tr td {
-  background-color: #0f1f17 !important;
-  color: #d1fae5 !important;
-  border-bottom: 1px solid rgba(16,185,129,0.25) !important;
-}
-html[data-theme="dark"] .stSelectbox div[data-baseweb="select"],
-html[data-theme="dark"] .stMultiSelect div[data-baseweb="select"] {
-  background-color: #0f1f17 !important;
-  color: #d1fae5 !important;
-  border: 1px solid rgba(16,185,129,0.3) !important;
-}
-html[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
-  background-color: #10b981 !important;
-  border-color: #10b981 !important;
-}
-html[data-theme="dark"] [data-testid="stSlider"] > div > div {
-  background: linear-gradient(to right, #10b981, #047857) !important;
-}
-html[data-theme="dark"] .stButton > button {
-  background-color: #10b981 !important;
-  color: #0b1b12 !important;
-}
-html[data-theme="dark"] .stButton > button:hover {
-  background-color: #34d399 !important;
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(5,150,105,0.7);
 }
 </style>
 """, unsafe_allow_html=True)
