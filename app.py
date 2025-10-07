@@ -1413,6 +1413,29 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.markdown("""
+<style>
+/* --- Emerald-green Save Configuration button --- */
+form button[kind="secondary"], form button[kind="primary"], form button {
+  background-color: #059669 !important;    /* emerald */
+  color: white !important;
+  border: 1px solid #047857 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 0.45rem 1.1rem !important;
+  box-shadow: 0 4px 8px rgba(5,150,105,0.25) !important;
+  transition: all 0.25s ease-in-out;
+}
+form button:hover {
+  background-color: #047857 !important;
+  transform: translateY(-1px);
+}
+form button:active {
+  transform: scale(0.97);
+}
+</style>
+""", unsafe_allow_html=True)
+
 nav_cols = st.columns(len(tab_names))
 for i, name in enumerate(tab_names):
     if nav_cols[i].button(name, key=f"nav_{i}", use_container_width=True):
@@ -2195,7 +2218,7 @@ elif active == "Crop Planner":
         yield_factor = 1.00
         bd = 1.30
         depth_m = 0.20
-        
+
         st.subheader("Lab results (enter real values)")
         ph = st.number_input("pH (water)", 3.5, 9.0, 6.0, 0.1)
         ec = st.number_input("EC (dS/m): Electric conductivity of the soil", 0.0, 5.0, 0.8, 0.1)
