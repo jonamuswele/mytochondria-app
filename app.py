@@ -1103,8 +1103,11 @@ st.set_page_config(
 )
 st.markdown("""
 <style>
-/* === DATAFRAME RE-THEME (Emerald Green) === */
-div[data-testid="stDataFrame"] {
+/* === UNIVERSAL EMERALD TABLE THEME === */
+
+/* Container background and border */
+div[data-testid="stDataFrame"],
+div[data-testid="stTable"] {
     background-color: #ffffff !important;
     border-radius: 14px !important;
     border: 1px solid rgba(5,150,105,0.25) !important;
@@ -1112,16 +1115,21 @@ div[data-testid="stDataFrame"] {
     overflow: hidden !important;
 }
 
-/* Header row */
-div[data-testid="stDataFrame"] thead tr th {
+/* Table header */
+div[data-testid="stDataFrame"] thead tr th,
+div[data-testid="stTable"] thead tr th,
+[class*="StyledDataFrameTable"] thead tr th {
     background-color: #059669 !important;
     color: #ffffff !important;
     font-weight: 600 !important;
+    text-transform: capitalize;
     border: none !important;
 }
 
 /* Table body */
-div[data-testid="stDataFrame"] tbody tr td {
+div[data-testid="stDataFrame"] tbody tr td,
+div[data-testid="stTable"] tbody tr td,
+[class*="StyledDataFrameTable"] tbody tr td {
     background-color: #ffffff !important;
     color: #1e293b !important;
     font-weight: 500 !important;
@@ -1129,26 +1137,38 @@ div[data-testid="stDataFrame"] tbody tr td {
     padding: 6px 10px !important;
 }
 
-/* Alternate row shading */
-div[data-testid="stDataFrame"] tbody tr:nth-child(even) td {
-    background-color: #f0fdf4 !important;   /* light emerald tint */
+/* Alternate row color */
+div[data-testid="stDataFrame"] tbody tr:nth-child(even) td,
+div[data-testid="stTable"] tbody tr:nth-child(even) td,
+[class*="StyledDataFrameTable"] tbody tr:nth-child(even) td {
+    background-color: #f0fdf4 !important;  /* soft emerald */
 }
 
-/* Hover effect */
-div[data-testid="stDataFrame"] tbody tr:hover td {
-    background-color: #d1fae5 !important;   /* slightly darker green tint */
+/* Hover row */
+div[data-testid="stDataFrame"] tbody tr:hover td,
+div[data-testid="stTable"] tbody tr:hover td,
+[class*="StyledDataFrameTable"] tbody tr:hover td {
+    background-color: #d1fae5 !important;  /* slightly darker emerald tint */
 }
 
-/* Scrollbar (inside table) */
-div[data-testid="stDataFrame"]::-webkit-scrollbar-thumb {
+/* Fix header alignment and font size */
+div[data-testid="stDataFrame"] thead th div,
+div[data-testid="stTable"] thead th div {
+    font-size: 0.9rem !important;
+    justify-content: center !important;
+}
+
+/* Scrollbar inside DataFrame */
+div[data-testid="stDataFrame"]::-webkit-scrollbar-thumb,
+div[data-testid="stTable"]::-webkit-scrollbar-thumb {
     background-color: rgba(5,150,105,0.4);
 }
-div[data-testid="stDataFrame"]::-webkit-scrollbar-thumb:hover {
+div[data-testid="stDataFrame"]::-webkit-scrollbar-thumb:hover,
+div[data-testid="stTable"]::-webkit-scrollbar-thumb:hover {
     background-color: rgba(5,150,105,0.7);
 }
 </style>
 """, unsafe_allow_html=True)
-
 
 # --- Top Navigation Bar ---
 st.markdown(
