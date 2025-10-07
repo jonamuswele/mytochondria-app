@@ -1101,9 +1101,13 @@ st.set_page_config(
     page_icon="🌱",
     layout="wide",
 )
-st.markdown(f"""
+st.markdown("""
 <style>
-:root {{
+/* ===================================================
+   EMERALD GREEN THEME – Light & Dark Unified
+   Fixes red slider track, active borders, highlights
+   =================================================== */
+:root {
   --accent: #059669;
   --accent-dark: #047857;
   --accent-light: #10b981;
@@ -1112,21 +1116,25 @@ st.markdown(f"""
   --text-light: #1e293b;
   --text-dark: #e2e8f0;
   --border-soft: rgba(5,150,105,0.2);
-}}
+}
 
 /* ===== GLOBAL LAYOUT ===== */
-body, .stApp, .block-container {{
+body, .stApp, .block-container {
   background: linear-gradient(to bottom, var(--bg-light), #ffffff) !important;
   color: var(--text-light) !important;
   font-family: 'Inter', sans-serif;
-}}
-h1, h2, h3, h4 {{
+}
+html[data-theme="dark"], body[data-theme="dark"], .stApp[data-theme="dark"] {
+  background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
+  color: var(--text-dark) !important;
+}
+h1, h2, h3, h4 {
   color: var(--accent-dark) !important;
   font-weight: 700 !important;
-}}
+}
 
 /* ===== BUTTONS ===== */
-.stButton > button, div[data-testid="stDownloadButton"] > button {{
+.stButton > button, div[data-testid="stDownloadButton"] > button {
   background-color: var(--accent) !important;
   color: white !important;
   border: none !important;
@@ -1135,160 +1143,185 @@ h1, h2, h3, h4 {{
   font-weight: 600 !important;
   transition: all 0.25s ease;
   box-shadow: 0 4px 8px rgba(5,150,105,0.25);
-}}
-.stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {{
+}
+.stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {
   background-color: var(--accent-dark) !important;
   transform: translateY(-1px);
-}}
-.stButton > button:active {{ transform: scale(0.97); }}
+}
+.stButton > button:active { transform: scale(0.97); }
 
 /* ===== NAVIGATION ===== */
-div[data-testid="stHorizontalBlock"] div.stButton > button {{
+div[data-testid="stHorizontalBlock"] div.stButton > button {
   background-color: white !important;
   color: var(--accent-dark) !important;
   border: 1px solid var(--accent) !important;
   border-radius: 10px !important;
   font-weight: 600 !important;
   transition: all 0.3s ease;
-}}
-div[data-testid="stHorizontalBlock"] div.stButton > button:hover {{
+}
+div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
   background-color: var(--bg-light) !important;
-}}
-div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {{
+}
+div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
   background-color: var(--accent) !important;
   color: white !important;
-}}
+}
 
-/* ===== INPUTS & SELECTS ===== */
-input, textarea, select, .stDateInput input {{
+/* ===== INPUTS ===== */
+input, textarea, select, .stDateInput input {
   background-color: #ffffff !important;
   color: var(--text-light) !important;
   border: 1px solid var(--border-soft) !important;
   border-radius: 8px !important;
   transition: border-color 0.3s ease;
-}}
-input:focus, textarea:focus, select:focus {{
+}
+input:focus, textarea:focus, select:focus {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
-}}
+}
 
-/* === FIX for number inputs, labels, radios, sliders === */
+/* ===== LABELS ===== */
 .stNumberInput label,
 .stRadio label,
 .stSelectbox label,
 .stSlider label,
-.stDateInput label {{
+.stDateInput label {
   color: var(--accent-dark) !important;
   font-weight: 600 !important;
-}}
+}
 
-.stNumberInput, .stNumberInput > div, .stNumberInput input {{
+/* ===== NUMBER INPUTS ===== */
+.stNumberInput, .stNumberInput > div, .stNumberInput input {
   background-color: #ffffff !important;
   color: var(--text-light) !important;
   border: 1px solid rgba(5,150,105,0.3) !important;
   border-radius: 8px !important;
-}}
-.stNumberInput button {{
+}
+.stNumberInput button {
   background-color: var(--bg-light) !important;
   color: var(--accent-dark) !important;
   border: 1px solid rgba(5,150,105,0.4) !important;
   border-radius: 6px !important;
-  transition: all 0.2s ease;
-}}
-.stNumberInput button:hover {{
+}
+.stNumberInput button:hover {
   background-color: #d1fae5 !important;
   border-color: var(--accent) !important;
-}}
-.stRadio div[role="radiogroup"] label p {{
-  color: var(--text-light) !important;
-  font-weight: 500 !important;
-}}
+}
 
-/* ===== SLIDERS (WORKING EMERALD FIX) ===== */
-[data-testid="stSlider"] [role="slider"] {{
+/* ===== SLIDERS ===== */
+[data-testid="stSlider"] [role="slider"] {
   background-color: var(--accent) !important;
   border: 2px solid var(--accent) !important;
-  box-shadow: 0 0 4px rgba(5,150,105,0.5) !important;
-}}
-[data-testid="stSlider"] > div > div {{
+  box-shadow: 0 0 6px rgba(5,150,105,0.6) !important;
+}
+[data-testid="stSlider"] > div > div {
   background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
-}}
-[data-testid="stSlider"] .css-1gv3huu, 
-[data-testid="stSlider"] .css-q8sbsg,
-[data-testid="stSlider"] .css-14xtw13, 
-[data-testid="stSlider"] .css-1qrvfrg {{
+}
+[data-testid="stSlider"] [data-baseweb="slider"] div[role="presentation"] > div {
+  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
+}
+[data-testid="stSlider"] .stSliderValue, 
+[data-testid="stSlider"] .css-1qrvfrg, 
+[data-testid="stSlider"] .css-14xtw13 {
   color: var(--accent-dark) !important;
   font-weight: 600 !important;
-}}
+}
 
 /* ===== TABLES ===== */
-div[data-testid="stDataFrame"] {{
+div[data-testid="stDataFrame"] {
   border-radius: 14px !important;
   border: 1px solid var(--border-soft) !important;
   box-shadow: 0 4px 14px rgba(5,150,105,0.08) !important;
   overflow: hidden !important;
-}}
-div[data-testid="stDataFrame"] thead tr th {{
+}
+div[data-testid="stDataFrame"] thead tr th {
   background-color: var(--accent) !important;
   color: white !important;
   font-weight: 600 !important;
-}}
-div[data-testid="stDataFrame"] tbody tr:hover td {{
+}
+div[data-testid="stDataFrame"] tbody tr:hover td {
   background-color: rgba(5,150,105,0.07) !important;
-}}
+}
 
 /* ===== CARDS ===== */
-.card, .metric {{
+.card, .metric {
   background: #ffffff !important;
   border: 1px solid var(--border-soft) !important;
   border-radius: 16px !important;
   box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
   padding: 14px 16px !important;
   color: var(--text-light) !important;
-}}
-.card .title {{ font-weight: 600; font-size: 0.9rem; }}
-.card .big {{ font-size: 1.4rem; font-weight: 700; color: var(--accent-dark); }}
+}
+.card .title { font-weight: 600; font-size: 0.9rem; }
+.card .big { font-size: 1.4rem; font-weight: 700; color: var(--accent-dark); }
 
-/* ===== INFO BOXES ===== */
-.stInfo, .stSuccess, .stWarning, .stError {{
+/* ===== ALERT BOXES ===== */
+.stInfo, .stSuccess, .stWarning, .stError {
   border-radius: 12px !important;
   border-left: 5px solid var(--accent) !important;
   box-shadow: 0 2px 10px rgba(5,150,105,0.1);
-}}
+}
 
 /* ===== CHARTS ===== */
-.stAltairChart, .stPlotlyChart {{
+.stAltairChart, .stPlotlyChart {
   background-color: #ffffff !important;
   border-radius: 16px !important;
   border: 1px solid var(--border-soft) !important;
   box-shadow: 0 8px 20px rgba(2,6,23,0.06) !important;
   padding: 10px !important;
-}}
-.vega-bindings, .vega-bindings label {{ color: var(--text-light) !important; }}
-.vega-tooltip {{
+}
+.vega-bindings, .vega-bindings label {
+  color: var(--text-light) !important;
+}
+.vega-tooltip {
   background-color: white !important;
   border: 1px solid var(--accent-light) !important;
   border-radius: 6px !important;
-}}
+}
 
 /* ===== EXPANDERS ===== */
-.streamlit-expanderHeader {{
+.streamlit-expanderHeader {
   font-weight: 600 !important;
   border: 1px solid var(--accent) !important;
   border-radius: 10px !important;
   background-color: #ffffff !important;
   color: var(--accent-dark) !important;
-}}
+}
 
 /* ===== SCROLLBAR ===== */
-::-webkit-scrollbar {{ width: 8px; }}
-::-webkit-scrollbar-thumb {{
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb {
   background-color: rgba(5,150,105,0.4);
   border-radius: 4px;
-}}
-::-webkit-scrollbar-thumb:hover {{
+}
+::-webkit-scrollbar-thumb:hover {
   background-color: rgba(5,150,105,0.7);
-}}
+}
+
+/* ===== DARK MODE OVERRIDES ===== */
+html[data-theme="dark"] body, html[data-theme="dark"] .stApp {
+  background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
+  color: var(--text-dark) !important;
+}
+html[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
+  background-color: var(--accent-light) !important;
+  border-color: var(--accent-light) !important;
+}
+html[data-theme="dark"] [data-testid="stSlider"] > div > div {
+  background: linear-gradient(to right, var(--accent-light), var(--accent-dark)) !important;
+}
+html[data-theme="dark"] .stDataFrame thead tr th {
+  background-color: var(--accent-dark) !important;
+}
+html[data-theme="dark"] .card, html[data-theme="dark"] .stAltairChart {
+  background-color: #0f1f17 !important;
+  border-color: rgba(16,185,129,0.3) !important;
+  color: var(--text-dark) !important;
+}
+html[data-theme="dark"] .streamlit-expanderHeader {
+  background-color: #0b1b12 !important;
+  color: var(--accent-light) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -2384,4 +2417,3 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
-
