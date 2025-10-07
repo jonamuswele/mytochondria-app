@@ -1325,6 +1325,66 @@ html[data-theme="dark"] .streamlit-expanderHeader {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* === FIX PATCH: BUTTONS, SLIDERS, CHECKMARKS === */
+
+/* Fix black buttons (Save confirmations etc.) */
+button[kind="secondary"], button[kind="primary"], .stCheckbox button, .stDownloadButton > button {
+  background-color: var(--accent) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 8px rgba(5,150,105,0.25) !important;
+}
+button[kind="secondary"]:hover, button[kind="primary"]:hover {
+  background-color: var(--accent-dark) !important;
+}
+
+/* Fix checkboxes (ticks) */
+.stCheckbox [data-testid="stMarkdownContainer"] p {
+  color: var(--text-light) !important;
+}
+.stCheckbox input[type="checkbox"]:checked {
+  accent-color: var(--accent) !important;
+}
+input[type="checkbox"]:checked::before {
+  background-color: var(--accent) !important;
+  border-color: var(--accent-dark) !important;
+}
+
+/* Fix slider track + thumb */
+[data-testid="stSlider"] [role="slider"] {
+  background-color: white !important;
+  border: 2px solid var(--accent) !important;
+  box-shadow: 0 0 8px rgba(5,150,105,0.4) !important;
+}
+[data-testid="stSlider"] > div > div {
+  background: linear-gradient(to right, var(--accent-light), var(--accent)) !important;
+}
+[data-testid="stSlider"] [data-baseweb="slider"] div[role="presentation"] > div {
+  background: linear-gradient(to right, var(--accent-light), var(--accent)) !important;
+}
+[data-testid="stSlider"] .stSliderValue {
+  color: var(--accent-dark) !important;
+  font-weight: 700 !important;
+}
+
+/* Make slider labels visible and soft */
+[data-testid="stSlider"] label {
+  color: var(--accent-dark) !important;
+  font-weight: 600 !important;
+}
+
+/* Light theme checkbox focus highlight */
+input[type="checkbox"]:focus {
+  outline: 2px solid rgba(5,150,105,0.4) !important;
+  border-radius: 4px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Top Navigation Bar ---
 st.markdown(
     """
