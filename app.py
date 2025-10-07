@@ -44,7 +44,251 @@ with mode_col:
     # Update state immediately when changed
     st.session_state.theme = "dark" if new_toggle else "light"
 
+if st.session_state.theme == "dark":
+    st.markdown("""
+        <style>
+        /* === GLOBAL LAYOUT === */
+        body, .stApp, .block-container {
+            background-color: #121212 ;
+            color: #e0e0e0 ;
+        }
+        h1, h2, h3, h4 {
+            color: #2563eb ;
+        }
 
+        /* === NAVIGATION + BUTTONS === */
+        div[data-testid="stHorizontalBlock"] div.stButton > button,
+        .stButton > button,
+        div.stDownloadButton > button {
+            background-color: #2563eb ;
+            color: white ;
+            border: 1px solid #2563eb ;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:hover,
+        .stButton > button:hover,
+        div.stDownloadButton > button:hover {
+            background-color: #1e40af ;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:active,
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active,
+        .stButton > button:active,
+        div.stDownloadButton > button:active {
+            background-color: #121212 ;
+            color: #2563eb ;
+            border: 1px solid #2563eb ;
+        }
+
+        /* === INPUTS === */
+        div[data-baseweb="select"] > div,
+        input, textarea, .stDateInput input {
+            background-color: #1c1c28 ;
+            color: #e0e0e0 ;
+            border: 1px solid #2563eb ;
+            border-radius: 6px;
+        }
+        .stRadio div[role="radiogroup"] label,
+        .stCheckbox label {
+            color: #e0e0e0 ;
+        }
+        .stNumberInput, .stNumberInput > div, .stNumberInput input {
+            background-color: transparent ;
+        }
+        .stNumberInput button {
+            border: 1px solid #2563eb !important;
+            border-radius: 4px !important;
+            background-color: inherit !important;
+            color: inherit !important;
+        }
+        .stSlider [role="slider"] {
+            background-color: #2563eb !important;
+            border: 2px solid #2563eb !important;
+        }
+        .stSlider > div > div {
+            background: linear-gradient(to right, #2563eb, #1e40af) !important;
+        }
+
+        /* === CARDS === */
+        .card, .metric {
+            background: linear-gradient(135deg, #121212, #1e1e2f);
+            border: 1px solid #2563eb55;
+            color: #e0e0e0 !important;
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        /* === TABLES (Dark Mode) === */
+        div[data-testid="stDataFrame"] {
+            border-radius: 10px !important;
+            border: 1px solid #2563eb55 !important;
+            overflow: hidden !important;
+        }
+        div[data-testid="stDataFrame"] thead tr th {
+            background-color: #2563eb !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border: none !important;
+        }
+        div[data-testid="stDataFrame"] tbody tr td {
+            background-color: #1c1c28 !important;
+            color: #e0e0e0 !important;
+            border: none !important;
+        }
+        div[data-testid="stDataFrame"] tbody tr:hover td {
+            background-color: rgba(37,99,235,0.15) !important;
+        }
+
+        /* === CHART CONTAINERS === */
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart,
+        .stPydeckChart, .stDeckGlChart, .stEchartsChart {
+            background-color: #1c1c28 !important;
+            border-radius: 10px !important;
+            border: 1px solid #2563eb55 !important;
+            padding: 8px !important;
+            overflow: hidden !important;
+        }
+        .vega-bindings, .vega-bindings span, .vega-bindings label {
+            color: #e0e0e0 !important;
+        }
+        .vega-tooltip {
+            background-color: #1c1c28 !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #2563eb !important;
+        }
+
+        /* === EXPANDERS === */
+        .streamlit-expanderHeader {
+            font-weight: 600 !important;
+            border: 1px solid #2563eb !important;
+            border-radius: 6px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+else:
+    st.markdown("""
+        <style>
+        /* === GLOBAL LAYOUT === */
+        body, .stApp, .block-container {
+            background-color: #ffffff !important;
+            color: #111 !important;
+        }
+        h1, h2, h3, h4 {
+            color: #4caf50 !important;
+        }
+
+        /* === NAVIGATION + BUTTONS === */
+        div[data-testid="stHorizontalBlock"] div.stButton > button,
+        .stButton > button,
+        div.stDownloadButton > button {
+            background-color: #4caf50 !important;
+            color: white !important;
+            border: 1px solid #4caf50 !important;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:hover,
+        .stButton > button:hover,
+        div.stDownloadButton > button:hover {
+            background-color: #388e3c !important;
+        }
+        div[data-testid="stHorizontalBlock"] div.stButton > button:active,
+        div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active,
+        .stButton > button:active,
+        div.stDownloadButton > button:active {
+            background-color: #ffffff !important;
+            color: #4caf50 !important;
+            border: 1px solid #4caf50 !important;
+        }
+
+        /* === INPUTS === */
+        div[data-baseweb="select"] > div,
+        input, textarea, .stDateInput input {
+            background-color: #f9fcf9 !important;
+            color: #111 !important;
+            border: 1px solid #4caf50 !important;
+            border-radius: 6px;
+        }
+        .stRadio div[role="radiogroup"] label,
+        .stCheckbox label {
+            color: #111 !important;
+        }
+        .stNumberInput, .stNumberInput > div, .stNumberInput input {
+            background-color: transparent !important;
+        }
+        .stNumberInput button {
+            border: 1px solid #4caf50 !important;
+            border-radius: 4px !important;
+            background-color: inherit !important;
+            color: inherit !important;
+        }
+        .stSlider [role="slider"] {
+            background-color: #4caf50 !important;
+            border: 2px solid #4caf50 !important;
+        }
+        .stSlider > div > div {
+            background: linear-gradient(to right, #4caf50, #a8d5a2) !important;
+        }
+
+        /* === CARDS === */
+        .card, .metric {
+            background: linear-gradient(135deg, #ffffff, #f4f9f4);
+            border: 1px solid #4caf5044;
+            color: #111 !important;
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        /* === TABLES (Light Mode) === */
+        div[data-testid="stDataFrame"] {
+            border-radius: 10px !important;
+            border: 1px solid #4caf5044 !important;
+            overflow: hidden !important;
+        }
+        div[data-testid="stDataFrame"] thead tr th {
+            background-color: #4caf50 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border: none !important;
+        }
+        div[data-testid="stDataFrame"] tbody tr td {
+            background-color: #ffffff !important;
+            color: #111 !important;
+            border: none !important;
+        }
+        div[data-testid="stDataFrame"] tbody tr:hover td {
+            background-color: rgba(76,175,80,0.15) !important;
+        }
+
+        /* === CHART CONTAINERS === */
+        .stPlotlyChart, .stVegaLiteChart, .stAltairChart,
+        .stPydeckChart, .stDeckGlChart, .stEchartsChart {
+            background-color: #ffffff !important;
+            border-radius: 10px !important;
+            border: 1px solid #4caf5044 !important;
+            padding: 8px !important;
+            overflow: hidden !important;
+        }
+        .vega-bindings, .vega-bindings span, .vega-bindings label {
+            color: #111 !important;
+        }
+        .vega-tooltip {
+            background-color: #ffffff !important;
+            color: #111 !important;
+            border: 1px solid #4caf50 !important;
+        }
+
+        /* === EXPANDERS === */
+        .streamlit-expanderHeader {
+            font-weight: 600 !important;
+            border: 1px solid #4caf50 !important;
+            border-radius: 6px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
@@ -860,24 +1104,29 @@ st.set_page_config(
 st.markdown("""
 <style>
 /* ===================================================
-   MYTOCHONDRIA — EMERALD GREEN THEME (Light Mode)
-   Unified single-style block
+   EMERALD GREEN THEME – Light & Dark Unified
+   Fixes red slider track, active borders, highlights
    =================================================== */
 :root {
   --accent: #059669;
   --accent-dark: #047857;
   --accent-light: #10b981;
   --bg-light: #ecfdf5;
+  --bg-dark: #0b1b12;
   --text-light: #1e293b;
+  --text-dark: #e2e8f0;
   --border-soft: rgba(5,150,105,0.2);
-  --card-bg: #ffffff;
 }
 
 /* ===== GLOBAL LAYOUT ===== */
 body, .stApp, .block-container {
   background: linear-gradient(to bottom, var(--bg-light), #ffffff) !important;
   color: var(--text-light) !important;
-  font-family: 'Inter', sans-serif !important;
+  font-family: 'Inter', sans-serif;
+}
+html[data-theme="dark"], body[data-theme="dark"], .stApp[data-theme="dark"] {
+  background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
+  color: var(--text-dark) !important;
 }
 h1, h2, h3, h4 {
   color: var(--accent-dark) !important;
@@ -901,7 +1150,7 @@ h1, h2, h3, h4 {
 }
 .stButton > button:active { transform: scale(0.97); }
 
-/* ===== NAVIGATION BAR ===== */
+/* ===== NAVIGATION ===== */
 div[data-testid="stHorizontalBlock"] div.stButton > button {
   background-color: white !important;
   color: var(--accent-dark) !important;
@@ -968,7 +1217,12 @@ input:focus, textarea:focus, select:focus {
 [data-testid="stSlider"] > div > div {
   background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
 }
-[data-testid="stSlider"] .stSliderValue {
+[data-testid="stSlider"] [data-baseweb="slider"] div[role="presentation"] > div {
+  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
+}
+[data-testid="stSlider"] .stSliderValue, 
+[data-testid="stSlider"] .css-1qrvfrg, 
+[data-testid="stSlider"] .css-14xtw13 {
   color: var(--accent-dark) !important;
   font-weight: 600 !important;
 }
@@ -991,7 +1245,7 @@ div[data-testid="stDataFrame"] tbody tr:hover td {
 
 /* ===== CARDS ===== */
 .card, .metric {
-  background: var(--card-bg) !important;
+  background: #ffffff !important;
   border: 1px solid var(--border-soft) !important;
   border-radius: 16px !important;
   box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
@@ -1043,8 +1297,61 @@ div[data-testid="stDataFrame"] tbody tr:hover td {
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(5,150,105,0.7);
 }
+
+/* ===== DARK MODE OVERRIDES ===== */
+html[data-theme="dark"] body, html[data-theme="dark"] .stApp {
+  background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
+  color: var(--text-dark) !important;
+}
+html[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
+  background-color: var(--accent-light) !important;
+  border-color: var(--accent-light) !important;
+}
+html[data-theme="dark"] [data-testid="stSlider"] > div > div {
+  background: linear-gradient(to right, var(--accent-light), var(--accent-dark)) !important;
+}
+html[data-theme="dark"] .stDataFrame thead tr th {
+  background-color: var(--accent-dark) !important;
+}
+html[data-theme="dark"] .card, html[data-theme="dark"] .stAltairChart {
+  background-color: #0f1f17 !important;
+  border-color: rgba(16,185,129,0.3) !important;
+  color: var(--text-dark) !important;
+}
+html[data-theme="dark"] .streamlit-expanderHeader {
+  background-color: #0b1b12 !important;
+  color: var(--accent-light) !important;
+}
 </style>
 """, unsafe_allow_html=True)
+
+# --- Top Navigation Bar ---
+st.markdown(
+    """
+    <style>
+    div[data-testid="stHorizontalBlock"] div.stButton > button {
+        display: inline-block;
+        font-weight: 600;
+        border-radius: 6px;
+        padding: 8px 0;
+        margin: 0 4px;
+        cursor: pointer;
+        border: 1px solid #2d572c;
+        background-color: white;
+        color: #2d572c;
+        transition: all 0.3s ease;
+    }
+    div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
+        background-color: #eaf4ea;
+    }
+    div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+        background-color: #2d572c !important;
+        color: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 nav_cols = st.columns(len(tab_names))
 for i, name in enumerate(tab_names):
