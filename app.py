@@ -1292,6 +1292,32 @@ div[data-testid="stDataFrame"] tbody tr:hover td {{
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* === THEME-CORRECT SLIDER COLORS === */
+
+/* Light mode – Emerald Green */
+[data-testid="stSlider"] [role="slider"] {
+  background-color: var(--accent) !important;
+  border: 2px solid var(--accent) !important;
+}
+[data-testid="stSlider"] > div > div {
+  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
+}
+
+/* Dark mode override */
+html[data-theme="dark"] [data-testid="stSlider"] [role="slider"],
+body[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
+  background-color: #10b981 !important;      /* emerald light */
+  border: 2px solid #059669 !important;
+}
+html[data-theme="dark"] [data-testid="stSlider"] > div > div,
+body[data-theme="dark"] [data-testid="stSlider"] > div > div {
+  background: linear-gradient(to right, #10b981, #047857) !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Top Navigation Bar ---
 st.markdown(
     """
