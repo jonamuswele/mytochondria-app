@@ -2156,32 +2156,46 @@ elif active == "Crop Planner":
             crop2_on = st.checkbox("Enable intercropping")
             crop2 = st.selectbox("Second crop", ["beans", "maize", "rice"], index=0, disabled=not crop2_on)
 
-        st.subheader("Space between your plants")
-        row_cm = st.slider("Row spacing (cm)", 20.0, 60.0, 75.0, 5.0, key="lab_row_spacing_cm")
+        st.subheader("🌾 Plant Spacing and Density")
 
-        plant_cm = st.slider("In-row spacing (cm)", 10.0, 50.0, 25.0, 5.0, key="lab_plant_spacing_cm")
+        col1, col2 = st.columns(2)
+        with col1:
+            row_cm = st.number_input("Row spacing (cm)", min_value=10.0, max_value=150.0,
+                                     value=75.0, step=5.0, key="lab_row_spacing_cm")
+        with col2:
+            plant_cm = st.number_input("In-row spacing (cm)", min_value=5.0, max_value=100.0,
+                                       value=25.0, step=5.0, key="lab_plant_spacing_cm")
+
         dens_factor, plants_ha = compute_density_factor(crop, row_cm, plant_cm)
-        if crop2_on:
-            row2 = st.slider("Row spacing (2nd crop) (cm)", 20.0, 60.0, 45.0, 5.0, key="lab_row_spacing2_cm")
-            plant2 = st.slider("In-row spacing (2nd crop) (cm)", 10.0, 50.0, 20.0, 5.0,
-                               key="lab_plant_spacing2_cm")
 
+        if crop2_on:
+            col3, col4 = st.columns(2)
+            with col3:
+                row2 = st.number_input("Row spacing (2nd crop) (cm)", 10.0, 150.0, 45.0, 5.0,
+                                       key="lab_row_spacing2_cm")
+            with col4:
+                plant2 = st.number_input("In-row spacing (2nd crop) (cm)", 5.0, 100.0, 20.0, 5.0,
+                                         key="lab_plant_spacing2_cm")
             dens2, plants2 = compute_density_factor(crop2, row2, plant2)
-            # combined density capped (simple)
             dens_factor = clamp(dens_factor + 0.5 * dens2, 0.8, 1.4)
             plants_ha = plants_ha + 0.5 * plants2
-        st.caption(
-            f"Estimated stand: **{plants_ha:,.0f} plants/ha**, density factor used **{dens_factor:.2f}**")
 
+        st.markdown(f"**Estimated stand:** {plants_ha:,.0f} plants/ha, density factor used {dens_factor:.2f}")
+
+        # --- Hidden constants (not user inputs anymore) ---
+        organic_matter = 3.00  # %
+        target_yield_factor = 1.00  # default multiplier
+        bulk_density = 1.30  # g/cm³
+        sampling_depth = 0.20  # m
         st.subheader("Management & Soil")
         soil_texture = st.selectbox("Soil texture (typical)", ["loam", "sand", "clay"],
                                     index=0 if aer != "IIb" else 1,
                                     key="lab_soil_texture")
-        om_pct = st.slider("Organic matter (%)", 0.0, 6.0, 2.0, 0.1, key="lab_om_pct")
-        yield_factor = st.slider("Target yield factor", 0.8, 1.2, 1.0, 0.05, key="lab_yield_factor")
-        bd = st.slider("Bulk density (g/cm³)", 1.1, 1.6, 1.3, 0.05, key="lab_bd")
-        depth_m = st.slider("Sampling depth (m)", 0.10, 0.30, 0.20, 0.01, key="lab_depth_m")
-
+        om_pct = 3.00
+        yield_factor = 1.00
+        bd = 1.30
+        depth_m = 0.20
+        
         st.subheader("Lab results (enter real values)")
         ph = st.number_input("pH (water)", 3.5, 9.0, 6.0, 0.1)
         ec = st.number_input("EC (dS/m): Electric conductivity of the soil", 0.0, 5.0, 0.8, 0.1)
