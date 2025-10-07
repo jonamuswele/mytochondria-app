@@ -1102,12 +1102,110 @@ st.set_page_config(
     layout="wide",
 )
 st.markdown("""
-    <style>
-    body { background-color: #fdfdf8; }
-    h1, h2, h3, h4 { color: #2d572c; font-family: 'Segoe UI', sans-serif; }
-    .sidebar .sidebar-content { background-color: #f4f9f4; }
-    </style>
-    """, unsafe_allow_html=True)
+<style>
+/* === GLOBAL LAYOUT === */
+body, .stApp, .block-container {
+    background: linear-gradient(to bottom, #ecfdf5, #ffffff) !important;
+    color: #1e293b !important;
+    font-family: 'Inter', sans-serif;
+}
+h1, h2, h3, h4 {
+    color: #065f46 !important;
+    font-weight: 700 !important;
+}
+
+/* === CARDS & PANELS === */
+.card, .metric, div[data-testid="stDataFrame"], .stTabs, .stSelectbox, .stTextInput, .stNumberInput {
+    background-color: #ffffff !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(5,150,105,0.15) !important;
+    box-shadow: 0 10px 25px rgba(2,6,23,0.08) !important;
+    padding: 12px;
+}
+
+/* === BUTTONS === */
+.stButton > button, div[data-testid="stDownloadButton"] > button {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 1.2rem !important;
+    font-weight: 600 !important;
+    transition: all 0.25s ease;
+}
+.stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {
+    background-color: #047857 !important;
+    transform: translateY(-1px);
+}
+
+/* === INPUT FIELDS === */
+input, textarea, select, .stDateInput input {
+    background-color: #f9fafb !important;
+    color: #1e293b !important;
+    border: 1px solid rgba(5,150,105,0.3) !important;
+    border-radius: 8px !important;
+    transition: border-color 0.3s ease;
+}
+input:focus, textarea:focus, select:focus {
+    border-color: #059669 !important;
+    box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
+}
+
+/* === TABLES === */
+div[data-testid="stDataFrame"] thead tr th {
+    background-color: #10b981 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+div[data-testid="stDataFrame"] tbody tr:hover td {
+    background-color: rgba(5,150,105,0.08) !important;
+}
+
+/* === CHARTS === */
+.stAltairChart, .stPlotlyChart {
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(5,150,105,0.15) !important;
+    box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
+    padding: 10px !important;
+}
+
+/* === INFO BOXES === */
+.stInfo, .stSuccess, .stWarning {
+    border-radius: 12px !important;
+    font-size: 0.95rem !important;
+}
+
+/* === NAVIGATION BUTTONS === */
+div[data-testid="stHorizontalBlock"] div.stButton > button {
+    background-color: #ffffff !important;
+    color: #065f46 !important;
+    border: 1px solid #059669 !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease;
+}
+div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
+    background-color: #ecfdf5 !important;
+}
+div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+}
+
+/* === EXPANDERS === */
+.streamlit-expanderHeader {
+    font-weight: 600 !important;
+    border: 1px solid #059669 !important;
+    border-radius: 8px !important;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background-color: rgba(5,150,105,0.4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(5,150,105,0.7); }
+</style>
+""", unsafe_allow_html=True)
 
 
 
