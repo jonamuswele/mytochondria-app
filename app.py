@@ -1103,224 +1103,128 @@ st.set_page_config(
 )
 st.markdown("""
 <style>
-/* ===================================================
-   EMERALD GREEN THEME – Light & Dark Unified
-   Fixes red slider track, active borders, highlights
-   =================================================== */
 :root {
   --accent: #059669;
   --accent-dark: #047857;
   --accent-light: #10b981;
   --bg-light: #ecfdf5;
-  --bg-dark: #0b1b12;
-  --text-light: #1e293b;
-  --text-dark: #e2e8f0;
-  --border-soft: rgba(5,150,105,0.2);
+  --text-main: #1e293b;
+  --warn-bg: #fef9c3;
+  --warn-border: #fde047;
 }
 
-/* ===== GLOBAL LAYOUT ===== */
+/* ===== GLOBAL PAGE LAYOUT ===== */
 body, .stApp, .block-container {
   background: linear-gradient(to bottom, var(--bg-light), #ffffff) !important;
-  color: var(--text-light) !important;
+  color: var(--text-main) !important;
   font-family: 'Inter', sans-serif;
 }
-html[data-theme="dark"], body[data-theme="dark"], .stApp[data-theme="dark"] {
-  background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
-  color: var(--text-dark) !important;
-}
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5 {
   color: var(--accent-dark) !important;
   font-weight: 700 !important;
 }
-
-/* ===== BUTTONS ===== */
-.stButton > button, div[data-testid="stDownloadButton"] > button {
-  background-color: var(--accent) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 10px !important;
-  padding: 0.6rem 1.2rem !important;
-  font-weight: 600 !important;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 8px rgba(5,150,105,0.25);
+p, li, span, div {
+  color: var(--text-main);
 }
-.stButton > button:hover, div[data-testid="stDownloadButton"] > button:hover {
-  background-color: var(--accent-dark) !important;
+
+/* ===== NAVIGATION BUTTONS ===== */
+div[data-testid="stHorizontalBlock"] div.stButton > button,
+.stButton > button, div.stDownloadButton > button {
+  background-color: #fff !important;
+  color: var(--accent-dark) !important;
+  border: 2px solid var(--accent) !important;
+  border-radius: 10px !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(5,150,105,0.2);
+  transition: all 0.2s ease-in-out;
+}
+div[data-testid="stHorizontalBlock"] div.stButton > button:hover,
+.stButton > button:hover, div.stDownloadButton > button:hover {
+  background-color: var(--accent-light) !important;
+  color: white !important;
   transform: translateY(-1px);
 }
-.stButton > button:active { transform: scale(0.97); }
 
-/* ===== NAVIGATION ===== */
-div[data-testid="stHorizontalBlock"] div.stButton > button {
-  background-color: white !important;
-  color: var(--accent-dark) !important;
-  border: 1px solid var(--accent) !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease;
-}
-div[data-testid="stHorizontalBlock"] div.stButton > button:hover {
-  background-color: var(--bg-light) !important;
-}
-div[data-testid="stHorizontalBlock"] div.stButton > button.nav-active {
-  background-color: var(--accent) !important;
-  color: white !important;
-}
-
-/* ===== INPUTS ===== */
-input, textarea, select, .stDateInput input {
-  background-color: #ffffff !important;
-  color: var(--text-light) !important;
-  border: 1px solid var(--border-soft) !important;
-  border-radius: 8px !important;
-  transition: border-color 0.3s ease;
-}
-input:focus, textarea:focus, select:focus {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px rgba(5,150,105,0.25) !important;
-}
-
-/* ===== LABELS ===== */
-.stNumberInput label,
-.stRadio label,
-.stSelectbox label,
-.stSlider label,
-.stDateInput label {
-  color: var(--accent-dark) !important;
-  font-weight: 600 !important;
-}
-
-/* ===== NUMBER INPUTS ===== */
-.stNumberInput, .stNumberInput > div, .stNumberInput input {
-  background-color: #ffffff !important;
-  color: var(--text-light) !important;
-  border: 1px solid rgba(5,150,105,0.3) !important;
-  border-radius: 8px !important;
-}
-.stNumberInput button {
-  background-color: var(--bg-light) !important;
-  color: var(--accent-dark) !important;
-  border: 1px solid rgba(5,150,105,0.4) !important;
-  border-radius: 6px !important;
-}
-.stNumberInput button:hover {
-  background-color: #d1fae5 !important;
-  border-color: var(--accent) !important;
-}
-
-/* ===== SLIDERS ===== */
-[data-testid="stSlider"] [role="slider"] {
-  background-color: var(--accent) !important;
-  border: 2px solid var(--accent) !important;
-  box-shadow: 0 0 6px rgba(5,150,105,0.6) !important;
-}
-[data-testid="stSlider"] > div > div {
-  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
-}
-[data-testid="stSlider"] [data-baseweb="slider"] div[role="presentation"] > div {
-  background: linear-gradient(to right, var(--accent), var(--accent-light)) !important;
-}
-[data-testid="stSlider"] .stSliderValue, 
-[data-testid="stSlider"] .css-1qrvfrg, 
-[data-testid="stSlider"] .css-14xtw13 {
-  color: var(--accent-dark) !important;
-  font-weight: 600 !important;
+/* ===== ALERT BOXES ===== */
+div[data-testid="stAlert"] {
+  background-color: var(--warn-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--warn-border) !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  font-weight: 500;
 }
 
 /* ===== TABLES ===== */
-div[data-testid="stDataFrame"] {
-  border-radius: 14px !important;
-  border: 1px solid var(--border-soft) !important;
-  box-shadow: 0 4px 14px rgba(5,150,105,0.08) !important;
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100%;
+  border-radius: 12px !important;
   overflow: hidden !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-div[data-testid="stDataFrame"] thead tr th {
+thead tr {
+  background-color: var(--accent-dark) !important;
+  color: white !important;
+  text-align: left;
+}
+tbody tr:nth-child(even) {
+  background-color: #f0fdf4 !important;
+}
+tbody tr:nth-child(odd) {
+  background-color: #ffffff !important;
+}
+td, th {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* ===== SLIDERS ===== */
+[data-baseweb="slider"] > div {
+  background-color: var(--accent-light) !important;
+}
+[data-baseweb="slider"] [role="slider"] {
+  background-color: white !important;
+  border: 2px solid var(--accent-dark) !important;
+  box-shadow: 0 2px 4px rgba(5,150,105,0.3);
+}
+[data-baseweb="slider"] div[role="presentation"] {
+  background: var(--accent-light) !important;
+}
+
+/* ===== BACK BUTTON / ACTION BUTTONS ===== */
+button[kind="secondary"], button[kind="primary"] {
+  border-radius: 10px !important;
   background-color: var(--accent) !important;
   color: white !important;
   font-weight: 600 !important;
+  border: none !important;
+  box-shadow: 0 2px 5px rgba(5,150,105,0.3);
 }
-div[data-testid="stDataFrame"] tbody tr:hover td {
-  background-color: rgba(5,150,105,0.07) !important;
-}
-
-/* ===== CARDS ===== */
-.card, .metric {
-  background: #ffffff !important;
-  border: 1px solid var(--border-soft) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 8px 20px rgba(2,6,23,0.05) !important;
-  padding: 14px 16px !important;
-  color: var(--text-light) !important;
-}
-.card .title { font-weight: 600; font-size: 0.9rem; }
-.card .big { font-size: 1.4rem; font-weight: 700; color: var(--accent-dark); }
-
-/* ===== ALERT BOXES ===== */
-.stInfo, .stSuccess, .stWarning, .stError {
-  border-radius: 12px !important;
-  border-left: 5px solid var(--accent) !important;
-  box-shadow: 0 2px 10px rgba(5,150,105,0.1);
-}
-
-/* ===== CHARTS ===== */
-.stAltairChart, .stPlotlyChart {
-  background-color: #ffffff !important;
-  border-radius: 16px !important;
-  border: 1px solid var(--border-soft) !important;
-  box-shadow: 0 8px 20px rgba(2,6,23,0.06) !important;
-  padding: 10px !important;
-}
-.vega-bindings, .vega-bindings label {
-  color: var(--text-light) !important;
-}
-.vega-tooltip {
-  background-color: white !important;
-  border: 1px solid var(--accent-light) !important;
-  border-radius: 6px !important;
-}
-
-/* ===== EXPANDERS ===== */
-.streamlit-expanderHeader {
-  font-weight: 600 !important;
-  border: 1px solid var(--accent) !important;
-  border-radius: 10px !important;
-  background-color: #ffffff !important;
-  color: var(--accent-dark) !important;
-}
-
-/* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-thumb {
-  background-color: rgba(5,150,105,0.4);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(5,150,105,0.7);
-}
-
-/* ===== DARK MODE OVERRIDES ===== */
-html[data-theme="dark"] body, html[data-theme="dark"] .stApp {
-  background: linear-gradient(to bottom, var(--bg-dark), #000) !important;
-  color: var(--text-dark) !important;
-}
-html[data-theme="dark"] [data-testid="stSlider"] [role="slider"] {
-  background-color: var(--accent-light) !important;
-  border-color: var(--accent-light) !important;
-}
-html[data-theme="dark"] [data-testid="stSlider"] > div > div {
-  background: linear-gradient(to right, var(--accent-light), var(--accent-dark)) !important;
-}
-html[data-theme="dark"] .stDataFrame thead tr th {
+button[kind="secondary"]:hover, button[kind="primary"]:hover {
   background-color: var(--accent-dark) !important;
+  box-shadow: 0 3px 8px rgba(5,150,105,0.4);
 }
-html[data-theme="dark"] .card, html[data-theme="dark"] .stAltairChart {
-  background-color: #0f1f17 !important;
-  border-color: rgba(16,185,129,0.3) !important;
-  color: var(--text-dark) !important;
+
+/* ===== TABLE CHECKBOXES ===== */
+[data-testid="stCheckbox"] label span {
+  color: var(--text-main) !important;
+  font-weight: 500;
 }
-html[data-theme="dark"] .streamlit-expanderHeader {
-  background-color: #0b1b12 !important;
-  color: var(--accent-light) !important;
+
+/* ===== DOWNLOAD BUTTONS ===== */
+div.stDownloadButton > button {
+  background-color: var(--accent-dark) !important;
+  color: white !important;
+}
+div.stDownloadButton > button:hover {
+  background-color: var(--accent-light) !important;
 }
 </style>
 """, unsafe_allow_html=True)
