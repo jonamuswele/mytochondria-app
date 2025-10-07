@@ -1327,10 +1327,40 @@ html[data-theme="dark"] .streamlit-expanderHeader {
 
 st.markdown("""
 <style>
-/* === FIX PATCH: BUTTONS, SLIDERS, CHECKMARKS === */
+/* === FINAL PATCH: Force emerald color on ticks, sliders, and inactive buttons === */
 
-/* Fix black buttons (Save confirmations etc.) */
-button[kind="secondary"], button[kind="primary"], .stCheckbox button, .stDownloadButton > button {
+/* --- CHECKBOX (force emerald tick) --- */
+[data-testid="stCheckbox"] input[type="checkbox"] {
+  accent-color: var(--accent) !important;
+}
+[data-testid="stCheckbox"] svg {
+  fill: var(--accent) !important;
+  color: var(--accent) !important;
+}
+[data-testid="stCheckbox"] div[role="checkbox"][aria-checked="true"] {
+  background-color: var(--accent) !important;
+  border-color: var(--accent-dark) !important;
+  box-shadow: 0 0 4px rgba(5,150,105,0.4);
+}
+
+/* --- SLIDER (force emerald, remove any red base) --- */
+[data-testid="stSlider"] div[role="presentation"] svg path {
+  stroke: var(--accent) !important;
+  fill: var(--accent) !important;
+}
+[data-testid="stSlider"] [role="slider"] {
+  background-color: white !important;
+  border: 2px solid var(--accent-dark) !important;
+  box-shadow: 0 0 6px rgba(5,150,105,0.5) !important;
+}
+[data-testid="stSlider"] .stSliderValue {
+  color: var(--accent-dark) !important;
+  font-weight: 700 !important;
+}
+
+/* --- BUTTONS THAT WERE BLACK --- */
+button[kind="secondary"], button[kind="primary"],
+button.css-1cpxqw2, button.css-1x8cf1d, button.css-1emrehy {
   background-color: var(--accent) !important;
   color: #fff !important;
   border: none !important;
@@ -1338,49 +1368,21 @@ button[kind="secondary"], button[kind="primary"], .stCheckbox button, .stDownloa
   font-weight: 600 !important;
   box-shadow: 0 4px 8px rgba(5,150,105,0.25) !important;
 }
-button[kind="secondary"]:hover, button[kind="primary"]:hover {
+button[kind="secondary"]:hover, button[kind="primary"]:hover,
+button.css-1cpxqw2:hover, button.css-1x8cf1d:hover {
   background-color: var(--accent-dark) !important;
+  color: #fff !important;
 }
 
-/* Fix checkboxes (ticks) */
-.stCheckbox [data-testid="stMarkdownContainer"] p {
-  color: var(--text-light) !important;
-}
-.stCheckbox input[type="checkbox"]:checked {
-  accent-color: var(--accent) !important;
-}
-input[type="checkbox"]:checked::before {
-  background-color: var(--accent) !important;
-  border-color: var(--accent-dark) !important;
+/* --- ACTIVE & DISABLED STATE FIX --- */
+button:disabled, button[disabled] {
+  background-color: rgba(5,150,105,0.4) !important;
+  color: rgba(255,255,255,0.7) !important;
 }
 
-/* Fix slider track + thumb */
-[data-testid="stSlider"] [role="slider"] {
-  background-color: white !important;
-  border: 2px solid var(--accent) !important;
-  box-shadow: 0 0 8px rgba(5,150,105,0.4) !important;
-}
-[data-testid="stSlider"] > div > div {
-  background: linear-gradient(to right, var(--accent-light), var(--accent)) !important;
-}
-[data-testid="stSlider"] [data-baseweb="slider"] div[role="presentation"] > div {
-  background: linear-gradient(to right, var(--accent-light), var(--accent)) !important;
-}
-[data-testid="stSlider"] .stSliderValue {
-  color: var(--accent-dark) !important;
-  font-weight: 700 !important;
-}
-
-/* Make slider labels visible and soft */
-[data-testid="stSlider"] label {
-  color: var(--accent-dark) !important;
-  font-weight: 600 !important;
-}
-
-/* Light theme checkbox focus highlight */
-input[type="checkbox"]:focus {
-  outline: 2px solid rgba(5,150,105,0.4) !important;
-  border-radius: 4px;
+/* --- RESET ANY RED/ORANGE BORDERS --- */
+* {
+  border-color: var(--accent) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -2477,3 +2479,4 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
+
