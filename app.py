@@ -2060,8 +2060,6 @@ if active == "Home":
 
     st.divider()
 
-    # --- Onboarding Banner ---
-
 
     c1, c2 = st.columns([2, 1])
     with c1:
@@ -2071,9 +2069,9 @@ if active == "Home":
                 st.session_state.active_tab = 1
                 st.rerun()
         with colB:
-            st.button("🖼️ I'll upload images", key="btnImagery")
-            st.session_state.active_tab = 4  
-            st.rerun()
+            if st.button("🖼️ I'll upload images", key="btnImagery"):
+                st.session_state.active_tab = 4
+                st.rerun()
         st.caption("💡 Tip: For best imagery results use natural light and include a coin or ruler for scale.")
 
     with c2:
@@ -2694,6 +2692,7 @@ elif active == "AI Imagery Analysis" :
                     - No visible fungal lesions or pest damage.  
                     - Overall **plant vigor: good**.
                     """)
+
 
 elif active == "Manage Account":
     st.subheader("👤 Account Dashboard")
