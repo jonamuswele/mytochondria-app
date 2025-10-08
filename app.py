@@ -627,6 +627,29 @@ if st.session_state.user is None:
     </style>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+    /* Remove extra white padding/margin above the login card */
+    .block-container, .main, [data-testid="stAppViewContainer"] > .main {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    /* Also ensure no white gap is rendered before the gradient */
+    html, body {
+        background-color: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Tighten login wrapper positioning */
+    .login-wrapper {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     # --- Layout Container ---
     st.markdown("<div class='login-wrapper'><div class='login-card'>", unsafe_allow_html=True)
 
