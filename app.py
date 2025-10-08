@@ -1929,9 +1929,9 @@ CROP_SPACING_DEFAULT = {
 active = tab_names[st.session_state.active_tab]
 
 if active == "Home":
-    st.subheader("🌾 Your Farm Dashboard")
+    st.subheader("🌾 Welcome to Mytochondria Farmer Portal")
 
-    # Alerts snapshot
+    # --- Existing alerts at the top ---
     st.markdown("### 🚨 Active Alerts")
     if not user_farms:
         st.info("No farms yet. Add a farm to start receiving alerts.")
@@ -1940,31 +1940,78 @@ if active == "Home":
             fid = f["farm_id"]
             alerts = st.session_state.farm_alerts.get(fid, [])
             if alerts:
-                for a in alerts[-3:]:  # last 3 alerts
+                for a in alerts[-3:]:
                     st.warning(f"**{f['crop']} ({f['location']})** → {a['title']} ({a['status']})")
             else:
                 st.success(f"No new alerts for **{f['crop']} ({f['location']})**")
 
-    # Quick Actions
-    st.markdown("### ⚡ Quick Actions")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("➕ Add Farm"):
-            st.session_state.active_tab = 4
-            st.rerun()
-    with col2:
-        st.button("📦 View Products")
-    with col3:
-        st.button("📖 Tutorials")
+    st.divider()
 
-    # Snapshot overview
-    st.markdown("### 📊 Overview")
-    colA, colB, colC = st.columns(3)
-    colA.metric("🌱 Farms Managed", len(user_farms))
-    total_alerts = sum(len(st.session_state.farm_alerts.get(f["farm_id"], [])) for f in user_farms)
-    colB.metric("🚨 Total Alerts", total_alerts)
-    colC.metric("☀️ Weather Risk", "Rain forecast" if random.random() < 0.5 else "Clear")
+    # --- Onboarding Banner ---
+    st.markdown("""
+        <div style='padding:20px; border-radius:16px; background:linear-gradient(to right,#ecfdf5,#ffffff); 
+        box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid rgba(5,150,105,0.2);'>
+            <h2 style='margin-bottom:6px;'>Welcome to your Farmer Portal</h2>
+            <p>Use <b>imagery</b> or <b>Mytochondria smart sensors</b> to get actionable soil & crop recommendations.<br>
+            You can switch or upgrade anytime.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    st.write("")
 
+    c1, c2 = st.columns([2, 1])
+    with c1:
+        colA, colB = st.columns(2)
+        with colA:
+            if st.button("📡 I have sensors — show live data"):
+                st.session_state.active_tab = 1
+                st.rerun()
+        with colB:
+            st.button("🖼️ I'll upload images", key="btnImagery")
+
+        st.caption("💡 Tip: For best imagery results use natural light and include a coin or ruler for scale.")
+
+    with c2:
+        st.markdown("""
+            <div style='padding:16px; border-radius:12px; border:1px solid rgba(5,150,105,0.2); background:white; box-shadow:0 2px 8px rgba(0,0,0,0.05); text-align:center'>
+                <b>Sensors recommended</b><br>
+                <span style='font-size:24px; color:#059669; font-weight:700'>3 / ha</span><br>
+                <small>Affordable kits from Mytochondria</small><br><br>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.divider()
+
+    # --- Main content area (Left: controls / Right: farms & data) ---
+    left, right = st.columns([1, 2])
+
+    with left:
+        st.markdown("### ⚙️ Mode & Quick Actions")
+        mode = st.radio("Choose mode", ["Sensor", "Imagery"], horizontal=True)
+        st.button("➕ Add Farm", on_click=lambda: setattr(st.session_state, "active_tab", 4))
+        st.button("📂 Upload Images", key="upload_imgs")
+        st.download_button("⬇️ Download Report", "Farm report placeholder", file_name="farm_report.txt")
+
+        st.markdown("---")
+        st.markdown("### 📷 Imagery Capture Tips")
+        st.info("• Use daylight, avoid shadows\n\n• Take 3 soil images per hectare\n\n• Include clear leaf close-ups")
+
+    with right:
+        st.markdown("### 🧭 My Farms")
+        if not user_farms:
+            st.info("No farms yet. Add one in Manage Account to start.")
+        else:
+            for f in user_farms:
+                st.markdown(f"**{f['farm_id']}** — {f['crop']} in {f['location']} ({f['soil_texture']})")
+                st.caption(f"Planted: {f['planting_date']} • Spacing: {f['spacing']}")
+                st.progress(random.random(), text="Sensor activity (simulated)")
+                st.divider()
+
+        # Default “dynamic” area
+        st.markdown("### 📊 Get Started")
+        st.info("Select a farm to see live sensor data or upload imagery for analysis.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.caption("© Mytochondria — Built for African farmers 🌍")
 elif active == "Sensor Mode":
     st.subheader("Sensor Mode Live ")
 
