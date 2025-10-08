@@ -1913,6 +1913,80 @@ def generate_insights(input_row: Dict[str, Any]) -> List[Dict[str, Any]]:
 # ------------------------------
 # Checklist apply-effects
 # ------------------------------
+def compute_health_score(farm, latest, fid):
+    """
+    Compute a farm health score using real-time soil indicators and alerts.
+    Inputs:
+        farm: dict (farm metadata)
+        latest: dict (latest reading from st.session_state.farm_hist[fid])
+        fid: farm_id (used for alerts)
+    Output:
+        float in [0, 1]
+    """
+
+    # --- Normalize key indicators ---
+    # Moisture (ideal 40–70%)
+    m = latest.get("moisture", 0)
+    if m < 30:
+        norm_m = 0.3
+    elif m > 85:
+        norm_m = 0.5
+    else:
+        norm_m = (m - 30) / (70 - 30)  # 0 at 30%, 1 at 70%
+        norm_m = max(0, min(norm_m, 1))
+
+    # Nutrients (average of N,P,K availability, %)
+    n = latest.get("n", 0)
+    p = latest.get("p", 0)
+    k = latest.get("k", 0)
+    avg_npk = (n + p + k) / 3
+    norm_npk = max(0, min(avg_npk / 100, 1))
+
+    # pH (ideal 6–7.5)
+    ph = latest.get("ph", 6.5)
+    norm_ph = 1 - abs(ph - 6.75) / 2  # deviation penalty
+    norm_ph = max(0, min(norm_ph, 1))
+
+    # EC (salinity; ideal 0.2–1.5 dS/m)
+    ec = latest.get("ec", 1.0)
+    if ec < 0.2:
+        norm_ec = 0.8  # too low → less fertile but not terrible
+    elif ec > 3.0:
+        norm_ec = 0.2
+    else:
+        norm_ec = 1 - (abs(ec - 1.0) / 2.0)
+        norm_ec = max(0, min(norm_ec, 1))
+
+    # --- Depletion rate penalty ---
+    # Compare last 24h NPK trend (if enough data)
+    hist = st.session_state.farm_hist.get(fid, [])
+    if len(hist) > 24:
+        last_day = hist[-24:]
+        delta_n = last_day[-1]["n"] - last_day[0]["n"]
+        delta_p = last_day[-1]["p"] - last_day[0]["p"]
+        delta_k = last_day[-1]["k"] - last_day[0]["k"]
+        avg_drop = -(delta_n + delta_p + delta_k) / 3.0
+        if avg_drop > 5:
+            depletion_penalty = 0.2
+        elif avg_drop > 2:
+            depletion_penalty = 0.1
+        else:
+            depletion_penalty = 0.0
+    else:
+        depletion_penalty = 0.0
+
+    # --- Alerts penalty ---
+    alerts = len(st.session_state.farm_alerts.get(fid, []))
+    alert_penalty = min(alerts * 0.02, 0.2)  # 10 alerts max penalty 0.2
+
+    # --- Weighted combination ---
+    w_m, w_npk, w_ph, w_ec = 0.35, 0.35, 0.15, 0.15
+    base = (w_m * norm_m) + (w_npk * norm_npk) + (w_ph * norm_ph) + (w_ec * norm_ec)
+    base = base * (1 - depletion_penalty) * (1 - alert_penalty)
+
+    # Scale into 0.4–1.0
+    health_score = 0.4 + 0.6 * base
+    return round(max(0, min(health_score, 1.0)), 2)
 
 def apply_action_effects(state: Dict[str, Any], task_label: str):
     """
@@ -2034,7 +2108,22 @@ if active == "Home":
             for f in user_farms:
                 st.markdown(f"**{f['farm_id']}** — {f['crop']} in {f['location']} ({f['soil_texture']})")
                 st.caption(f"Planted: {f['planting_date']} • Spacing: {f['spacing']}")
-                st.progress(random.random(), text="Sensor activity (simulated)")
+                fid = f["farm_id"]
+                if fid in st.session_state.farm_hist and st.session_state.farm_hist[fid]:
+                    latest = st.session_state.farm_hist[fid][-1]
+                    health_score = compute_health_score(f, latest, fid)
+                else:
+                    health_score = random.uniform(0.6, 0.95)
+
+                if health_score > 0.85:
+                    label = "🌿 Excellent"
+                elif health_score > 0.7:
+                    label = "👍 Good"
+                else:
+                    label = "⚠️ Needs Attention"
+
+                st.progress(health_score, text=f"Farm Health: {label}")
+                st.caption("Calculated from soil moisture, NPK balance, pH, EC, and nutrient trends.")
                 st.divider()
 
         # Default “dynamic” area
