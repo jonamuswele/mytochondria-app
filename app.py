@@ -510,6 +510,26 @@ if st.session_state.user is None:
       overflow: hidden !important;
     }
 
+    /* REMOVE default Streamlit padding and white container */
+    div.block-container {
+      padding-top: 0rem !important;
+      padding-bottom: 0rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      background: transparent !important;
+      max-width: 100% !important;
+    }
+
+    /* Hide top blank area Streamlit reserves */
+    header, footer, [data-testid="stDecoration"] {
+      display: none !important;
+    }
+
+    section.main {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
     /* Center everything vertically */
     .login-wrapper {
       display: flex;
@@ -519,6 +539,7 @@ if st.session_state.user is None:
       width: 100%;
     }
 
+    /* LOGIN CARD STYLING */
     .login-card {
       background: white;
       border-radius: 1.5rem;
@@ -531,6 +552,7 @@ if st.session_state.user is None:
       min-height: 500px;
     }
 
+    /* LEFT SIDE (BRAND) */
     .left-side {
       background-color: #166534;
       color: white;
@@ -556,6 +578,7 @@ if st.session_state.user is None:
       margin-top: 1.5rem;
     }
 
+    /* RIGHT SIDE (FORM) */
     .right-side {
       flex: 1;
       background: #ffffff;
@@ -571,6 +594,8 @@ if st.session_state.user is None:
       font-weight: 700;
       margin-bottom: 2rem;
     }
+
+    /* LINK TEXT */
     .login-note {
       text-align: center;
       margin-top: 1.2rem;
