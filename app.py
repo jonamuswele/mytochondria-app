@@ -32,7 +32,7 @@ if "theme" not in st.session_state:
 
 logo_col, space_col, mode_col = st.columns([1, 5, 1])
 with logo_col:
-    st.image("g34788", width=60)
+    st.image("g34788.png", width=60)
 
 with mode_col:
     # Toggle reflects current theme
