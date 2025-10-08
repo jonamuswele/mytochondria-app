@@ -2091,8 +2091,8 @@ if active == "Home":
     with left:
         st.markdown("### ⚙️ Mode & Quick Actions")
         mode = st.radio("Choose mode", ["Sensor", "Imagery"], horizontal=True)
-        st.button("➕ Add Farm", on_click=lambda: setattr(st.session_state, "active_tab", 4))
-        st.button("📂 Upload Images", key="upload_imgs")
+        st.button("➕ Add Farm", on_click=lambda: setattr(st.session_state, "active_tab", 5))
+        st.button("📂 Upload Images", on_click=lambda: setattr(st.session_state, "active_tab", 4))
         st.download_button("⬇️ Download Report", "Farm report placeholder", file_name="farm_report.txt")
 
         st.markdown("---")
