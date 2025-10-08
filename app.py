@@ -31,13 +31,6 @@ if "theme" not in st.session_state:
     st.session_state.theme = "light"
 
 
-
-with mode_col:
-    # Toggle reflects current theme
-    new_toggle=False
-    # Update state immediately when changed
-    st.session_state.theme = "dark" if new_toggle else "light"
-
 if st.session_state.theme == "dark":
     st.markdown("""
         <style>
@@ -696,7 +689,7 @@ if st.session_state.user is None:
 
     st.markdown("</div></div>", unsafe_allow_html=True)
     st.stop()
-    
+
 logo_col, space_col, mode_col = st.columns([1, 5, 1])
 with logo_col:
     st.image("g34788.png", width=60)
