@@ -2034,8 +2034,16 @@ CROP_SPACING_DEFAULT = {
 active = tab_names[st.session_state.active_tab]
 
 if active == "Home":
-    st.subheader("🌾 Welcome to Mytochondria Farmer Portal")
-
+    
+    st.markdown("""
+            <div style='padding:20px; border-radius:16px; background:linear-gradient(to right,#ecfdf5,#ffffff); 
+            box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid rgba(5,150,105,0.2);'>
+                <h2 style='margin-bottom:6px;'>Welcome to your Farmer Portal</h2>
+                <p>Use <b>imagery</b> or <b>Mytochondria smart sensors</b> to get actionable soil & crop recommendations.<br>
+                You can switch or upgrade anytime.</p>
+            </div>
+        """, unsafe_allow_html=True)
+    st.write("")
     # --- Existing alerts at the top ---
     st.markdown("### 🚨 Active Alerts")
     if not user_farms:
@@ -2053,15 +2061,7 @@ if active == "Home":
     st.divider()
 
     # --- Onboarding Banner ---
-    st.markdown("""
-        <div style='padding:20px; border-radius:16px; background:linear-gradient(to right,#ecfdf5,#ffffff); 
-        box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid rgba(5,150,105,0.2);'>
-            <h2 style='margin-bottom:6px;'>Welcome to your Farmer Portal</h2>
-            <p>Use <b>imagery</b> or <b>Mytochondria smart sensors</b> to get actionable soil & crop recommendations.<br>
-            You can switch or upgrade anytime.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    st.write("")
+
 
     c1, c2 = st.columns([2, 1])
     with c1:
