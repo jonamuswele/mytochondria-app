@@ -619,35 +619,80 @@ if st.session_state.user is None:
     """, unsafe_allow_html=True)
 
     # --- Layout Container ---
-    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    st.markdown("<div class='login-wrapper'><div class='login-card'>", unsafe_allow_html=True)
 
-    # Left side
-    st.markdown("""
-    <div class="left-side">
-      <h1>Mytochondria</h1>
-      <p>Smart farming made simple.<br>
-      Empowering farmers with AI-driven soil insights and real-time data.</p>
-      <img src="https://cdn-icons-png.flaticon.com/512/4341/4341065.png" />
-    </div>
-    """, unsafe_allow_html=True)
+    # Two columns (manual structure)
+    col1, col2 = st.columns([1, 1], gap="small")
 
-    # Right side
-    st.markdown('<div class="right-side">', unsafe_allow_html=True)
-    st.markdown('<h2>Farmer Login</h2>', unsafe_allow_html=True)
+    with col1:
+        st.markdown("""
+        <div class='left-side'>
+          <h1>Mytochondria</h1>
+          <p>Smart farming made simple.<br>
+          Empowering farmers with AI-driven soil insights and real-time data.</p>
+          <img src='https://cdn-icons-png.flaticon.com/512/4341/4341065.png' alt='Farm Icon'>
+        </div>
+        """, unsafe_allow_html=True)
 
-    email = st.text_input("Email", placeholder="example@farm.com")
-    password = st.text_input("Password", type="password", placeholder="••••••••")
-    login = st.button("Login")
+    with col2:
+        if "show_register" not in st.session_state:
+            st.session_state.show_register = False
 
-    st.markdown("""
-    <p class="login-note">
-      Don't have an account?
-      <a href="#">Create one</a>
-    </p>
-    """, unsafe_allow_html=True)
+        if not st.session_state.show_register:
+            st.markdown("<div class='right-side'><h2>Farmer Login</h2>", unsafe_allow_html=True)
+            email = st.text_input("Email", key="login_email")
+            password = st.text_input("Password", type="password", key="login_password")
 
-    st.markdown('</div></div></div>', unsafe_allow_html=True)
+            login_clicked = st.button("Login", use_container_width=True)
+            if login_clicked:
+                user = find_user(email, password)
+                if user:
+                    st.session_state.user = user
+                    st.success("✅ Login successful! Welcome back.")
+                    st.rerun()
+                else:
+                    st.error("Invalid email or password.")
+
+            st.markdown("""
+            <p class='login-note'>
+                Don't have an account?
+                <a href='#' onclick="window.parent.postMessage('toggleRegister','*')">Create one</a>
+            </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        else:
+            st.markdown("<div class='right-side'><h2>Create Farmer Account</h2>", unsafe_allow_html=True)
+            name = st.text_input("Full Name", key="reg_name")
+            email = st.text_input("Email", key="reg_email")
+            password = st.text_input("Password", type="password", key="reg_pass")
+            farm_size = st.number_input("Farm Size (in hectares)", min_value=0.1, step=0.1, key="reg_size")
+            sensor_status = st.selectbox(
+                "Do you have Mytochondria Sensors?",
+                ["No, I will enter data manually", "Yes, I have sensors to integrate"],
+                key="reg_sensor"
+            )
+
+            create_clicked = st.button("Create Account", use_container_width=True)
+            if create_clicked:
+                if user_exists(name):
+                    st.error("Username already exists.")
+                else:
+                    create_user(name, password, email)
+                    st.success("✅ Account created! Please login.")
+                    st.session_state.show_register = False
+                    st.rerun()
+
+            st.markdown("""
+            <p class='login-note'>
+                Already have an account?
+                <a href='#' onclick="window.parent.postMessage('toggleLogin','*')">Login</a>
+            </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("</div></div>", unsafe_allow_html=True)
+    st.stop()
 
 logo_col, space_col, mode_col = st.columns([1, 5, 1])
 with logo_col:
@@ -2917,3 +2962,4 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
+
