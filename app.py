@@ -1464,6 +1464,37 @@ div[data-testid="stAlert"][role="alert"] {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* ===================================================
+   PATCH – Make checkbox and radio labels always visible
+   =================================================== */
+
+/* Light + dark mode safe label color */
+.stCheckbox label, .stRadio label {
+    color: var(--text-light) !important;
+    font-weight: 500 !important;
+}
+
+/* For dark mode overrides */
+html[data-theme="dark"] .stCheckbox label,
+html[data-theme="dark"] .stRadio label {
+    color: var(--text-dark) !important;
+}
+
+/* Ensure the descriptive text (like 'kg/ha available N') is visible */
+.stCheckbox div[data-testid="stMarkdownContainer"] p,
+.stRadio div[data-testid="stMarkdownContainer"] p {
+    color: var(--text-light) !important;
+}
+
+/* Explicitly handle focus and hover */
+.stCheckbox label:hover, .stRadio label:hover {
+    color: var(--accent-dark) !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Top Navigation Bar ---
 st.markdown(
     """
