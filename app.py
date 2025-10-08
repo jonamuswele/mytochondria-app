@@ -293,7 +293,7 @@ else:
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
 
-tab_names = ["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks", "Manage Account"]
+tab_names = ["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks","AI Imagery Analysis", "Manage Account"]
 
 def _accent(theme: str) -> str:
     return "#2563eb" if theme == "dark" else "#4caf50"
@@ -2034,7 +2034,7 @@ CROP_SPACING_DEFAULT = {
 active = tab_names[st.session_state.active_tab]
 
 if active == "Home":
-    
+
     st.markdown("""
             <div style='padding:20px; border-radius:16px; background:linear-gradient(to right,#ecfdf5,#ffffff); 
             box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid rgba(5,150,105,0.2);'>
@@ -2640,6 +2640,59 @@ elif active == "Tips & Tricks":
     st.markdown("### ❌ Don’ts")
     for d in dont_list:
         st.error(d)
+
+elif active == "AI Imagery Analysis" :
+    st.header("📷 AI Imagery Analysis – Soil & Plant Health")
+
+    st.markdown("""
+    ### 🧭 How to Take Good Images
+    To get the most accurate results:
+    - **Use natural light**, avoid strong shadows or artificial lighting.  
+    - **Hold your camera parallel** to the soil or plant leaf surface.  
+    - **Do not edit or filter** the photo before uploading.  
+    - Ensure the image is **clear and in focus** (no blur).  
+    - Take **multiple angles** if possible for better AI accuracy.
+    """)
+
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
+
+    # === Soil Imagery ===
+    with col1:
+        st.subheader("🌍 Soil Imagery")
+        soil_file = st.file_uploader("Upload Soil Image", type=["jpg", "jpeg", "png"], key="soil_image")
+        if soil_file is not None:
+            st.image(soil_file, caption="Uploaded Soil Image", use_column_width=True)
+            if st.button("Analyze Soil Image", key="analyze_soil"):
+                with st.spinner("Analyzing soil image with AI..."):
+                    # 🚀 Placeholder for AI call — replace with actual model API later
+                    st.success("✅ AI detected rich organic matter and good soil texture balance.")
+                    st.markdown("""
+                    **AI Summary:**
+                    - Soil appears **loamy-sand** with good structure.  
+                    - Color indicates **moderate organic content (2–3%)**.  
+                    - Suggest **adding compost or manure** to boost microbial activity.  
+                    - Check **pH (expected ~6.5)** before planting.
+                    """)
+
+    # === Plant Imagery ===
+    with col2:
+        st.subheader("🌿 Plant Health Imagery")
+        plant_file = st.file_uploader("Upload Plant Image", type=["jpg", "jpeg", "png"], key="plant_image")
+        if plant_file is not None:
+            st.image(plant_file, caption="Uploaded Plant Image", use_column_width=True)
+            if st.button("Analyze Plant Image", key="analyze_plant"):
+                with st.spinner("Analyzing plant image with AI..."):
+                    # 🚀 Placeholder for AI call — replace with actual model API later
+                    st.success("✅ AI analyzed the plant successfully.")
+                    st.markdown("""
+                    **AI Summary:**
+                    - Leaves show **mild nitrogen deficiency** (light green discoloration).  
+                    - Recommend **topdressing with N-rich fertilizer (urea or organic)**.  
+                    - No visible fungal lesions or pest damage.  
+                    - Overall **plant vigor: good**.
+                    """)
 
 elif active == "Manage Account":
     st.subheader("👤 Account Dashboard")
