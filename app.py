@@ -2072,7 +2072,8 @@ if active == "Home":
                 st.rerun()
         with colB:
             st.button("🖼️ I'll upload images", key="btnImagery")
-
+            st.session_state.active_tab = 4  
+            st.rerun()
         st.caption("💡 Tip: For best imagery results use natural light and include a coin or ruler for scale.")
 
     with c2:
