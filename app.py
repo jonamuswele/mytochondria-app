@@ -1439,28 +1439,16 @@ button[disabled] {
 st.markdown("""
 <style>
 /* ===================================================
-   PATCH – Make text inside yellow warning boxes visible
+   PATCH – Stronger yellow warning boxes with black text
    =================================================== */
-
-/* Light mode warnings */
 .stAlert[data-baseweb="alert"][class*="stWarning"] {
-  background-color: #fffbea !important; /* soft yellow */
-  border-left: 5px solid #facc15 !important; /* gold border */
-  color: #111 !important; /* readable black text */
+  background-color: #facc15 !important;   /* deep amber yellow */
+  border-left: 5px solid #ca8a04 !important; /* darker amber border */
+  color: #000 !important;                 /* black text */
 }
 
-/* Ensure inner text (markdown, bold, lists, etc.) is black */
+/* Ensure all text inside remains black (titles, lists, links, etc.) */
 .stAlert[data-baseweb="alert"][class*="stWarning"] * {
-  color: #111 !important;
-}
-
-/* Dark mode warnings */
-html[data-theme="dark"] .stAlert[data-baseweb="alert"][class*="stWarning"] {
-  background-color: #facc15 !important; /* brighter yellow for dark bg */
-  border-left: 5px solid #fcd34d !important;
-  color: #000 !important;
-}
-html[data-theme="dark"] .stAlert[data-baseweb="alert"][class*="stWarning"] * {
   color: #000 !important;
 }
 </style>
