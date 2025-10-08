@@ -500,16 +500,16 @@ if st.session_state.user is None:
       padding: 0 !important;
       height: 100% !important;
       background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
-      overflow-x: hidden !important;   /* allow vertical scroll */
+      overflow-x: hidden !important;
       overflow-y: auto !important;
     }
 
-    /* Hide Streamlit’s default header/footer/toolbar */
+    /* Hide Streamlit’s chrome */
     header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {
       display: none !important;
     }
 
-    /* Remove Streamlit’s internal padding */
+    /* Remove Streamlit container padding */
     section.main, div.block-container {
       padding-top: 0 !important;
       margin-top: 0 !important;
@@ -517,102 +517,78 @@ if st.session_state.user is None:
       max-width: 100% !important;
     }
 
-    /* === LAYOUT === */
+    /* === WRAPPER (top-aligned, no forced viewport height) === */
     .login-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;   /* align to top instead of center */
-  min-height: 100vh;
-  width: 100%;
-  margin: 0 auto !important;
-  padding-top: 2rem;         /* small top padding */
-}
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      margin: 0 auto !important;
+      padding: 1rem 0 0;      /* tighter top padding */
+    }
 
-    
-    
+    /* === CARD (make sure this exists on desktop too) === */
+    .login-card {
+      display: flex;
+      flex-direction: row;
+      width: min(960px, 92vw);
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
 
-    /* === LEFT SIDE === */
+    /* === LEFT SIDE (shrink padding) === */
     .left-side {
       background-color: #166534;
-      color: white;
+      color: #fff;
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 2.5rem;
-      min-width: 300px;
+      padding: 1.25rem 1rem;   /* was 2.5rem */
+      min-width: 260px;
     }
-    .left-side h1 {
-      font-size: 2.6rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-    .left-side p {
-      font-size: 1.05rem;
-      text-align: center;
-      line-height: 1.6;
-    }
-    .left-side img {
-      width: 100px;
-      margin-top: 1.5rem;
-    }
+    .left-side h1 { font-size: 2.0rem; font-weight: 700; margin: 0 0 .6rem; }
+    .left-side p  { font-size: .98rem; text-align: center; line-height: 1.5; margin: 0; }
+    .left-side img{ width: 84px; margin-top: 1rem; }
 
-    /* === RIGHT SIDE === */
+    /* === RIGHT SIDE (shrink padding + headings) === */
     .right-side {
       flex: 1;
       background: #ffffff;
-      padding: 3rem 2rem;
+      padding: 1.25rem 1rem;   /* was 3rem 2rem */
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      min-width: 300px;
+      justify-content: center; /* vertically compact center */
+      min-width: 260px;
     }
     .right-side h2 {
       text-align: center;
       color: #166534;
-      font-size: 2rem;
+      font-size: 1.6rem;       /* was 2rem */
       font-weight: 700;
-      margin-bottom: 2rem;
+      margin: 0 0 1rem;        /* was 2rem bottom */
     }
 
-    /* === LINK NOTE === */
+    /* helper note */
     .login-note {
       text-align: center;
-      margin-top: 1.2rem;
+      margin-top: .8rem;
       color: #374151;
       font-size: 0.9rem;
     }
-    .login-note a {
-      color: #166534;
-      font-weight: 600;
-      text-decoration: none;
-    }
+    .login-note a { color: #166534; font-weight: 600; text-decoration: none; }
     .login-note a:hover { text-decoration: underline; }
 
-    /* === MOBILE FRIENDLY === */
+    /* === MOBILE STACK === */
     @media (max-width: 768px) {
-      .login-card {
-      display: flex;
-      flex-direction: row;
-      width: 80%;
-      max-width: 900px;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }
-     .left-side {
-      padding: 1.5rem;
-    }
-    .right-side {
-      padding: 2rem 1.5rem;
-    }
+      .login-card { flex-direction: column; width: 94vw; }
+      .left-side, .right-side { padding: 1rem .9rem; }
     }
     </style>
     """, unsafe_allow_html=True)
-
-
 
     # --- Layout Container ---
     st.markdown("<div class='login-wrapper'><div class='login-card'>", unsafe_allow_html=True)
