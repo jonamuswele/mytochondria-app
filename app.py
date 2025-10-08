@@ -499,32 +499,120 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 if st.session_state.user is None:
-    st.title("👩‍🌾 Mytochondria Farmer Login")
+    st.markdown("""
+    <style>
+    body, .stApp {
+        background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
+        color: #1e293b !important;
+        font-family: 'Inter', sans-serif;
+    }
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 90vh;
+    }
+    .login-card {
+        background: white;
+        box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+        border-radius: 20px;
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+        width: 90%;
+        max-width: 900px;
+    }
+    .brand-side {
+        background-color: #166534;
+        color: white;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+    .brand-side h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; }
+    .brand-side p { text-align: center; font-size: 1rem; line-height: 1.5; }
+    .brand-side img { width: 90px; margin-top: 1rem; }
 
-    tab_login, tab_register = st.tabs(["Login", "Register"])
+    .form-side {
+        flex: 1;
+        background: white;
+        padding: 2.5rem;
+    }
+    .form-side h2 {
+        text-align: center;
+        color: #166534;
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    with tab_login:
-        uname = st.text_input("Username", key="login_user")
-        pword = st.text_input("Password", type="password", key="login_pass")
-        if st.button("Login"):
-            user = find_user(uname, pword)
-            if user:
-                st.session_state.user = user
-                st.success("Welcome back!")
-                st.rerun()
-            else:
-                st.error("Invalid username or password.")
+    # --- Layout ---
+    st.markdown('<div class="login-container"><div class="login-card">', unsafe_allow_html=True)
 
-    with tab_register:
-        new_user = st.text_input("Choose username", key="reg_user")
-        new_pass = st.text_input("Choose password", type="password", key="reg_pass")
-        new_email = st.text_input("Email", key="reg_email")
-        if st.button("Register"):
-            if user_exists(new_user):
-                st.error("Username already exists.")
-            else:
-                create_user(new_user, new_pass, new_email)
-                st.success("Account created! Please login.")
+    # Left (Brand)
+    left, right = st.columns([1,1])
+    with left:
+        st.markdown("""
+        <div class='brand-side'>
+          <h1>Mytochondria</h1>
+          <p>Smart farming made simple.<br>Empowering farmers with AI-driven soil insights and real-time data.</p>
+          <img src='https://cdn-icons-png.flaticon.com/512/4341/4341065.png' alt='Farm Icon'>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Right (Form)
+    with right:
+        if "show_register" not in st.session_state:
+            st.session_state.show_register = False
+
+        if not st.session_state.show_register:
+            st.markdown("<div class='form-side'><h2>Farmer Login</h2>", unsafe_allow_html=True)
+            uname = st.text_input("Email or Username", key="login_user")
+            pword = st.text_input("Password", type="password", key="login_pass")
+            if st.button("Login", use_container_width=True):
+                user = find_user(uname, pword)
+                if user:
+                    st.session_state.user = user
+                    st.success("✅ Login successful! Welcome back.")
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password.")
+            st.markdown("""
+            <p style='text-align:center;margin-top:1rem;'>
+                Don't have an account?
+                <a href='#' onclick="window.parent.postMessage('toggleRegister','*')" style='color:#166534;font-weight:600;'>Create one</a>
+            </p>
+            </div>""", unsafe_allow_html=True)
+        else:
+            st.markdown("<div class='form-side'><h2>Create Farmer Account</h2>", unsafe_allow_html=True)
+            new_user = st.text_input("Full Name", key="reg_user")
+            new_email = st.text_input("Email", key="reg_email")
+            new_pass = st.text_input("Password", type="password", key="reg_pass")
+            farm_size = st.number_input("Farm Size (hectares)", min_value=0.1, key="reg_size")
+            sensors = st.selectbox("Do you have Mytochondria Sensors?",
+                                   ["No, I will enter data manually", "Yes, I have sensors"])
+            if st.button("Create Account", use_container_width=True):
+                if user_exists(new_user):
+                    st.error("Username already exists.")
+                else:
+                    create_user(new_user, new_pass, new_email)
+                    st.success("✅ Account created! Please login.")
+                    st.session_state.show_register = False
+                    st.rerun()
+            st.markdown("""
+            <p style='text-align:center;margin-top:1rem;'>
+                Already have an account?
+                <a href='#' onclick="window.parent.postMessage('toggleLogin','*')" style='color:#166534;font-weight:600;'>Login</a>
+            </p>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown("</div></div>", unsafe_allow_html=True)
     st.stop()
 
 user = st.session_state.user
