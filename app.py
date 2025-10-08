@@ -499,81 +499,57 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 if st.session_state.user is None:
-    # --- Fullscreen split login like login.html ---
+    # --- Centered Emerald Login Card ---
     st.markdown("""
     <style>
     html, body, .stApp {
         height: 100%;
         margin: 0;
         padding: 0;
+        background: linear-gradient(to bottom, var(--bg-light), #ffffff) !important;
         overflow: hidden;
-        background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
-        font-family: 'Inter', sans-serif;
     }
-    .login-wrapper {
+    .login-container {
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        width: 100vw;
+        text-align: center;
     }
-    .login-box {
-        display: flex;
-        flex-direction: row;
-        width: 80%;
-        max-width: 950px;
-        height: 560px;
+    .login-card {
+        background-color: #ffffff;
+        border: 1px solid rgba(5,150,105,0.15);
         border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 18px 40px rgba(0,0,0,0.25);
-        background: white;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        padding: 2.5rem 3rem;
+        max-width: 400px;
+        width: 90%;
     }
-    .left-side {
-        background-color: #166534;
-        color: white;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 2.5rem;
-    }
-    .left-side h1 {
-        font-size: 2.5rem;
-        font-weight: 800;
+    .login-logo {
+        width: 80px;
         margin-bottom: 1rem;
     }
-    .left-side p {
-        text-align: center;
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-    .left-side img {
-        width: 100px;
-        margin-top: 1.5rem;
-    }
-    .right-side {
-        flex: 1;
-        background: white;
-        padding: 2.5rem 2rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-    .right-side h2 {
-        color: #166534;
-        font-weight: 700;
+    .login-title {
         font-size: 1.8rem;
-        text-align: center;
-        margin-bottom: 1.2rem;
+        font-weight: 700;
+        color: var(--accent-dark);
+        margin-bottom: 0.5rem;
+    }
+    .login-sub {
+        font-size: 0.9rem;
+        color: #475569;
+        margin-bottom: 1.5rem;
+    }
+    .stTextInput > div > div > input {
+        text-align: center !important;
     }
     .switch-link {
-        text-align: center;
         margin-top: 1rem;
         font-size: 0.9rem;
     }
     .switch-link a {
-        color: #166534;
+        color: var(--accent);
         font-weight: 600;
         text-decoration: none;
     }
@@ -583,41 +559,42 @@ if st.session_state.user is None:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-wrapper"><div class="login-box">', unsafe_allow_html=True)
+    st.markdown('<div class="login-container">', unsafe_allow_html=True)
 
-    # --- Left Side (Brand) ---
     st.markdown("""
-    <div class="left-side">
-      <h1>Mytochondria</h1>
-      <p>Smart farming made simple.<br>Empowering farmers with AI-driven soil insights and real-time data.</p>
-      <img src="https://cdn-icons-png.flaticon.com/512/4341/4341065.png" alt="Farm Icon" />
-    </div>
+    <div class="login-card">
+        <img src="https://mytochondria.com/assets/logo.png" class="login-logo" alt="Mytochondria logo"/>
+        <div class="login-title">Mytochondria</div>
+        <div class="login-sub">Smart farming made simple 🌱</div>
     """, unsafe_allow_html=True)
 
-    # --- Right Side (Login / Register) ---
     if "show_register" not in st.session_state:
         st.session_state.show_register = False
 
-    st.markdown('<div class="right-side">', unsafe_allow_html=True)
-
     if not st.session_state.show_register:
-        st.markdown("<h2>Farmer Login</h2>", unsafe_allow_html=True)
-        uname = st.text_input("Email or Username", key="login_user")
+        uname = st.text_input("Username or Email", key="login_user")
         pword = st.text_input("Password", type="password", key="login_pass")
+
         if st.button("Login", use_container_width=True):
             user = find_user(uname, pword)
             if user:
                 st.session_state.user = user
-                st.success("✅ Login successful! Welcome back.")
+                st.success("✅ Welcome back!")
                 st.rerun()
             else:
                 st.error("Invalid username or password.")
+
+        st.markdown("""
+        <div class="switch-link">
+            Don't have an account? <a href="#" onclick="window.parent.postMessage('toggleRegister','*')">Create one</a>
+        </div>
+        """, unsafe_allow_html=True)
+
         if st.button("Create Account", use_container_width=True):
             st.session_state.show_register = True
             st.rerun()
 
     else:
-        st.markdown("<h2>Create Farmer Account</h2>", unsafe_allow_html=True)
         new_user = st.text_input("Full Name", key="reg_user")
         new_email = st.text_input("Email", key="reg_email")
         new_pass = st.text_input("Password", type="password", key="reg_pass")
@@ -632,11 +609,18 @@ if st.session_state.user is None:
                 st.success("✅ Account created! Please login.")
                 st.session_state.show_register = False
                 st.rerun()
+
+        st.markdown("""
+        <div class="switch-link">
+            Already have an account? <a href="#" onclick="window.parent.postMessage('toggleLogin','*')">Login</a>
+        </div>
+        """, unsafe_allow_html=True)
+
         if st.button("Back to Login", use_container_width=True):
             st.session_state.show_register = False
             st.rerun()
 
-    st.markdown('</div></div></div>', unsafe_allow_html=True)
+    st.markdown("</div></div>", unsafe_allow_html=True)
     st.stop()
 
 user = st.session_state.user
