@@ -32,15 +32,11 @@ if "theme" not in st.session_state:
 
 logo_col, space_col, mode_col = st.columns([1, 5, 1])
 with logo_col:
-    st.image("https://mytochondria.com/assets/logo.png", width=60)
+    st.image("g34788", width=60)
 
 with mode_col:
     # Toggle reflects current theme
-    new_toggle = st.toggle(
-        "🌙 Dark Mode",
-        value=(st.session_state.theme == "dark"),
-        key="theme_toggle"
-    )
+    new_toggle=False
     # Update state immediately when changed
     st.session_state.theme = "dark" if new_toggle else "light"
 
