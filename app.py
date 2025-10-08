@@ -30,9 +30,7 @@ CROP_SPACING_DEFAULT = {
 if "theme" not in st.session_state:
     st.session_state.theme = "light"
 
-logo_col, space_col, mode_col = st.columns([1, 5, 1])
-with logo_col:
-    st.image("g34788.png", width=60)
+
 
 with mode_col:
     # Toggle reflects current theme
@@ -698,6 +696,13 @@ if st.session_state.user is None:
 
     st.markdown("</div></div>", unsafe_allow_html=True)
     st.stop()
+    
+logo_col, space_col, mode_col = st.columns([1, 5, 1])
+with logo_col:
+    st.image("g34788.png", width=60)
+with mode_col:
+    new_toggle = False
+    st.session_state.theme = "dark" if new_toggle else "light"
 
 user = st.session_state.user
 user_farms = user.get("farms", [])
