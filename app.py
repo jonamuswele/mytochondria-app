@@ -494,98 +494,124 @@ if st.session_state.user is None:
 
     st.markdown("""
     <style>
-    /* === GLOBAL RESET === */
-    html, body, [data-testid="stAppViewContainer"], .stApp, .block-container {
+    /* === CLEAN LOGIN LAYOUT (Balanced Aesthetic) === */
+
+    /* Global container */
+    html, body, .stApp, [data-testid="stAppViewContainer"] {
       margin: 0 !important;
       padding: 0 !important;
       height: 100% !important;
-      background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
+      background: radial-gradient(circle at 30% 30%, #0f5132 0%, #14532d 35%, #198754 100%) !important;
+      overflow: hidden !important;
+      font-family: 'Inter', sans-serif !important;
     }
 
-    /* Hide Streamlit’s chrome */
-    header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {
-      display: none !important;
-    }
-
-    /* Remove Streamlit container padding */
-    section.main, div.block-container {
-      padding-top: 0 !important;
-      margin-top: 0 !important;
-      background: transparent !important;
-      max-width: 100% !important;
-    }
-
-    /* === WRAPPER (top-aligned, no forced viewport height) === */
+    /* Centering wrapper */
     .login-wrapper {
       display: flex;
+      flex-direction: column;
       justify-content: center;
-      align-items: flex-start;
+      align-items: center;
+      height: 100vh;              /* full height for perfect vertical balance */
       width: 100%;
-      margin: 0 auto !important;
-      padding: 1rem 0 0;      /* tighter top padding */
+      padding: 0;
     }
 
-    /* === CARD (make sure this exists on desktop too) === */
+    /* Add smooth fade-in animation */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Login card styling */
     .login-card {
       display: flex;
       flex-direction: row;
-      width: min(960px, 92vw);
-      background: #fff;
-      border-radius: 12px;
+      width: min(880px, 92vw);
+      background: #ffffff;
+      border-radius: 18px;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.25);
+      animation: fadeInUp 0.8s ease-out both;
+      transform: translateY(-5vh); /* slightly lifted */
     }
 
-    /* === LEFT SIDE (shrink padding) === */
+    /* Left panel */
     .left-side {
-      background-color: #166534;
-      color: #fff;
+      background: linear-gradient(135deg, #166534, #198754);
+      color: #ffffff;
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 1.25rem 1rem;   /* was 2.5rem */
-      min-width: 260px;
+      padding: 2rem 1.2rem;
     }
-    .left-side h1 { font-size: 2.0rem; font-weight: 700; margin: 0 0 .6rem; }
-    .left-side p  { font-size: .98rem; text-align: center; line-height: 1.5; margin: 0; }
-    .left-side img{ width: 84px; margin-top: 1rem; }
+    .left-side h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .left-side p {
+      font-size: 1rem;
+      line-height: 1.5;
+      opacity: 0.9;
+      text-align: center;
+    }
+    .left-side img {
+      width: 90px;
+      margin-top: 1.2rem;
+    }
 
-    /* === RIGHT SIDE (shrink padding + headings) === */
+    /* Right panel */
     .right-side {
       flex: 1;
-      background: #ffffff;
-      padding: 1.25rem 1rem;   /* was 3rem 2rem */
+      padding: 2rem 1.5rem;
       display: flex;
       flex-direction: column;
-      justify-content: center; /* vertically compact center */
-      min-width: 260px;
+      justify-content: center;
     }
     .right-side h2 {
       text-align: center;
       color: #166534;
-      font-size: 1.6rem;       /* was 2rem */
-      font-weight: 700;
-      margin: 0 0 1rem;        /* was 2rem bottom */
+      font-size: 1.7rem;
+      margin-bottom: 1.4rem;
+    }
+    .stTextInput label, .stNumberInput label, .stSelectbox label {
+      color: #166534 !important;
+      font-weight: 600 !important;
+    }
+    .stButton > button {
+      background-color: #059669 !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      transition: all 0.25s ease;
+    }
+    .stButton > button:hover {
+      background-color: #047857 !important;
+      transform: translateY(-1px);
     }
 
-    /* helper note */
+    /* Register/Login note */
     .login-note {
       text-align: center;
-      margin-top: .8rem;
+      margin-top: 1rem;
       color: #374151;
       font-size: 0.9rem;
     }
-    .login-note a { color: #166534; font-weight: 600; text-decoration: none; }
+    .login-note a {
+      color: #166534;
+      font-weight: 600;
+      text-decoration: none;
+    }
     .login-note a:hover { text-decoration: underline; }
 
-    /* === MOBILE STACK === */
+    /* Responsive stacking */
     @media (max-width: 768px) {
       .login-card { flex-direction: column; width: 94vw; }
-      .left-side, .right-side { padding: 1rem .9rem; }
+      .left-side, .right-side { padding: 1.5rem 1rem; }
     }
     </style>
     """, unsafe_allow_html=True)
