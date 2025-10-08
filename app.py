@@ -1439,17 +1439,27 @@ button[disabled] {
 st.markdown("""
 <style>
 /* ===================================================
-   PATCH – Stronger yellow warning boxes with black text
+   FIX – Strong yellow background for warnings
+   Works with all Streamlit versions
    =================================================== */
-.stAlert[data-baseweb="alert"][class*="stWarning"] {
-  background-color: #facc15 !important;   /* deep amber yellow */
-  border-left: 5px solid #ca8a04 !important; /* darker amber border */
-  color: #000 !important;                 /* black text */
+
+/* Match both legacy and new alert containers */
+div[data-testid="stAlert"][role="alert"],
+.stAlert, .stAlert-warning {
+  background-color: #fbbf24 !important;    /* deeper amber */
+  border-left: 6px solid #ca8a04 !important;
+  color: #000 !important;
 }
 
-/* Ensure all text inside remains black (titles, lists, links, etc.) */
-.stAlert[data-baseweb="alert"][class*="stWarning"] * {
+/* Make every child element inside readable */
+div[data-testid="stAlert"][role="alert"] *,
+.stAlert *, .stAlert-warning * {
   color: #000 !important;
+}
+
+/* Optional: subtle shadow for contrast */
+div[data-testid="stAlert"][role="alert"] {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 </style>
 """, unsafe_allow_html=True)
