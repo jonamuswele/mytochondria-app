@@ -522,7 +522,7 @@ if st.session_state.user is None:
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      width: 100%;
+      width: 50%;
       margin: 0 auto !important;
       padding: 1rem ;     
     }
