@@ -524,7 +524,7 @@ if st.session_state.user is None:
       align-items: flex-start;
       width: 100%;
       margin: 0 auto !important;
-      padding: 1rem 0 0;      /* tighter top padding */
+      padding: 1rem ;     
     }
 
     /* === CARD (make sure this exists on desktop too) === */
@@ -558,10 +558,10 @@ if st.session_state.user is None:
     .right-side {
       flex: 1;
       background: #ffffff;
-      padding: 1.25rem 1rem;   /* was 3rem 2rem */
+      padding: 1.25rem 1rem;  
       display: flex;
       flex-direction: column;
-      justify-content: center; /* vertically compact center */
+      justify-content: center; 
       min-width: 260px;
     }
     .right-side h2 {
@@ -583,7 +583,7 @@ if st.session_state.user is None:
     .login-note a:hover { text-decoration: underline; }
 
     /* === MOBILE STACK === */
-    @media (max-width: 384px) {
+    @media (max-width: 768px) {
       .login-card { flex-direction: column; width: 94vw; }
       .left-side, .right-side { padding: 1rem .9rem; }
     }
