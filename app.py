@@ -499,126 +499,165 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 if st.session_state.user is None:
-    # --- Centered Emerald Login Card ---
+    st.set_page_config(page_title="Mytochondria Login", page_icon="🌿", layout="wide")
+
     st.markdown("""
     <style>
-    html, body, .stApp {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background: linear-gradient(to bottom, var(--bg-light), #ffffff) !important;
-        overflow: hidden;
+    body, .stApp {
+      background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
+      color: #1e293b !important;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden !important;
     }
-    .login-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        text-align: center;
+
+    /* Center everything vertically */
+    .login-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100%;
     }
+
     .login-card {
-        background-color: #ffffff;
-        border: 1px solid rgba(5,150,105,0.15);
-        border-radius: 20px;
-        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-        padding: 2.5rem 3rem;
-        max-width: 400px;
-        width: 90%;
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 40px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      width: 80%;
+      max-width: 900px;
+      min-height: 500px;
     }
-    .login-logo {
-        width: 80px;
-        margin-bottom: 1rem;
+
+    .left-side {
+      background-color: #166534;
+      color: white;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2.5rem;
     }
-    .login-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--accent-dark);
-        margin-bottom: 0.5rem;
+    .left-side h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
     }
-    .login-sub {
-        font-size: 0.9rem;
-        color: #475569;
-        margin-bottom: 1.5rem;
+    .left-side p {
+      font-size: 1.05rem;
+      text-align: center;
+      line-height: 1.6;
     }
-    .stTextInput > div > div > input {
-        text-align: center !important;
+    .left-side img {
+      width: 100px;
+      margin-top: 1.5rem;
     }
-    .switch-link {
-        margin-top: 1rem;
-        font-size: 0.9rem;
+
+    .right-side {
+      flex: 1;
+      background: #ffffff;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .switch-link a {
-        color: var(--accent);
-        font-weight: 600;
-        text-decoration: none;
+    .right-side h2 {
+      text-align: center;
+      color: #166534;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
     }
-    .switch-link a:hover {
-        text-decoration: underline;
+    .login-note {
+      text-align: center;
+      margin-top: 1.2rem;
+      color: #374151;
+      font-size: 0.9rem;
     }
+    .login-note a {
+      color: #166534;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .login-note a:hover { text-decoration: underline; }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-container">', unsafe_allow_html=True)
+    # --- Layout Container ---
+    st.markdown("<div class='login-wrapper'><div class='login-card'>", unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="login-card">
-        <img src="https://mytochondria.com/assets/logo.png" class="login-logo" alt="Mytochondria logo"/>
-        <div class="login-title">Mytochondria</div>
-        <div class="login-sub">Smart farming made simple 🌱</div>
-    """, unsafe_allow_html=True)
+    # Two columns (manual structure)
+    col1, col2 = st.columns([1, 1], gap="small")
 
-    if "show_register" not in st.session_state:
-        st.session_state.show_register = False
-
-    if not st.session_state.show_register:
-        uname = st.text_input("Username or Email", key="login_user")
-        pword = st.text_input("Password", type="password", key="login_pass")
-
-        if st.button("Login", use_container_width=True):
-            user = find_user(uname, pword)
-            if user:
-                st.session_state.user = user
-                st.success("✅ Welcome back!")
-                st.rerun()
-            else:
-                st.error("Invalid username or password.")
-
+    with col1:
         st.markdown("""
-        <div class="switch-link">
-            Don't have an account? <a href="#" onclick="window.parent.postMessage('toggleRegister','*')">Create one</a>
+        <div class='left-side'>
+          <h1>Mytochondria</h1>
+          <p>Smart farming made simple.<br>
+          Empowering farmers with AI-driven soil insights and real-time data.</p>
+          <img src='https://cdn-icons-png.flaticon.com/512/4341/4341065.png' alt='Farm Icon'>
         </div>
         """, unsafe_allow_html=True)
 
-        if st.button("Create Account", use_container_width=True):
-            st.session_state.show_register = True
-            st.rerun()
-
-    else:
-        new_user = st.text_input("Full Name", key="reg_user")
-        new_email = st.text_input("Email", key="reg_email")
-        new_pass = st.text_input("Password", type="password", key="reg_pass")
-        farm_size = st.number_input("Farm Size (hectares)", min_value=0.1, key="reg_size")
-        sensors = st.selectbox("Do you have Mytochondria Sensors?",
-                               ["No, I will enter data manually", "Yes, I have sensors"])
-        if st.button("Register", use_container_width=True):
-            if user_exists(new_user):
-                st.error("Username already exists.")
-            else:
-                create_user(new_user, new_pass, new_email)
-                st.success("✅ Account created! Please login.")
-                st.session_state.show_register = False
-                st.rerun()
-
-        st.markdown("""
-        <div class="switch-link">
-            Already have an account? <a href="#" onclick="window.parent.postMessage('toggleLogin','*')">Login</a>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("Back to Login", use_container_width=True):
+    with col2:
+        if "show_register" not in st.session_state:
             st.session_state.show_register = False
-            st.rerun()
+
+        if not st.session_state.show_register:
+            st.markdown("<div class='right-side'><h2>Farmer Login</h2>", unsafe_allow_html=True)
+            email = st.text_input("Email", key="login_email")
+            password = st.text_input("Password", type="password", key="login_password")
+
+            login_clicked = st.button("Login", use_container_width=True)
+            if login_clicked:
+                user = find_user(email, password)
+                if user:
+                    st.session_state.user = user
+                    st.success("✅ Login successful! Welcome back.")
+                    st.rerun()
+                else:
+                    st.error("Invalid email or password.")
+
+            st.markdown("""
+            <p class='login-note'>
+                Don't have an account?
+                <a href='#' onclick="window.parent.postMessage('toggleRegister','*')">Create one</a>
+            </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        else:
+            st.markdown("<div class='right-side'><h2>Create Farmer Account</h2>", unsafe_allow_html=True)
+            name = st.text_input("Full Name", key="reg_name")
+            email = st.text_input("Email", key="reg_email")
+            password = st.text_input("Password", type="password", key="reg_pass")
+            farm_size = st.number_input("Farm Size (in hectares)", min_value=0.1, step=0.1, key="reg_size")
+            sensor_status = st.selectbox(
+                "Do you have Mytochondria Sensors?",
+                ["No, I will enter data manually", "Yes, I have sensors to integrate"],
+                key="reg_sensor"
+            )
+
+            create_clicked = st.button("Create Account", use_container_width=True)
+            if create_clicked:
+                if user_exists(name):
+                    st.error("Username already exists.")
+                else:
+                    create_user(name, password, email)
+                    st.success("✅ Account created! Please login.")
+                    st.session_state.show_register = False
+                    st.rerun()
+
+            st.markdown("""
+            <p class='login-note'>
+                Already have an account?
+                <a href='#' onclick="window.parent.postMessage('toggleLogin','*')">Login</a>
+            </p>
+            </div>
+            """, unsafe_allow_html=True)
 
     st.markdown("</div></div>", unsafe_allow_html=True)
     st.stop()
