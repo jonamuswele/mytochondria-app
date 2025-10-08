@@ -1385,6 +1385,57 @@ input[type="checkbox"]:focus {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* ===================================================
+   FINAL PATCH — Fix black 'Save' buttons in forms
+   Ensures all Streamlit buttons follow emerald theme
+   =================================================== */
+
+/* Default buttons (primary, secondary, form submit, etc.) */
+button[kind="primary"], button[kind="secondary"],
+.stButton > button, div[data-testid="stButton"] > button,
+div[data-testid="stFormSubmitButton"] > button,
+div[data-testid="stDownloadButton"] > button {
+    background-color: var(--accent) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 10px rgba(5,150,105,0.25) !important;
+    transition: all 0.25s ease-in-out;
+}
+
+/* Hover + active */
+button[kind="primary"]:hover, button[kind="secondary"]:hover,
+div[data-testid="stButton"] > button:hover,
+div[data-testid="stFormSubmitButton"] > button:hover {
+    background-color: var(--accent-dark) !important;
+    transform: translateY(-1px);
+}
+
+button[kind="primary"]:active, button[kind="secondary"]:active,
+div[data-testid="stButton"] > button:active,
+div[data-testid="stFormSubmitButton"] > button:active {
+    background-color: var(--accent-light) !important;
+    color: white !important;
+    transform: scale(0.98);
+}
+
+/* Fix for forms inside expanders */
+div[data-testid="stFormSubmitButton"] > button {
+    width: 100% !important;
+    margin-top: 6px !important;
+}
+
+/* Ensure disabled buttons still readable */
+button[disabled] {
+    background-color: rgba(5,150,105,0.3) !important;
+    color: rgba(255,255,255,0.7) !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Top Navigation Bar ---
 st.markdown(
     """
@@ -1413,28 +1464,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("""
-<style>
-/* --- Emerald-green Save Configuration button --- */
-form button[kind="secondary"], form button[kind="primary"], form button {
-  background-color: #059669 !important;    /* emerald */
-  color: white !important;
-  border: 1px solid #047857 !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  padding: 0.45rem 1.1rem !important;
-  box-shadow: 0 4px 8px rgba(5,150,105,0.25) !important;
-  transition: all 0.25s ease-in-out;
-}
-form button:hover {
-  background-color: #047857 !important;
-  transform: translateY(-1px);
-}
-form button:active {
-  transform: scale(0.97);
-}
-</style>
-""", unsafe_allow_html=True)
+
 
 nav_cols = st.columns(len(tab_names))
 for i, name in enumerate(tab_names):
