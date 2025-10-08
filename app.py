@@ -537,20 +537,8 @@ if st.session_state.user is None:
       padding: 2rem 0;  /* small vertical breathing room */
     }
 
-    /* === LOGIN CARD === */
-    .login-card {
-      background: white;
-      border-radius: 1.5rem;
-      box-shadow: 0 25px 40px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      overflow: hidden;
-      width: 85%;
-      max-width: 900px;
-      min-height: 500px;
-      margin: auto;
-    }
+    
+    
 
     /* === LEFT SIDE === */
     .left-side {
@@ -626,29 +614,8 @@ if st.session_state.user is None:
     }
     </style>
     """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <style>
-    /* Remove extra white padding/margin above the login card */
-    .block-container, .main, [data-testid="stAppViewContainer"] > .main {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-    }
-
-    /* Also ensure no white gap is rendered before the gradient */
-    html, body {
-        background-color: transparent !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    /* Tighten login wrapper positioning */
-    .login-wrapper {
-        margin-top: 0 !important;
-        padding-top: 0 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    
+    
 
     # --- Layout Container ---
     st.markdown("<div class='login-wrapper'><div class='login-card'>", unsafe_allow_html=True)
