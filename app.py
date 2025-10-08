@@ -1436,6 +1436,36 @@ button[disabled] {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* ===================================================
+   PATCH – Make text inside yellow warning boxes visible
+   =================================================== */
+
+/* Light mode warnings */
+.stAlert[data-baseweb="alert"][class*="stWarning"] {
+  background-color: #fffbea !important; /* soft yellow */
+  border-left: 5px solid #facc15 !important; /* gold border */
+  color: #111 !important; /* readable black text */
+}
+
+/* Ensure inner text (markdown, bold, lists, etc.) is black */
+.stAlert[data-baseweb="alert"][class*="stWarning"] * {
+  color: #111 !important;
+}
+
+/* Dark mode warnings */
+html[data-theme="dark"] .stAlert[data-baseweb="alert"][class*="stWarning"] {
+  background-color: #facc15 !important; /* brighter yellow for dark bg */
+  border-left: 5px solid #fcd34d !important;
+  color: #000 !important;
+}
+html[data-theme="dark"] .stAlert[data-baseweb="alert"][class*="stWarning"] * {
+  color: #000 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Top Navigation Bar ---
 st.markdown(
     """
