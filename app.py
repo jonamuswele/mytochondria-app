@@ -509,13 +509,16 @@ if st.session_state.user is None:
       padding: 0 !important;
       height: 100% !important;
       background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
-      overflow: hidden !important;
+      overflow-x: hidden !important;   /* allow vertical scroll */
+      overflow-y: auto !important;
     }
 
-    /* Hide Streamlit’s header/footer and “Manage app” padding */
+    /* Hide Streamlit’s default header/footer/toolbar */
     header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {
       display: none !important;
     }
+
+    /* Remove Streamlit’s internal padding */
     section.main, div.block-container {
       padding-top: 0 !important;
       margin-top: 0 !important;
@@ -528,9 +531,10 @@ if st.session_state.user is None:
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh !important;
+      min-height: 100vh;  /* allow scroll when needed */
       width: 100%;
-      margin: 0 !important;
+      margin: 0 auto !important;
+      padding: 2rem 0;  /* small vertical breathing room */
     }
 
     /* === LOGIN CARD === */
@@ -540,14 +544,15 @@ if st.session_state.user is None:
       box-shadow: 0 25px 40px rgba(0,0,0,0.2);
       display: flex;
       flex-direction: row;
+      flex-wrap: wrap;
       overflow: hidden;
-      width: 80%;
+      width: 85%;
       max-width: 900px;
       min-height: 500px;
-      margin: 0 auto;
+      margin: auto;
     }
 
-    /* === LEFT SIDE (Brand) === */
+    /* === LEFT SIDE === */
     .left-side {
       background-color: #166534;
       color: white;
@@ -557,6 +562,7 @@ if st.session_state.user is None:
       justify-content: center;
       align-items: center;
       padding: 2.5rem;
+      min-width: 300px;
     }
     .left-side h1 {
       font-size: 2.6rem;
@@ -573,7 +579,7 @@ if st.session_state.user is None:
       margin-top: 1.5rem;
     }
 
-    /* === RIGHT SIDE (Form) === */
+    /* === RIGHT SIDE === */
     .right-side {
       flex: 1;
       background: #ffffff;
@@ -581,6 +587,7 @@ if st.session_state.user is None:
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-width: 300px;
     }
     .right-side h2 {
       text-align: center;
@@ -590,7 +597,7 @@ if st.session_state.user is None:
       margin-bottom: 2rem;
     }
 
-    /* === LINKS AND NOTES === */
+    /* === LINK NOTE === */
     .login-note {
       text-align: center;
       margin-top: 1.2rem;
@@ -603,6 +610,20 @@ if st.session_state.user is None:
       text-decoration: none;
     }
     .login-note a:hover { text-decoration: underline; }
+
+    /* === MOBILE FRIENDLY === */
+    @media (max-width: 768px) {
+      .login-card {
+        flex-direction: column;
+        width: 90%;
+        min-height: auto;
+      }
+      .left-side, .right-side {
+        flex: none;
+        width: 100%;
+        padding: 2rem 1.5rem;
+      }
+    }
     </style>
     """, unsafe_allow_html=True)
 
