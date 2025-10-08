@@ -528,14 +528,14 @@ if st.session_state.user is None:
 
     /* === LAYOUT === */
     .login-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;  /* allow scroll when needed */
-      width: 100%;
-      margin: 0 auto !important;
-      padding: 2rem 0;  /* small vertical breathing room */
-    }
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;   /* align to top instead of center */
+  min-height: 100vh;
+  width: 100%;
+  margin: 0 auto !important;
+  padding-top: 2rem;         /* small top padding */
+}
 
     
     
@@ -602,20 +602,26 @@ if st.session_state.user is None:
     /* === MOBILE FRIENDLY === */
     @media (max-width: 768px) {
       .login-card {
-        flex-direction: column;
-        width: 90%;
-        min-height: auto;
-      }
-      .left-side, .right-side {
-        flex: none;
-        width: 100%;
-        padding: 2rem 1.5rem;
-      }
+      display: flex;
+      flex-direction: row;
+      width: 80%;
+      max-width: 900px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+     .left-side {
+      padding: 1.5rem;
+    }
+    .right-side {
+      padding: 2rem 1.5rem;
+    }
     }
     </style>
     """, unsafe_allow_html=True)
-    
-    
+
+
 
     # --- Layout Container ---
     st.markdown("<div class='login-wrapper'><div class='login-card'>", unsafe_allow_html=True)
