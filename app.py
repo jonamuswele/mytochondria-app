@@ -499,31 +499,36 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 if st.session_state.user is None:
+    # --- Fullscreen split login like login.html ---
     st.markdown("""
     <style>
-    body, .stApp {
+    html, body, .stApp {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
         background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
-        color: #1e293b !important;
         font-family: 'Inter', sans-serif;
     }
-    .login-container {
+    .login-wrapper {
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
-        min-height: 90vh;
+        height: 100vh;
+        width: 100vw;
     }
-    .login-card {
-        background: white;
-        box-shadow: 0 20px 30px rgba(0,0,0,0.15);
-        border-radius: 20px;
+    .login-box {
         display: flex;
         flex-direction: row;
+        width: 80%;
+        max-width: 950px;
+        height: 560px;
+        border-radius: 20px;
         overflow: hidden;
-        width: 90%;
-        max-width: 900px;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+        background: white;
     }
-    .brand-side {
+    .left-side {
         background-color: #166534;
         color: white;
         flex: 1;
@@ -531,88 +536,107 @@ if st.session_state.user is None:
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 2rem;
-    }
-    .brand-side h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; }
-    .brand-side p { text-align: center; font-size: 1rem; line-height: 1.5; }
-    .brand-side img { width: 90px; margin-top: 1rem; }
-
-    .form-side {
-        flex: 1;
-        background: white;
         padding: 2.5rem;
     }
-    .form-side h2 {
+    .left-side h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    .left-side p {
         text-align: center;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .left-side img {
+        width: 100px;
+        margin-top: 1.5rem;
+    }
+    .right-side {
+        flex: 1;
+        background: white;
+        padding: 2.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .right-side h2 {
         color: #166534;
         font-weight: 700;
         font-size: 1.8rem;
-        margin-bottom: 1.5rem;
+        text-align: center;
+        margin-bottom: 1.2rem;
+    }
+    .switch-link {
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+    .switch-link a {
+        color: #166534;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .switch-link a:hover {
+        text-decoration: underline;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- Layout ---
-    st.markdown('<div class="login-container"><div class="login-card">', unsafe_allow_html=True)
+    st.markdown('<div class="login-wrapper"><div class="login-box">', unsafe_allow_html=True)
 
-    # Left (Brand)
-    left, right = st.columns([1,1])
-    with left:
-        st.markdown("""
-        <div class='brand-side'>
-          <h1>Mytochondria</h1>
-          <p>Smart farming made simple.<br>Empowering farmers with AI-driven soil insights and real-time data.</p>
-          <img src='https://cdn-icons-png.flaticon.com/512/4341/4341065.png' alt='Farm Icon'>
-        </div>
-        """, unsafe_allow_html=True)
+    # --- Left Side (Brand) ---
+    st.markdown("""
+    <div class="left-side">
+      <h1>Mytochondria</h1>
+      <p>Smart farming made simple.<br>Empowering farmers with AI-driven soil insights and real-time data.</p>
+      <img src="https://cdn-icons-png.flaticon.com/512/4341/4341065.png" alt="Farm Icon" />
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Right (Form)
-    with right:
-        if "show_register" not in st.session_state:
+    # --- Right Side (Login / Register) ---
+    if "show_register" not in st.session_state:
+        st.session_state.show_register = False
+
+    st.markdown('<div class="right-side">', unsafe_allow_html=True)
+
+    if not st.session_state.show_register:
+        st.markdown("<h2>Farmer Login</h2>", unsafe_allow_html=True)
+        uname = st.text_input("Email or Username", key="login_user")
+        pword = st.text_input("Password", type="password", key="login_pass")
+        if st.button("Login", use_container_width=True):
+            user = find_user(uname, pword)
+            if user:
+                st.session_state.user = user
+                st.success("✅ Login successful! Welcome back.")
+                st.rerun()
+            else:
+                st.error("Invalid username or password.")
+        if st.button("Create Account", use_container_width=True):
+            st.session_state.show_register = True
+            st.rerun()
+
+    else:
+        st.markdown("<h2>Create Farmer Account</h2>", unsafe_allow_html=True)
+        new_user = st.text_input("Full Name", key="reg_user")
+        new_email = st.text_input("Email", key="reg_email")
+        new_pass = st.text_input("Password", type="password", key="reg_pass")
+        farm_size = st.number_input("Farm Size (hectares)", min_value=0.1, key="reg_size")
+        sensors = st.selectbox("Do you have Mytochondria Sensors?",
+                               ["No, I will enter data manually", "Yes, I have sensors"])
+        if st.button("Register", use_container_width=True):
+            if user_exists(new_user):
+                st.error("Username already exists.")
+            else:
+                create_user(new_user, new_pass, new_email)
+                st.success("✅ Account created! Please login.")
+                st.session_state.show_register = False
+                st.rerun()
+        if st.button("Back to Login", use_container_width=True):
             st.session_state.show_register = False
+            st.rerun()
 
-        if not st.session_state.show_register:
-            st.markdown("<div class='form-side'><h2>Farmer Login</h2>", unsafe_allow_html=True)
-            uname = st.text_input("Email or Username", key="login_user")
-            pword = st.text_input("Password", type="password", key="login_pass")
-            if st.button("Login", use_container_width=True):
-                user = find_user(uname, pword)
-                if user:
-                    st.session_state.user = user
-                    st.success("✅ Login successful! Welcome back.")
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password.")
-            st.markdown("""
-            <p style='text-align:center;margin-top:1rem;'>
-                Don't have an account?
-                <a href='#' onclick="window.parent.postMessage('toggleRegister','*')" style='color:#166534;font-weight:600;'>Create one</a>
-            </p>
-            </div>""", unsafe_allow_html=True)
-        else:
-            st.markdown("<div class='form-side'><h2>Create Farmer Account</h2>", unsafe_allow_html=True)
-            new_user = st.text_input("Full Name", key="reg_user")
-            new_email = st.text_input("Email", key="reg_email")
-            new_pass = st.text_input("Password", type="password", key="reg_pass")
-            farm_size = st.number_input("Farm Size (hectares)", min_value=0.1, key="reg_size")
-            sensors = st.selectbox("Do you have Mytochondria Sensors?",
-                                   ["No, I will enter data manually", "Yes, I have sensors"])
-            if st.button("Create Account", use_container_width=True):
-                if user_exists(new_user):
-                    st.error("Username already exists.")
-                else:
-                    create_user(new_user, new_pass, new_email)
-                    st.success("✅ Account created! Please login.")
-                    st.session_state.show_register = False
-                    st.rerun()
-            st.markdown("""
-            <p style='text-align:center;margin-top:1rem;'>
-                Already have an account?
-                <a href='#' onclick="window.parent.postMessage('toggleLogin','*')" style='color:#166534;font-weight:600;'>Login</a>
-            </p>
-            </div>""", unsafe_allow_html=True)
-
-    st.markdown("</div></div>", unsafe_allow_html=True)
+    st.markdown('</div></div></div>', unsafe_allow_html=True)
     st.stop()
 
 user = st.session_state.user
