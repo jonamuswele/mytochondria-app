@@ -494,177 +494,160 @@ if st.session_state.user is None:
 
     st.markdown("""
     <style>
-    /* === GLOBAL RESET === */
-    html, body, [data-testid="stAppViewContainer"], .stApp, .block-container {
+    /* === MYTOCHONDRIA LOGIN STYLE (Tailwind-Inspired) === */
+    html, body, .stApp, [data-testid="stAppViewContainer"] {
       margin: 0 !important;
       padding: 0 !important;
       height: 100% !important;
       background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
+      font-family: 'Inter', sans-serif !important;
+      color: #1f2937 !important;
     }
 
-    /* Hide Streamlit’s chrome */
-    header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {
-      display: none !important;
-    }
-
-    /* Remove Streamlit container padding */
-    section.main, div.block-container {
-      padding-top: 0 !important;
-      margin-top: 0 !important;
-      background: transparent !important;
-      max-width: 100% !important;
-    }
-
-    /* === WRAPPER (top-aligned, no forced viewport height) === */
+    /* Center container like Tailwind flex-center */
     .login-wrapper {
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      width: 50%;
-      margin: 0 auto !important;
-      padding: 1rem ;     
+      align-items: center;
+      height: 100vh;            /* full viewport height */
+      width: 100%;
+      padding: 0 1rem;
     }
 
-    /* === CARD (make sure this exists on desktop too) === */
+    /* Card (white box) */
     .login-card {
       display: flex;
       flex-direction: row;
-      width: min(960px, 92vw);
-      background: #fff;
-      border-radius: 12px;
+      width: min(900px, 90vw);
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     }
 
-    /* === LEFT SIDE (shrink padding) === */
+    /* Left side (brand info) */
     .left-side {
-      background-color: #166534;
-      color: #fff;
       flex: 1;
+      background-color: #14532d;
+      color: white;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 1.25rem 1rem;   /* was 2.5rem */
-      min-width: 260px;
+      padding: 2.5rem 1.8rem;
     }
-    .left-side h1 { font-size: 2.0rem; font-weight: 700; margin: 0 0 .6rem; }
-    .left-side p  { font-size: .98rem; text-align: center; line-height: 1.5; margin: 0; }
-    .left-side img{ width: 84px; margin-top: 1rem; }
+    .left-side h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .left-side p {
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.5;
+      opacity: 0.9;
+    }
+    .left-side img {
+      width: 90px;
+      margin-top: 1rem;
+    }
 
-    /* === RIGHT SIDE (shrink padding + headings) === */
+    /* Right side (form area) */
     .right-side {
       flex: 1;
-      background: #ffffff;
-      padding: 1.25rem 1rem;  
+      padding: 2rem 1.5rem;
       display: flex;
       flex-direction: column;
-      justify-content: center; 
-      min-width: 260px;
+      justify-content: center;
     }
     .right-side h2 {
       text-align: center;
       color: #166534;
-      font-size: 1.6rem;       /* was 2rem */
+      font-size: 1.8rem;
       font-weight: 700;
-      margin: 0 0 1rem;        /* was 2rem bottom */
+      margin-bottom: 1.2rem;
     }
 
-    /* helper note */
+    /* Inputs and buttons */
+    .stTextInput label, .stPasswordInput label {
+      color: #166534 !important;
+      font-weight: 600 !important;
+    }
+    .stTextInput input, .stPasswordInput input {
+      border: 1px solid #d1d5db !important;
+      border-radius: .5rem !important;
+      padding: .6rem .8rem !important;
+    }
+    .stTextInput input:focus, .stPasswordInput input:focus {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 0 2px rgba(16,185,129,0.3) !important;
+    }
+    .stButton>button {
+      background-color: #166534 !important;
+      color: white !important;
+      border: none !important;
+      border-radius: .5rem !important;
+      font-weight: 600 !important;
+      padding: .6rem 1rem !important;
+      transition: all 0.25s ease;
+    }
+    .stButton>button:hover {
+      background-color: #14532d !important;
+      transform: translateY(-1px);
+    }
+
+    /* Note under form */
     .login-note {
       text-align: center;
       margin-top: .8rem;
       color: #374151;
-      font-size: 0.9rem;
+      font-size: .9rem;
     }
-    .login-note a { color: #166534; font-weight: 600; text-decoration: none; }
+    .login-note a {
+      color: #166534;
+      font-weight: 600;
+      text-decoration: none;
+    }
     .login-note a:hover { text-decoration: underline; }
 
-    /* === MOBILE STACK === */
+    /* Responsive stacking like Tailwind md:flex-row */
     @media (max-width: 768px) {
       .login-card { flex-direction: column; width: 94vw; }
-      .left-side, .right-side { padding: 1rem .9rem; }
+      .left-side, .right-side { padding: 1.5rem 1rem; }
     }
     </style>
     """, unsafe_allow_html=True)
 
     # --- Layout Container ---
-    st.markdown("<div class='login-wrapper'><div class='login-card'>", unsafe_allow_html=True)
+    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
 
-    # Two columns (manual structure)
-    col1, col2 = st.columns([1, 1], gap="small")
+    # Left side
+    st.markdown("""
+    <div class="left-side">
+      <h1>Mytochondria</h1>
+      <p>Smart farming made simple.<br>
+      Empowering farmers with AI-driven soil insights and real-time data.</p>
+      <img src="https://cdn-icons-png.flaticon.com/512/4341/4341065.png" />
+    </div>
+    """, unsafe_allow_html=True)
 
-    with col1:
-        st.markdown("""
-        <div class='left-side'>
-          <h1>Mytochondria</h1>
-          <p>Smart farming made simple.<br>
-          Empowering farmers with AI-driven soil insights and real-time data.</p>
-          <img src='https://cdn-icons-png.flaticon.com/512/4341/4341065.png' alt='Farm Icon'>
-        </div>
-        """, unsafe_allow_html=True)
+    # Right side
+    st.markdown('<div class="right-side">', unsafe_allow_html=True)
+    st.markdown('<h2>Farmer Login</h2>', unsafe_allow_html=True)
 
-    with col2:
-        if "show_register" not in st.session_state:
-            st.session_state.show_register = False
+    email = st.text_input("Email", placeholder="example@farm.com")
+    password = st.text_input("Password", type="password", placeholder="••••••••")
+    login = st.button("Login")
 
-        if not st.session_state.show_register:
-            st.markdown("<div class='right-side'><h2>Farmer Login</h2>", unsafe_allow_html=True)
-            email = st.text_input("Email", key="login_email")
-            password = st.text_input("Password", type="password", key="login_password")
+    st.markdown("""
+    <p class="login-note">
+      Don't have an account?
+      <a href="#">Create one</a>
+    </p>
+    """, unsafe_allow_html=True)
 
-            login_clicked = st.button("Login", use_container_width=True)
-            if login_clicked:
-                user = find_user(email, password)
-                if user:
-                    st.session_state.user = user
-                    st.success("✅ Login successful! Welcome back.")
-                    st.rerun()
-                else:
-                    st.error("Invalid email or password.")
-
-            st.markdown("""
-            <p class='login-note'>
-                Don't have an account?
-                <a href='#' onclick="window.parent.postMessage('toggleRegister','*')">Create one</a>
-            </p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        else:
-            st.markdown("<div class='right-side'><h2>Create Farmer Account</h2>", unsafe_allow_html=True)
-            name = st.text_input("Full Name", key="reg_name")
-            email = st.text_input("Email", key="reg_email")
-            password = st.text_input("Password", type="password", key="reg_pass")
-            farm_size = st.number_input("Farm Size (in hectares)", min_value=0.1, step=0.1, key="reg_size")
-            sensor_status = st.selectbox(
-                "Do you have Mytochondria Sensors?",
-                ["No, I will enter data manually", "Yes, I have sensors to integrate"],
-                key="reg_sensor"
-            )
-
-            create_clicked = st.button("Create Account", use_container_width=True)
-            if create_clicked:
-                if user_exists(name):
-                    st.error("Username already exists.")
-                else:
-                    create_user(name, password, email)
-                    st.success("✅ Account created! Please login.")
-                    st.session_state.show_register = False
-                    st.rerun()
-
-            st.markdown("""
-            <p class='login-note'>
-                Already have an account?
-                <a href='#' onclick="window.parent.postMessage('toggleLogin','*')">Login</a>
-            </p>
-            </div>
-            """, unsafe_allow_html=True)
-
-    st.markdown("</div></div>", unsafe_allow_html=True)
-    st.stop()
+    st.markdown('</div></div></div>', unsafe_allow_html=True)
 
 logo_col, space_col, mode_col = st.columns([1, 5, 1])
 with logo_col:
