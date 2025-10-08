@@ -503,43 +503,37 @@ if st.session_state.user is None:
 
     st.markdown("""
     <style>
-    body, .stApp {
+    /* === GLOBAL RESET === */
+    html, body, [data-testid="stAppViewContainer"], .stApp, .block-container {
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100% !important;
       background: linear-gradient(135deg, #0f5132 0%, #198754 100%) !important;
-      color: #1e293b !important;
-      font-family: 'Inter', sans-serif;
       overflow: hidden !important;
     }
 
-    /* REMOVE default Streamlit padding and white container */
-    div.block-container {
-      padding-top: 0rem !important;
-      padding-bottom: 0rem !important;
+    /* Hide Streamlit’s header/footer and “Manage app” padding */
+    header, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {
+      display: none !important;
+    }
+    section.main, div.block-container {
+      padding-top: 0 !important;
       margin-top: 0 !important;
-      margin-bottom: 0 !important;
       background: transparent !important;
       max-width: 100% !important;
     }
 
-    /* Hide top blank area Streamlit reserves */
-    header, footer, [data-testid="stDecoration"] {
-      display: none !important;
-    }
-
-    section.main {
-      padding-top: 0 !important;
-      margin-top: 0 !important;
-    }
-
-    /* Center everything vertically */
+    /* === LAYOUT === */
     .login-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      height: 100vh !important;
       width: 100%;
+      margin: 0 !important;
     }
 
-    /* LOGIN CARD STYLING */
+    /* === LOGIN CARD === */
     .login-card {
       background: white;
       border-radius: 1.5rem;
@@ -550,9 +544,10 @@ if st.session_state.user is None:
       width: 80%;
       max-width: 900px;
       min-height: 500px;
+      margin: 0 auto;
     }
 
-    /* LEFT SIDE (BRAND) */
+    /* === LEFT SIDE (Brand) === */
     .left-side {
       background-color: #166534;
       color: white;
@@ -578,7 +573,7 @@ if st.session_state.user is None:
       margin-top: 1.5rem;
     }
 
-    /* RIGHT SIDE (FORM) */
+    /* === RIGHT SIDE (Form) === */
     .right-side {
       flex: 1;
       background: #ffffff;
@@ -595,7 +590,7 @@ if st.session_state.user is None:
       margin-bottom: 2rem;
     }
 
-    /* LINK TEXT */
+    /* === LINKS AND NOTES === */
     .login-note {
       text-align: center;
       margin-top: 1.2rem;
