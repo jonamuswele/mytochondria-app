@@ -462,12 +462,23 @@ def record_field_coordinates():
             # --- Ensure the farms table exists ---
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS farms (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    farm_id TEXT UNIQUE,
-                    farmer_name TEXT,
-                    coords_json TEXT,
-                    area_ha REAL,
-                    created_at TEXT
+                    farm_id       TEXT PRIMARY KEY,
+                    username      TEXT NOT NULL,
+                    system_id     TEXT,
+                    crop          TEXT,
+                    location      TEXT,
+                    lat           REAL,
+                    lon           REAL,
+                    soil_texture  TEXT,
+                    row_cm        INTEGER,
+                    plant_cm      INTEGER,
+                    spacing       TEXT,
+                    planting_date TEXT,
+                    compliance    TEXT,
+                    yield_factor  REAL,
+                    om_pct        REAL,
+                    agent_json    TEXT,
+                    FOREIGN KEY(username) REFERENCES users(username)
                 )
             """)
 
