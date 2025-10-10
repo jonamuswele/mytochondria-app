@@ -459,10 +459,11 @@ def record_field_coordinates():
 
         # Save to DB
         with _db() as conn:
-            # Ensure table exists
+            # --- Ensure the farms table exists ---
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS farms (
-                    farm_id TEXT PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    farm_id TEXT UNIQUE,
                     farmer_name TEXT,
                     coords_json TEXT,
                     area_ha REAL,
@@ -470,22 +471,25 @@ def record_field_coordinates():
                 )
             """)
 
-            # Convert polygon to GeoJSON
+            # --- Prepare data ---
             geojson = json.dumps(poly.__geo_interface__)
-            area_ha = poly.area * 111 ** 2  # approximate degrees² → ha conversion
+            # Convert roughly from degrees² to hectares (~111km per degree)
+            area_ha = (poly.area * (111 ** 2))
             now = datetime.datetime.now().isoformat()
 
-            # Try to update; if not found, insert instead
-            cursor = conn.execute("SELECT 1 FROM farms WHERE farm_id=?", ("TEMP-FIELD",))
-            if cursor.fetchone():
-                conn.execute("UPDATE farms SET coords_json=?, area_ha=?, created_at=? WHERE farm_id=?",
-                             (geojson, area_ha, now, "TEMP-FIELD"))
-            else:
-                conn.execute(
-                    "INSERT INTO farms (farm_id, farmer_name, coords_json, area_ha, created_at) VALUES (?, ?, ?, ?, ?)",
-                    ("TEMP-FIELD", "Default Farmer", geojson, area_ha, now))
+            # --- Upsert logic ---
+            conn.execute("""
+                INSERT INTO farms (farm_id, farmer_name, coords_json, area_ha, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(farm_id)
+                DO UPDATE SET
+                    coords_json = excluded.coords_json,
+                    area_ha = excluded.area_ha,
+                    created_at = excluded.created_at
+            """, ("TEMP-FIELD", "Default Farmer", geojson, area_ha, now))
 
             conn.commit()
+
         st.success("✅ Farm boundary saved and ready for GEE query!")
 def _accent(theme: str) -> str:
     return "#2563eb" if theme == "dark" else "#4caf50"
