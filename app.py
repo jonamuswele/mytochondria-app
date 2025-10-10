@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 import json, os
 import sqlite3
+import ee
 import altair as alt
 from shapely.geometry import Polygon, Point, box
 from shapely.ops import split
@@ -14,6 +15,12 @@ from streamlit_folium import st_folium
 import folium
 import geopandas as gpd
 import json, sqlite3
+
+try:
+    ee.Initialize()
+except Exception:
+    ee.Authenticate()
+    ee.Initialize()
 
 USERS_FILE = "users.json"
 
@@ -301,13 +308,55 @@ window.addEventListener("message", (event) => {
 </script>
 """, unsafe_allow_html=True)
 
+def analyze_soil_properties(poly: Polygon):
+    ee_poly = ee.Geometry.Polygon(list(poly.exterior.coords))
+
+    # Simplify very large polygons
+    area_ha = poly.area * (111**2)
+    if area_ha > 500:  # >500 hectares
+        ee_poly = ee_poly.simplify(maxError=0.001)
+
+    # Define soil property datasets from OpenLandMap
+    soil_ph = ee.Image("OpenLandMap/SOL/SOL_PH-H2O_USDA-4C1A1A_M/v02")
+    soil_n  = ee.Image("OpenLandMap/SOL/SOL_NITROGEN_TOTAL_USDA-6A1B_M/v02")
+    soil_p  = ee.Image("OpenLandMap/SOL/SOL_PHOSPHORUS_USDA-6A1B_M/v02")
+    soil_k  = ee.Image("OpenLandMap/SOL/SOL_POTASSIUM_USDA-6A1B_M/v02")
+
+    datasets = {
+        "pH (H₂O)": soil_ph,
+        "Nitrogen (%)": soil_n,
+        "Phosphorus (log kg/m³)": soil_p,
+        "Potassium (log kg/m³)": soil_k
+    }
+
+    results = {}
+    for label, img in datasets.items():
+        try:
+            stat = img.reduceRegion(
+                reducer=ee.Reducer.mean(),
+                geometry=ee_poly,
+                scale=250,
+                maxPixels=1e9
+            ).getInfo()
+            val = list(stat.values())[0] if stat else None
+            results[label] = round(val, 3) if val is not None else "N/A"
+        except Exception as e:
+            results[label] = f"Error: {str(e)[:80]}"
+
+    return results
+
+
+# --- Main Function (Walking + Drawing + Analysis) ---
 def record_field_coordinates():
-    st.header("🛰️ Locate Your Farm")
+    st.header("🛰️ Locate and Analyze Your Farm (GEE Mode)")
 
-    mode = st.radio("Select method", ["Walk My Farm (GPS)", "Draw on Map"], horizontal=True)
+    mode = st.radio("Choose a method to define your farm:",
+                    ["Walk My Farm (GPS)", "Draw on Map"],
+                    horizontal=True)
 
+    # ========== MODE 1: GPS WALKING ==========
     if mode == "Walk My Farm (GPS)":
-        st.info("Walk slowly around your field edges. Allow GPS to record points.")
+        st.info("🚶‍♂️ Walk around your field edges. GPS will capture your coordinates.")
         st.markdown("""
         <script>
         let coords = [];
@@ -323,193 +372,70 @@ def record_field_coordinates():
         </script>
         """, unsafe_allow_html=True)
 
-        data = st.session_state.get("geo_points", [])
-        st.write("📍 Collected points:", len(data))
-        if st.button("Finalize Polygon"):
-            if len(data) >= 3:
-                poly = Polygon(data)
-                if not poly.is_valid:
-                    poly = poly.buffer(0)
-                st.session_state["farm_polygon"] = poly
-                st.success("✅ Polygon created!")
+        if "geo_points" not in st.session_state:
+            st.session_state.geo_points = []
+
+        # Manual button to finalize
+        if st.button("✅ Finalize My Walk"):
+            if len(st.session_state.geo_points) >= 3:
+                poly = Polygon(st.session_state.geo_points)
+                st.session_state.farm_polygon = poly
+                st.success("✅ Farm boundary captured from GPS walk!")
             else:
-                st.error("Need at least 3 points to make a polygon.")
+                st.error("Not enough GPS points recorded yet.")
 
-
+    # ========== MODE 2: DRAWING ==========
     elif mode == "Draw on Map":
-
-        st.info("🖊️ Use the drawing tools (top-right of map) to outline your field boundary.")
-
-        from folium.plugins import Draw
-
-        from streamlit_folium import st_folium
-
-        import folium
-
-        # --- Initialize map in Satellite mode ---
-
+        st.info("🖊️ Use the polygon tool (top-right of the map) to outline your field boundary.")
         m = folium.Map(
-
             location=[-1.2921, 36.8219],
-
             zoom_start=15,
-
             tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-
             attr="Esri WorldImagery"
-
         )
 
-        # --- Add drawing tools ---
-
         Draw(
-
             export=True,
-
-            draw_options={
-
-                "polyline": False,
-
-                "rectangle": True,
-
-                "circle": False,
-
-                "circlemarker": False,
-
-                "marker": False,
-
-                "polygon": True,
-
-            },
-
+            draw_options={"polygon": True, "rectangle": True, "polyline": False, "circle": False, "marker": False},
             edit_options={"edit": True, "remove": True}
-
         ).add_to(m)
-
-        # --- Display the interactive map ---
 
         draw = st_folium(m, width=700, height=500)
 
-        # --- Handle output safely ---
-
         if draw and draw.get("last_active_drawing"):
+            last = draw["last_active_drawing"]
+            if "geometry" in last and "coordinates" in last["geometry"]:
+                coords = last["geometry"]["coordinates"]
+                ring = coords[0] if isinstance(coords[0][0], (list, tuple)) else coords
+                poly = Polygon([(lon, lat) for lon, lat in ring])
+                st.session_state.farm_polygon = poly
+                st.success("✅ Polygon drawn successfully!")
 
-            last_draw = draw["last_active_drawing"]
-
-            if "geometry" in last_draw and "coordinates" in last_draw["geometry"]:
-
-                coords = last_draw["geometry"]["coordinates"]
-
-                if isinstance(coords[0][0], (list, tuple)):  # Polygon
-
-                    ring = coords[0]
-
-                else:
-
-                    ring = coords
-
-                try:
-
-                    from shapely.geometry import Polygon
-
-                    poly = Polygon([(lon, lat) for lon, lat in ring])
-
-                    if not poly.is_valid:
-                        poly = poly.buffer(0)
-
-                    st.session_state["farm_polygon"] = poly
-
-                    st.success(f"✅ Polygon captured with {len(ring)} vertices.")
-
-                except Exception as e:
-
-                    st.error(f"Could not build polygon: {e}")
-
-        else:
-
-            st.info("Draw your field and click the ✔️ (finish) button.")
-
-    # When polygon ready
+    # ========== ONCE WE HAVE THE POLYGON ==========
     if "farm_polygon" in st.session_state:
-        poly = st.session_state["farm_polygon"]
-        st.write(f"🧭 Area: {poly.area:.2f} sq. degrees (approx)")
+        poly = st.session_state.farm_polygon
+        centroid = poly.centroid
+        lon, lat = centroid.x, centroid.y
+        st.write(f"📍 Field Center: **{lat:.5f}, {lon:.5f}**")
 
-        # Subdivide if needed (GEE safety)
-        def subdivide_if_large(polygon, max_side_deg=0.5):
-            minx, miny, maxx, maxy = polygon.bounds
-            dx = max_side_deg
-            dy = max_side_deg
-            tiles = []
-            x = minx
-            while x < maxx:
-                y = miny
-                while y < maxy:
-                    cell = box(x, y, x + dx, y + dy)
-                    inter = polygon.intersection(cell)
-                    if not inter.is_empty:
-                        tiles.append(inter)
-                    y += dy
-                x += dx
-            return tiles
+        # --- Trigger analysis ---
+        if st.button("🌾 Analyze Soil Data"):
+            with st.spinner("Fetching soil data from Google Earth Engine..."):
+                data = analyze_soil_properties(poly)
 
-        if poly.area > 0.2:  # arbitrary threshold
-            tiles = subdivide_if_large(poly)
-            st.warning(f"Polygon too large. Split into {len(tiles)} sub-polygons for analysis.")
-            st.session_state["farm_tiles"] = tiles
+            st.success("✅ Soil Analysis Complete!")
+            st.write("### 📊 Soil Properties Summary")
 
-        # Save to DB
-        with _db() as conn:
-            # --- Ensure the farms table exists ---
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS farms (
-                    farm_id       TEXT PRIMARY KEY,
-                    username      TEXT NOT NULL,
-                    system_id     TEXT,
-                    crop          TEXT,
-                    location      TEXT,
-                    lat           REAL,
-                    lon           REAL,
-                    soil_texture  TEXT,
-                    row_cm        INTEGER,
-                    plant_cm      INTEGER,
-                    spacing       TEXT,
-                    planting_date TEXT,
-                    compliance    TEXT,
-                    yield_factor  REAL,
-                    om_pct        REAL,
-                    agent_json    TEXT,
-                    FOREIGN KEY(username) REFERENCES users(username)
-                )
-            """)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Soil pH (H₂O)", data.get("pH (H₂O)", "N/A"))
+                st.metric("Nitrogen (%)", data.get("Nitrogen (%)", "N/A"))
+            with col2:
+                st.metric("Phosphorus (log kg/m³)", data.get("Phosphorus (log kg/m³)", "N/A"))
+                st.metric("Potassium (log kg/m³)", data.get("Potassium (log kg/m³)", "N/A"))
 
-            # --- Prepare data ---
-            geojson = json.dumps(poly.__geo_interface__)
-            # Convert roughly from degrees² to hectares (~111km per degree)
-            area_ha = (poly.area * (111 ** 2))
-            now = datetime.now().isoformat()
-
-            # --- Upsert logic ---
-            cur = conn.cursor()
-            cur.execute("SELECT 1 FROM farms WHERE farm_id=?", ("TEMP-FIELD",))
-            exists = cur.fetchone()
-
-            if exists:
-                conn.execute("""
-                    UPDATE farms
-                    SET coords_json=?, area_ha=?, created_at=?
-                    WHERE farm_id=?
-                """, (geojson, area_ha, now, "TEMP-FIELD"))
-            else:
-                conn.execute("""
-                    INSERT INTO farms (farm_id, farmer_name, coords_json, area_ha, created_at)
-                    VALUES (?, ?, ?, ?, ?)
-                """, ("TEMP-FIELD", "Default Farmer", geojson, area_ha, now))
-
-            conn.commit()
-
-            conn.commit()
-
-        st.success("✅ Farm boundary saved and ready for GEE query!")
+            st.caption("🛰 Source: Google Earth Engine — OpenLandMap Soil Data @ 250m resolution")
+            
 def _accent(theme: str) -> str:
     return "#2563eb" if theme == "dark" else "#4caf50"
 
