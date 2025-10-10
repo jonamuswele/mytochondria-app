@@ -478,15 +478,23 @@ def record_field_coordinates():
             now = datetime.now().isoformat()
 
             # --- Upsert logic ---
-            conn.execute("""
-                INSERT INTO farms (farm_id, farmer_name, coords_json, area_ha, created_at)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(farm_id)
-                DO UPDATE SET
-                    coords_json = excluded.coords_json,
-                    area_ha = excluded.area_ha,
-                    created_at = excluded.created_at
-            """, ("TEMP-FIELD", "Default Farmer", geojson, area_ha, now))
+            cur = conn.cursor()
+            cur.execute("SELECT 1 FROM farms WHERE farm_id=?", ("TEMP-FIELD",))
+            exists = cur.fetchone()
+
+            if exists:
+                conn.execute("""
+                    UPDATE farms
+                    SET coords_json=?, area_ha=?, created_at=?
+                    WHERE farm_id=?
+                """, (geojson, area_ha, now, "TEMP-FIELD"))
+            else:
+                conn.execute("""
+                    INSERT INTO farms (farm_id, farmer_name, coords_json, area_ha, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, ("TEMP-FIELD", "Default Farmer", geojson, area_ha, now))
+
+            conn.commit()
 
             conn.commit()
 
