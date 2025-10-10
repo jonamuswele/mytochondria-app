@@ -8,6 +8,11 @@ import requests
 import json, os
 import sqlite3
 import altair as alt
+from shapely.geometry import Polygon, Point, box
+from shapely.ops import split
+from streamlit_folium import st_folium
+import folium
+import geopandas as gpd
 
 USERS_FILE = "users.json"
 
@@ -280,7 +285,102 @@ else:
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = 0  # default Home
 
-tab_names = ["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks","AI Imagery Analysis", "Manage Account"]
+tab_names = ["Home", "Sensor Mode", "Crop Planner", "Tips & Tricks", "AI Imagery Analysis", "Farm Locator", "Manage Account"]
+
+st.markdown("""
+<script>
+window.addEventListener("message", (event) => {
+  if (event.data.type === "geo_update") {
+    const lat = event.data.lat;
+    const lon = event.data.lon;
+    const streamlitEvent = new CustomEvent("streamlit:setComponentValue", {detail: {value: [lat, lon]}});
+    document.dispatchEvent(streamlitEvent);
+  }
+});
+</script>
+""", unsafe_allow_html=True)
+
+def record_field_coordinates():
+    st.header("🛰️ Locate Your Farm")
+
+    mode = st.radio("Select method", ["Walk My Farm (GPS)", "Draw on Map"], horizontal=True)
+
+    if mode == "Walk My Farm (GPS)":
+        st.info("Walk slowly around your field edges. Allow GPS to record points.")
+        st.markdown("""
+        <script>
+        let coords = [];
+        function sendCoords(lat, lon) {
+          const msg = { type: "geo_update", lat: lat, lon: lon };
+          window.parent.postMessage(msg, "*");
+        }
+        if (navigator.geolocation) {
+          navigator.geolocation.watchPosition(pos => {
+            sendCoords(pos.coords.latitude, pos.coords.longitude);
+          }, err => console.log(err), {enableHighAccuracy:true});
+        }
+        </script>
+        """, unsafe_allow_html=True)
+
+        data = st.session_state.get("geo_points", [])
+        st.write("📍 Collected points:", len(data))
+        if st.button("Finalize Polygon"):
+            if len(data) >= 3:
+                poly = Polygon(data)
+                if not poly.is_valid:
+                    poly = poly.buffer(0)
+                st.session_state["farm_polygon"] = poly
+                st.success("✅ Polygon created!")
+            else:
+                st.error("Need at least 3 points to make a polygon.")
+
+    elif mode == "Draw on Map":
+        st.info("Draw your field boundary directly on the satellite map.")
+        m = folium.Map(location=[-1.2921, 36.8219], zoom_start=15, tiles="SATELLITE")
+        draw = st_folium(m, width=700, height=500)
+        if draw and "last_active_drawing" in draw:
+            coords = draw["last_active_drawing"]["geometry"]["coordinates"][0]
+            poly = Polygon([(lon, lat) for lon, lat in coords])
+            st.session_state["farm_polygon"] = poly
+            st.success(f"✅ Polygon captured with {len(coords)} vertices.")
+
+    # When polygon ready
+    if "farm_polygon" in st.session_state:
+        poly = st.session_state["farm_polygon"]
+        st.write(f"🧭 Area: {poly.area:.2f} sq. degrees (approx)")
+
+        # Subdivide if needed (GEE safety)
+        def subdivide_if_large(polygon, max_side_deg=0.5):
+            minx, miny, maxx, maxy = polygon.bounds
+            dx = max_side_deg
+            dy = max_side_deg
+            tiles = []
+            x = minx
+            while x < maxx:
+                y = miny
+                while y < maxy:
+                    cell = box(x, y, x + dx, y + dy)
+                    inter = polygon.intersection(cell)
+                    if not inter.is_empty:
+                        tiles.append(inter)
+                    y += dy
+                x += dx
+            return tiles
+
+        if poly.area > 0.2:  # arbitrary threshold
+            tiles = subdivide_if_large(poly)
+            st.warning(f"Polygon too large. Split into {len(tiles)} sub-polygons for analysis.")
+            st.session_state["farm_tiles"] = tiles
+
+        # Save to DB
+        if st.button("Save Farm Boundary"):
+            with _db() as conn:
+                conn.execute(
+                    "UPDATE farms SET coords_json=? WHERE farm_id=?",
+                    (json.dumps(poly.__geo_interface__), "TEMP-FIELD"),
+                )
+                conn.commit()
+            st.success("✅ Farm boundary saved and ready for GEE query!")
 
 def _accent(theme: str) -> str:
     return "#2563eb" if theme == "dark" else "#4caf50"
@@ -2835,7 +2935,9 @@ elif active == "AI Imagery Analysis" :
                     - Overall **plant vigor: good**.
                     """)
 
-
+elif tab == "Farm Locator":
+    record_field_coordinates()
+    
 elif active == "Manage Account":
     st.subheader("👤 Account Dashboard")
 
