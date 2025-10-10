@@ -345,11 +345,25 @@ def record_field_coordinates():
         ).add_to(m)
         folium.LayerControl().add_to(m)
         draw = st_folium(m, width=700, height=500)
-        if draw and "last_active_drawing" in draw:
-            coords = draw["last_active_drawing"]["geometry"]["coordinates"][0]
-            poly = Polygon([(lon, lat) for lon, lat in coords])
-            st.session_state["farm_polygon"] = poly
-            st.success(f"✅ Polygon captured with {len(coords)} vertices.")
+        if draw and draw.get("last_active_drawing"):
+            last_draw = draw["last_active_drawing"]
+            if "geometry" in last_draw and "coordinates" in last_draw["geometry"]:
+                coords = last_draw["geometry"]["coordinates"]
+                # Some drawings are single polygons, some are MultiPolygons — handle both
+                if isinstance(coords[0][0], (list, tuple)):  # Polygon
+                    ring = coords[0]
+                else:  # Fallback for simple LineString
+                    ring = coords
+                try:
+                    poly = Polygon([(lon, lat) for lon, lat in ring])
+                    if not poly.is_valid:
+                        poly = poly.buffer(0)
+                    st.session_state["farm_polygon"] = poly
+                    st.success(f"✅ Polygon captured with {len(ring)} vertices.")
+                except Exception as e:
+                    st.error(f"Could not build polygon: {e}")
+        else:
+            st.info("🗺️ Draw your field on the map, then click the checkmark or Finish button.")
 
     # When polygon ready
     if "farm_polygon" in st.session_state:
