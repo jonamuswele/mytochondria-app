@@ -2935,9 +2935,9 @@ elif active == "AI Imagery Analysis" :
                     - Overall **plant vigor: good**.
                     """)
 
-elif tab == "Farm Locator":
+elif active == "Farm Locator":
     record_field_coordinates()
-    
+
 elif active == "Manage Account":
     st.subheader("👤 Account Dashboard")
 
