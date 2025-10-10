@@ -336,7 +336,14 @@ def record_field_coordinates():
 
     elif mode == "Draw on Map":
         st.info("Draw your field boundary directly on the satellite map.")
-        m = folium.Map(location=[-1.2921, 36.8219], zoom_start=15, tiles="SATELLITE")
+        m = folium.Map(location=[-1.2921, 36.8219], zoom_start=15)
+        folium.TileLayer('OpenStreetMap', name='Default').add_to(m)
+        folium.TileLayer(
+            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attr='Esri WorldImagery',
+            name='Satellite'
+        ).add_to(m)
+        folium.LayerControl().add_to(m)
         draw = st_folium(m, width=700, height=500)
         if draw and "last_active_drawing" in draw:
             coords = draw["last_active_drawing"]["geometry"]["coordinates"][0]
