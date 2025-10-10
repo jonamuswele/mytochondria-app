@@ -334,37 +334,100 @@ def record_field_coordinates():
             else:
                 st.error("Need at least 3 points to make a polygon.")
 
+
     elif mode == "Draw on Map":
-        st.info("Draw your field boundary directly on the satellite map.")
-        m = folium.Map(location=[-1.2921, 36.8219], zoom_start=15)
-        folium.TileLayer('OpenStreetMap', name='Default').add_to(m)
-        folium.TileLayer(
-            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            attr='Esri WorldImagery',
-            name='Satellite'
+
+        st.info("🖊️ Use the drawing tools (top-right of map) to outline your field boundary.")
+
+        from folium.plugins import Draw
+
+        from streamlit_folium import st_folium
+
+        import folium
+
+        # --- Initialize map in Satellite mode ---
+
+        m = folium.Map(
+
+            location=[-1.2921, 36.8219],
+
+            zoom_start=15,
+
+            tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+
+            attr="Esri WorldImagery"
+
+        )
+
+        # --- Add drawing tools ---
+
+        Draw(
+
+            export=True,
+
+            draw_options={
+
+                "polyline": False,
+
+                "rectangle": True,
+
+                "circle": False,
+
+                "circlemarker": False,
+
+                "marker": False,
+
+                "polygon": True,
+
+            },
+
+            edit_options={"edit": True, "remove": True}
+
         ).add_to(m)
-        folium.LayerControl().add_to(m)
+
+        # --- Display the interactive map ---
+
         draw = st_folium(m, width=700, height=500)
+
+        # --- Handle output safely ---
+
         if draw and draw.get("last_active_drawing"):
+
             last_draw = draw["last_active_drawing"]
+
             if "geometry" in last_draw and "coordinates" in last_draw["geometry"]:
+
                 coords = last_draw["geometry"]["coordinates"]
-                # Some drawings are single polygons, some are MultiPolygons — handle both
+
                 if isinstance(coords[0][0], (list, tuple)):  # Polygon
+
                     ring = coords[0]
-                else:  # Fallback for simple LineString
+
+                else:
+
                     ring = coords
+
                 try:
+
+                    from shapely.geometry import Polygon
+
                     poly = Polygon([(lon, lat) for lon, lat in ring])
+
                     if not poly.is_valid:
                         poly = poly.buffer(0)
-                    st.session_state["farm_polygon"] = poly
-                    st.success(f"✅ Polygon captured with {len(ring)} vertices.")
-                except Exception as e:
-                    st.error(f"Could not build polygon: {e}")
-        else:
-            st.info("🗺️ Draw your field on the map, then click the checkmark or Finish button.")
 
+                    st.session_state["farm_polygon"] = poly
+
+                    st.success(f"✅ Polygon captured with {len(ring)} vertices.")
+
+                except Exception as e:
+
+                    st.error(f"Could not build polygon: {e}")
+
+        else:
+
+            st.info("Draw your field and click the ✔️ (finish) button.")
+            
     # When polygon ready
     if "farm_polygon" in st.session_state:
         poly = st.session_state["farm_polygon"]
