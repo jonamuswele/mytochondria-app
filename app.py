@@ -475,7 +475,7 @@ def record_field_coordinates():
             geojson = json.dumps(poly.__geo_interface__)
             # Convert roughly from degrees² to hectares (~111km per degree)
             area_ha = (poly.area * (111 ** 2))
-            now = datetime.datetime.now().isoformat()
+            now = datetime.now().isoformat()
 
             # --- Upsert logic ---
             conn.execute("""
@@ -3145,5 +3145,3 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
-
-
