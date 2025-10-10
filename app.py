@@ -427,7 +427,7 @@ def record_field_coordinates():
         else:
 
             st.info("Draw your field and click the ✔️ (finish) button.")
-            
+
     # When polygon ready
     if "farm_polygon" in st.session_state:
         poly = st.session_state["farm_polygon"]
@@ -457,15 +457,35 @@ def record_field_coordinates():
             st.session_state["farm_tiles"] = tiles
 
         # Save to DB
-        if st.button("Save Farm Boundary"):
-            with _db() as conn:
-                conn.execute(
-                    "UPDATE farms SET coords_json=? WHERE farm_id=?",
-                    (json.dumps(poly.__geo_interface__), "TEMP-FIELD"),
+        with _db() as conn:
+            # Ensure table exists
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS farms (
+                    farm_id TEXT PRIMARY KEY,
+                    farmer_name TEXT,
+                    coords_json TEXT,
+                    area_ha REAL,
+                    created_at TEXT
                 )
-                conn.commit()
-            st.success("✅ Farm boundary saved and ready for GEE query!")
+            """)
 
+            # Convert polygon to GeoJSON
+            geojson = json.dumps(poly.__geo_interface__)
+            area_ha = poly.area * 111 ** 2  # approximate degrees² → ha conversion
+            now = datetime.datetime.now().isoformat()
+
+            # Try to update; if not found, insert instead
+            cursor = conn.execute("SELECT 1 FROM farms WHERE farm_id=?", ("TEMP-FIELD",))
+            if cursor.fetchone():
+                conn.execute("UPDATE farms SET coords_json=?, area_ha=?, created_at=? WHERE farm_id=?",
+                             (geojson, area_ha, now, "TEMP-FIELD"))
+            else:
+                conn.execute(
+                    "INSERT INTO farms (farm_id, farmer_name, coords_json, area_ha, created_at) VALUES (?, ?, ?, ?, ?)",
+                    ("TEMP-FIELD", "Default Farmer", geojson, area_ha, now))
+
+            conn.commit()
+        st.success("✅ Farm boundary saved and ready for GEE query!")
 def _accent(theme: str) -> str:
     return "#2563eb" if theme == "dark" else "#4caf50"
 
