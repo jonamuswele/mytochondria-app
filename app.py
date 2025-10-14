@@ -327,56 +327,48 @@ window.addEventListener("message", (event) => {
 """, unsafe_allow_html=True)
 
 def analyze_soil_properties(poly: Polygon):
-    ee_poly = ee.Geometry.Polygon(list(poly.exterior.coords))
+    # --- Ensure proper coordinate ordering ---
+    coords = [(float(x), float(y)) for x, y in poly.exterior.coords]
+    ee_poly = ee.Geometry.Polygon(coords)
+    ee_poly = ee_poly.simplify(maxError=0.001)
 
-    def safe_load(asset_id, band=None):
+    def safe_load(asset_id, band):
         try:
-            img = ee.Image(asset_id)
-            if band:
-                img = img.select(band)
-            return img
+            return ee.Image(asset_id).select(band)
         except Exception as e:
-            st.warning(f"⚠️ Could not load {asset_id} (band {band}): {e}")
+            st.warning(f"⚠️ {asset_id} ({band}) failed: {e}")
             return None
 
-    # Use iSDAsoil datasets for Africa
-    soil_ph = safe_load("ISDASOIL/Africa/v1/ph", "mean_0_20")
-    soil_n  = safe_load("ISDASOIL/Africa/v1/nitrogen_total", "mean_0_20")
-    soil_p  = safe_load("ISDASOIL/Africa/v1/phosphorus_extractable", "mean_0_20")
-    soil_k  = safe_load("ISDASOIL/Africa/v1/potassium_extractable", "mean_0_20")
-
-    # Define how to convert raw values to meaningful units
     datasets = {
-        "Soil pH (H₂O)": (soil_ph, lambda x: x.divide(10)),  # divide by 10
-        "Nitrogen (g/kg)": (soil_n, lambda x: x.expression("exp(b/100) - 1", {"b": x})),
-        "Phosphorus (ppm)": (soil_p, lambda x: x.expression("exp(b/10) - 1", {"b": x})),
-        "Potassium (ppm)": (soil_k, lambda x: x.expression("exp(b/10) - 1", {"b": x}))
+        "Soil pH (H₂O)": ("ISDASOIL/Africa/v1/ph", "mean_0_20", lambda v: v/10),
+        "Nitrogen (%)": ("ISDASOIL/Africa/v1/nitrogen_total", "mean_0_20",
+                         lambda v: (math.exp(v/100)-1)/10),  # convert g/kg→%
+        "Phosphorus (mg/kg)": ("ISDASOIL/Africa/v1/phosphorus_extractable", "mean_0_20",
+                               lambda v: math.exp(v/10)-1),
+        "Potassium (mg/kg)": ("ISDASOIL/Africa/v1/potassium_extractable", "mean_0_20",
+                              lambda v: math.exp(v/10)-1),
     }
 
     results = {}
-    for label, (img, transform_fn) in datasets.items():
+    for label, (asset, band, transform) in datasets.items():
+        img = safe_load(asset, band)
         if img is None:
             results[label] = "N/A"
             continue
-
         try:
             stat = img.reduceRegion(
                 reducer=ee.Reducer.mean(),
                 geometry=ee_poly,
-                scale=30,  # iSDA is 30 m resolution
+                scale=30,
                 maxPixels=1e9
             ).getInfo()
-            val = list(stat.values())[0] if stat else None
+            val = next(iter(stat.values()), None) if stat else None
             if val is not None:
-                # wrap into Earth Engine object so we can apply transform
-                val_img = ee.Image.constant(val)
-                transformed = transform_fn(val_img).getInfo()
-                results[label] = round(transformed, 3)
+                results[label] = round(transform(val), 3)
             else:
                 results[label] = "N/A"
         except Exception as e:
-            results[label] = f"Error: {str(e)[:80]}"
-
+            results[label] = f"Error: {str(e)[:70]}"
     return results
 
 
