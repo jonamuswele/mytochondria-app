@@ -16,6 +16,7 @@ import folium
 import geopandas as gpd
 import json, sqlite3
 import ee, json, streamlit as st, tempfile, os
+from folium.plugins import Draw
 
 if "ee_initialized" not in st.session_state:
     try:
