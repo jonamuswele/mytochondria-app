@@ -336,35 +336,42 @@ def analyze_soil_properties(poly: Polygon):
                 img = img.select(band)
             return img
         except Exception as e:
-            st.warning(f"⚠️ Could not load {asset_id}: {e}")
+            st.warning(f"⚠️ Could not load {asset_id} (band {band}): {e}")
             return None
 
-    # ✅ Correct GEE dataset IDs + bands
-    soil_ph = safe_load("projects/soilgrids-isric/phh2o", "phh2o_mean")
-    soil_n  = safe_load("projects/soilgrids-isric/nitrogen", "nitrogen_mean")
-    soil_p  = safe_load("projects/soilgrids-isric/phosphorus", "phosphorus_mean")
-    soil_k  = safe_load("projects/soilgrids-isric/potassium", "potassium_mean")
+    # Use iSDAsoil datasets for Africa
+    soil_ph = safe_load("ISDASOIL/Africa/v1/ph", "mean_0_20")
+    soil_n  = safe_load("ISDASOIL/Africa/v1/nitrogen_total", "mean_0_20")
+    soil_p  = safe_load("ISDASOIL/Africa/v1/phosphorus_extractable", "mean_0_20")
+    soil_k  = safe_load("ISDASOIL/Africa/v1/potassium_extractable", "mean_0_20")
 
+    # Define how to convert raw values to meaningful units
     datasets = {
-        "pH (H₂O)": (soil_ph, 10),       # divide by 10
-        "Nitrogen (%)": (soil_n, 10000), # divide by 10,000
-        "Phosphorus (mg/kg)": (soil_p, 10),  # divide by 10
-        "Potassium (mg/kg)": (soil_k, 10)    # divide by 10
+        "Soil pH (H₂O)": (soil_ph, lambda x: x.divide(10)),  # divide by 10
+        "Nitrogen (g/kg)": (soil_n, lambda x: x.expression("exp(b/100) - 1", {"b": x})),
+        "Phosphorus (ppm)": (soil_p, lambda x: x.expression("exp(b/10) - 1", {"b": x})),
+        "Potassium (ppm)": (soil_k, lambda x: x.expression("exp(b/10) - 1", {"b": x}))
     }
 
     results = {}
-    for label, (img, scale_factor) in datasets.items():
+    for label, (img, transform_fn) in datasets.items():
+        if img is None:
+            results[label] = "N/A"
+            continue
+
         try:
             stat = img.reduceRegion(
                 reducer=ee.Reducer.mean(),
                 geometry=ee_poly,
-                scale=250,
+                scale=30,  # iSDA is 30 m resolution
                 maxPixels=1e9
             ).getInfo()
             val = list(stat.values())[0] if stat else None
             if val is not None:
-                val = val / scale_factor
-                results[label] = round(val, 3)
+                # wrap into Earth Engine object so we can apply transform
+                val_img = ee.Image.constant(val)
+                transformed = transform_fn(val_img).getInfo()
+                results[label] = round(transformed, 3)
             else:
                 results[label] = "N/A"
         except Exception as e:
