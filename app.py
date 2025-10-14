@@ -342,10 +342,10 @@ def analyze_soil_properties(poly: Polygon):
             st.warning(f"⚠️ Could not load {asset_id}: {e}")
             return None
 
-    soil_ph = safe_load("OpenLandMap/SOL/SOL_PH-H2O_USDA-4C1A1A_M/v01")
-    soil_n = safe_load("OpenLandMap/SOL/SOL_NITROGEN_TOTAL_USDA-6A1B_M/v01")
-    soil_p = safe_load("OpenLandMap/SOL/SOL_PHOSPHORUS_USDA-6A1B_M/v01")
-    soil_k = safe_load("OpenLandMap/SOL/SOL_POTASSIUM_USDA-6A1B_M/v01")
+    soil_ph = safe_load("projects/soilgrids-isric/phh2o_mean")
+    soil_n = safe_load("projects/soilgrids-isric/nitrogen_mean")
+    soil_p = safe_load("projects/soilgrids-isric/phosphorus_mean")
+    soil_k = safe_load("projects/soilgrids-isric/potassium_mean")
     datasets = {
         "pH (H₂O)": soil_ph,
         "Nitrogen (%)": soil_n,
@@ -3114,4 +3114,3 @@ elif active == "Manage Account":
                     st.success("✅ Farm added successfully!")
                     st.session_state.show_add_farm = False
                     st.rerun()
-
