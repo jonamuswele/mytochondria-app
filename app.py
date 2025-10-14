@@ -16,11 +16,15 @@ import folium
 import geopandas as gpd
 import json, sqlite3
 
+
 if "ee_initialized" not in st.session_state:
     try:
         key_dict = st.secrets["gee_service_account"]
         service_account = key_dict["client_email"]
-        credentials = ee.ServiceAccountCredentials(service_account, key_data=json.dumps(key_dict))
+        credentials = ee.ServiceAccountCredentials(
+            service_account,
+            key_data=json.dumps(dict(key_dict))   # ✅ FIXED HERE
+        )
         ee.Initialize(credentials, project=key_dict["project_id"])
         st.session_state.ee_initialized = True
         st.success("✅ Earth Engine connected to project mytochondria-473307")
