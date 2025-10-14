@@ -16,11 +16,16 @@ import folium
 import geopandas as gpd
 import json, sqlite3
 
-try:
-    ee.Initialize()
-except Exception:
-    ee.Authenticate()
-    ee.Initialize()
+if "ee_initialized" not in st.session_state:
+    try:
+        key_dict = st.secrets["gee_service_account"]
+        service_account = key_dict["client_email"]
+        credentials = ee.ServiceAccountCredentials(service_account, key_data=json.dumps(key_dict))
+        ee.Initialize(credentials, project=key_dict["project_id"])
+        st.session_state.ee_initialized = True
+        st.success("✅ Earth Engine connected to project mytochondria-473307")
+    except Exception as e:
+        st.error(f"❌ Earth Engine init failed: {e}")
 
 USERS_FILE = "users.json"
 
@@ -435,7 +440,7 @@ def record_field_coordinates():
                 st.metric("Potassium (log kg/m³)", data.get("Potassium (log kg/m³)", "N/A"))
 
             st.caption("🛰 Source: Google Earth Engine — OpenLandMap Soil Data @ 250m resolution")
-            
+
 def _accent(theme: str) -> str:
     return "#2563eb" if theme == "dark" else "#4caf50"
 
