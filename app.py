@@ -335,11 +335,17 @@ def analyze_soil_properties(poly: Polygon):
         ee_poly = ee_poly.simplify(maxError=0.001)
 
     # Define soil property datasets from OpenLandMap
-    soil_ph = ee.Image("OpenLandMap/SOL/SOL_PH-H2O_USDA-4C1A1A_M/v02")
-    soil_n  = ee.Image("OpenLandMap/SOL/SOL_NITROGEN_TOTAL_USDA-6A1B_M/v02")
-    soil_p  = ee.Image("OpenLandMap/SOL/SOL_PHOSPHORUS_USDA-6A1B_M/v02")
-    soil_k  = ee.Image("OpenLandMap/SOL/SOL_POTASSIUM_USDA-6A1B_M/v02")
+    def safe_load(asset_id):
+        try:
+            return ee.Image(asset_id)
+        except Exception as e:
+            st.warning(f"⚠️ Could not load {asset_id}: {e}")
+            return None
 
+    soil_ph = safe_load("OpenLandMap/SOL/SOL_PH-H2O_USDA-4C1A1A_M/v01")
+    soil_n = safe_load("OpenLandMap/SOL/SOL_NITROGEN_TOTAL_USDA-6A1B_M/v01")
+    soil_p = safe_load("OpenLandMap/SOL/SOL_PHOSPHORUS_USDA-6A1B_M/v01")
+    soil_k = safe_load("OpenLandMap/SOL/SOL_POTASSIUM_USDA-6A1B_M/v01")
     datasets = {
         "pH (H₂O)": soil_ph,
         "Nitrogen (%)": soil_n,
