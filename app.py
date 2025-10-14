@@ -329,32 +329,31 @@ window.addEventListener("message", (event) => {
 def analyze_soil_properties(poly: Polygon):
     ee_poly = ee.Geometry.Polygon(list(poly.exterior.coords))
 
-    # Simplify very large polygons
-    area_ha = poly.area * (111**2)
-    if area_ha > 500:  # >500 hectares
-        ee_poly = ee_poly.simplify(maxError=0.001)
-
-    # Define soil property datasets from OpenLandMap
-    def safe_load(asset_id):
+    def safe_load(asset_id, band=None):
         try:
-            return ee.Image(asset_id)
+            img = ee.Image(asset_id)
+            if band:
+                img = img.select(band)
+            return img
         except Exception as e:
             st.warning(f"⚠️ Could not load {asset_id}: {e}")
             return None
 
-    soil_ph = safe_load("projects/soilgrids-isric/phh2o_mean")
-    soil_n = safe_load("projects/soilgrids-isric/nitrogen_mean")
-    soil_p = safe_load("projects/soilgrids-isric/phosphorus_mean")
-    soil_k = safe_load("projects/soilgrids-isric/potassium_mean")
+    # ✅ Correct GEE dataset IDs + bands
+    soil_ph = safe_load("projects/soilgrids-isric/phh2o", "phh2o_mean")
+    soil_n  = safe_load("projects/soilgrids-isric/nitrogen", "nitrogen_mean")
+    soil_p  = safe_load("projects/soilgrids-isric/phosphorus", "phosphorus_mean")
+    soil_k  = safe_load("projects/soilgrids-isric/potassium", "potassium_mean")
+
     datasets = {
-        "pH (H₂O)": soil_ph,
-        "Nitrogen (%)": soil_n,
-        "Phosphorus (log kg/m³)": soil_p,
-        "Potassium (log kg/m³)": soil_k
+        "pH (H₂O)": (soil_ph, 10),       # divide by 10
+        "Nitrogen (%)": (soil_n, 10000), # divide by 10,000
+        "Phosphorus (mg/kg)": (soil_p, 10),  # divide by 10
+        "Potassium (mg/kg)": (soil_k, 10)    # divide by 10
     }
 
     results = {}
-    for label, img in datasets.items():
+    for label, (img, scale_factor) in datasets.items():
         try:
             stat = img.reduceRegion(
                 reducer=ee.Reducer.mean(),
@@ -363,7 +362,11 @@ def analyze_soil_properties(poly: Polygon):
                 maxPixels=1e9
             ).getInfo()
             val = list(stat.values())[0] if stat else None
-            results[label] = round(val, 3) if val is not None else "N/A"
+            if val is not None:
+                val = val / scale_factor
+                results[label] = round(val, 3)
+            else:
+                results[label] = "N/A"
         except Exception as e:
             results[label] = f"Error: {str(e)[:80]}"
 
