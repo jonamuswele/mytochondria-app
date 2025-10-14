@@ -1,6 +1,7 @@
 streamlit
-streamlit-folium
 folium
+streamlit-folium
 shapely
 earthengine-api
+geopandas
 requests
