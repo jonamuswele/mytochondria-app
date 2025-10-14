@@ -15,19 +15,27 @@ from streamlit_folium import st_folium
 import folium
 import geopandas as gpd
 import json, sqlite3
-
+import ee, json, streamlit as st, tempfile, os
 
 if "ee_initialized" not in st.session_state:
     try:
         key_dict = st.secrets["gee_service_account"]
         service_account = key_dict["client_email"]
-        credentials = ee.ServiceAccountCredentials(
-            service_account,
-            key_data=json.dumps(dict(key_dict))   # ✅ FIXED HERE
-        )
+
+        # ✅ Create a temporary JSON file for Earth Engine credentials
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as temp_file:
+            json.dump(dict(key_dict), temp_file)
+            temp_path = temp_file.name
+
+        credentials = ee.ServiceAccountCredentials(service_account, temp_path)
         ee.Initialize(credentials, project=key_dict["project_id"])
+
+        # Clean up temp file (optional)
+        os.remove(temp_path)
+
         st.session_state.ee_initialized = True
         st.success("✅ Earth Engine connected to project mytochondria-473307")
+
     except Exception as e:
         st.error(f"❌ Earth Engine init failed: {e}")
 
